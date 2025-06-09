@@ -34,6 +34,7 @@ export class skillRepository implements ISkillRepository {
               level: skill.level,
               percentage: skill.percentage,
               categorie: skill.categorie,
+              sousCategorie: skill.sousCategorie,
               certifications: skill.certifications,
               userId,
               updatedAt: new Date(),

@@ -6,7 +6,7 @@ import type { ISkillService } from "../interfaces/skill/i-skill-service";
 import type { IUserRepository } from "../interfaces/user/i-user-repository";
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { Certification } from "../models/certifications";
-import type { Skill } from "../models/skill";
+import { type Skill } from "../models/skill";
 import { ResponseHelper } from "../utils/response-helper";
 import { deleteFiles, handleFileUpload } from "../utils/upload-helper";
 import { BaseService } from "./base/base-service";
@@ -123,8 +123,15 @@ export class SkillService extends BaseService<Skill> implements ISkillService {
         return ResponseHelper.error(`User not found for skill ${skill.name}`);
       }
 
-      if (!skill.name || !skill.level) {
-        return ResponseHelper.error(`Missing name or level for skill ${i}`);
+      if (
+        !skill?.name ||
+        !skill?.categorie ||
+        !skill?.level ||
+        !skill?.sousCategorie
+      ) {
+        return ResponseHelper.error(
+          "The fields name, categorie, level, and sousCategorie are required.",
+        );
       }
 
       const existingSkill = await this.skillRepository.findByName(skill.name);
@@ -238,16 +245,46 @@ export class SkillService extends BaseService<Skill> implements ISkillService {
         }
       }
 
+      if (
+        !skillUpdate?.name ||
+        !skillUpdate?.categorie ||
+        !skillUpdate?.level ||
+        !skillUpdate?.sousCategorie
+      ) {
+        return ResponseHelper.error(
+          "The fields name, categorie, level, and sousCategorie are required.",
+        );
+      }
+
       const updatedSkill: Skill = {
         _id: skillUpdate?._id,
         userId,
-        categorie: skillUpdate?.categorie ?? "",
-        percentage: skillUpdate?.percentage ?? 0,
-        name: skillUpdate?.name ?? "",
-        level: skillUpdate?.level ?? "",
-        createdAt: existingSkill?.createdAt || new Date(),
-        updatedAt: new Date(),
+        // Classification
+        categorie: skillUpdate.categorie,
+        sousCategorie: skillUpdate.sousCategorie,
+
+        // Core skill Details
+        name: skillUpdate.name,
+        level: skillUpdate.level,
+        description: skillUpdate.description,
+        color: skillUpdate.color,
+
+        // Metrics
+        experienceNumber: skillUpdate.experienceNumber,
+        projectNumber: skillUpdate.projectNumber,
+        percentage: skillUpdate.percentage,
+
+        // Certifications
         certifications: [],
+        certifed: skillUpdate.certifed,
+
+        // Flags
+        favorite: skillUpdate.favorite,
+        apprenticeship: skillUpdate.apprenticeship,
+
+        // Timestamps
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       if (formData.has(fieldName)) {
@@ -277,6 +314,9 @@ export class SkillService extends BaseService<Skill> implements ISkillService {
               await this.certificationRepository.addCertification(
                 certification,
               );
+            if (!updatedSkill.certifications) {
+              updatedSkill.certifications = [];
+            }
             updatedSkill.certifications.push(savedCertif._id!);
           }
         } else {

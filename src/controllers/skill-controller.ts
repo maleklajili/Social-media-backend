@@ -80,19 +80,42 @@ export class SkillController extends BaseController<Skill, SkillService> {
 
       for (const skill of body.skills) {
         if (!skill) continue;
+
         if (skill.level && isValidSkillLevel(skill.level)) {
           skillDocs.push({
+            // Identity
             userId,
-            name: skill.name,
+
+            // Classification
             categorie: skill.categorie,
+            sousCategorie: skill.sousCategorie,
+
+            // Core Skill Details
+            name: skill.name,
             level: skill.level,
+            description: skill.description,
+            color: skill.color,
+
+            // Metrics
+            experienceNumber: skill.experienceNumber,
+            projectNumber: skill.projectNumber,
             percentage: skill.percentage,
+
+            // Certifications
             certifications: [],
+            certifed: skill.certifed,
+
+            // Flags
+            favorite: skill.favorite,
+            apprenticeship: skill.apprenticeship,
+
+            // Timestamps
             createdAt: new Date(),
             updatedAt: new Date(),
           });
         }
       }
+
       return this.service.createManySkills(
         skillDocs,
         formData,
@@ -122,12 +145,33 @@ export class SkillController extends BaseController<Skill, SkillService> {
         if (skill.level && isValidSkillLevel(skill.level))
           skillDocs.push({
             _id: !skill._id ? new ObjectId() : new ObjectId(skill._id),
+            // Identity
             userId,
-            name: skill.name,
+
+            // Classification
             categorie: skill.categorie,
+            sousCategorie: skill.sousCategorie,
+
+            // Core Skill Details
+            name: skill.name,
             level: skill.level,
+            description: skill.description,
+            color: skill.color,
+
+            // Metrics
+            experienceNumber: skill.experienceNumber,
+            projectNumber: skill.projectNumber,
             percentage: skill.percentage,
+
+            // Certifications
             certifications: [],
+            certifed: skill.certifed,
+
+            // Flags
+            favorite: skill.favorite,
+            apprenticeship: skill.apprenticeship,
+
+            // Timestamps
             createdAt: new Date(),
             updatedAt: new Date(),
           });

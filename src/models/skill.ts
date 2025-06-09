@@ -8,12 +8,25 @@ export enum SkillLevel {
   Expert = "expert",
   Natif = "natif",
 }
-
 export interface Skill extends BaseModel {
+  // Ownership
   userId: ObjectId;
+  // Classification
   categorie: string;
+  sousCategorie: string;
+  // Skill Details
   name: string;
-  level: SkillLevel; // enum
-  percentage: number;
-  certifications: ObjectId[];
+  level: SkillLevel;
+  description?: string;
+  color?: string;
+  // Metrics
+  experienceNumber?: number;
+  projectNumber?: number;
+  percentage?: number;
+  // Certifications
+  certifications?: ObjectId[];
+  certifed?: boolean;
+  // Flags
+  favorite?: boolean;
+  apprenticeship?: boolean;
 }
