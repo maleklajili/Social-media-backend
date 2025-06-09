@@ -30,13 +30,25 @@ export class skillRepository implements ISkillRepository {
           filter: { _id: skill._id, userId },
           update: {
             $set: {
-              name: skill.name,
-              level: skill.level,
-              percentage: skill.percentage,
+              // Classification
               categorie: skill.categorie,
               sousCategorie: skill.sousCategorie,
-              certifications: skill.certifications,
-              userId,
+              // Core Skill Details
+              name: skill.name,
+              level: skill.level,
+              description: skill.description,
+              color: skill.color,
+              // Metrics
+              experienceNumber: skill.experienceNumber,
+              projectNumber: skill.projectNumber,
+              percentage: skill.percentage,
+              // Certifications
+              certifications: [],
+              certifed: skill.certifed,
+              // Flags
+              favorite: skill.favorite,
+              apprenticeship: skill.apprenticeship,
+              // Timestamps
               updatedAt: new Date(),
             },
           },
