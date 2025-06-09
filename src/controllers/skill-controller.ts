@@ -12,6 +12,8 @@ import { userRepository } from "../repositories/user-repository";
 import { Get, Post, Put } from "../routes/router-manager";
 import { SkillService } from "../services/skill-service";
 import { ResponseHelper } from "../utils/response-helper";
+
+import { isValidSkillLevel } from "../utils/validate-skill-level";
 import { BaseController } from "./base/base-controller";
 
 export class SkillController extends BaseController<Skill, SkillService> {
@@ -68,7 +70,7 @@ export class SkillController extends BaseController<Skill, SkillService> {
 
       // Parse fields and build skills[]
       const body = await this.parseFormData<{ skills: Skill[] }>(formData);
-      // Get userId from auth middleware
+
       if (!req.user || !req.user._id || !ObjectId.isValid(req.user._id)) {
         return ResponseHelper.error("Invalid or missing user ID");
       }
@@ -78,19 +80,19 @@ export class SkillController extends BaseController<Skill, SkillService> {
 
       for (const skill of body.skills) {
         if (!skill) continue;
-
-        skillDocs.push({
-          userId,
-          name: skill.name,
-          categorie: skill.categorie,
-          level: skill.level,
-          percentage: skill.percentage,
-          certifications: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+        if (skill.level && isValidSkillLevel(skill.level)) {
+          skillDocs.push({
+            userId,
+            name: skill.name,
+            categorie: skill.categorie,
+            level: skill.level,
+            percentage: skill.percentage,
+            certifications: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
       }
-
       return this.service.createManySkills(
         skillDocs,
         formData,
@@ -117,18 +119,18 @@ export class SkillController extends BaseController<Skill, SkillService> {
         if (!skill) {
           return ResponseHelper.error("invalid data");
         }
-
-        skillDocs.push({
-          _id: !skill._id ? new ObjectId() : new ObjectId(skill._id),
-          userId,
-          name: skill.name,
-          categorie: skill.categorie,
-          level: skill.level,
-          percentage: skill.percentage,
-          certifications: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+        if (skill.level && isValidSkillLevel(skill.level))
+          skillDocs.push({
+            _id: !skill._id ? new ObjectId() : new ObjectId(skill._id),
+            userId,
+            name: skill.name,
+            categorie: skill.categorie,
+            level: skill.level,
+            percentage: skill.percentage,
+            certifications: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
       }
 
       return this.service.updateManySkills(

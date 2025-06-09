@@ -1,4 +1,7 @@
-export function createCorsResponse(response: Response): Response {
+export function createCorsResponse(
+  response: Response,
+  isFile: boolean = false,
+): Response {
   const headers = new Headers(response.headers);
   headers.set("Access-Control-Allow-Origin", "*");
   headers.set(
@@ -9,7 +12,10 @@ export function createCorsResponse(response: Response): Response {
     "Access-Control-Allow-Headers",
     "Content-Type,Authorization,ngrok-skip-browser-warning",
   );
-  headers.set("Content-Type", "application/json");
+  if (!isFile) {
+    headers.set("Content-Type", "application/json");
+  }
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
