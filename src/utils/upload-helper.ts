@@ -1,6 +1,3 @@
-import { existsSync, mkdirSync, statSync, unlinkSync } from "fs";
-import { join } from "path";
-// <-- you need to implement this
 import { ObjectId } from "mongodb"; // or mongoose.Types.ObjectId if using Mongoose
 import { syncUserStorageDelta } from "./asyn-user-storage";
 
@@ -18,7 +15,7 @@ interface HandleFileUploadOptions {
   fileName?: string | ((index: number, originalName: string) => string);
   multiple?: boolean;
   writeToDisk?: boolean;
-  userId?: string | ObjectId; // <-- new optional field
+  userId?: string | ObjectId;
 }
 
 function getExtension(filename: string): string {
@@ -30,12 +27,10 @@ export async function handleFileUpload(
   formData: FormData,
   options: HandleFileUploadOptions,
 ): Promise<UploadResult | UploadResult[] | null> {
-  if (!existsSync(options.storePath)) {
-    mkdirSync(options.storePath, { recursive: true });
-  }
-
   const writeToDisk = options.writeToDisk ?? false;
-  const userId = options.userId?.toString(); // normalize
+  const userId = options.userId?.toString();
+
+  const basePath = options.storePath.replace(/\/+$/, ""); // Clean trailing slashes
 
   if (options.multiple === true) {
     const files = formData.getAll(options.fieldName);
@@ -60,11 +55,11 @@ export async function handleFileUpload(
 
       const safeFileName = baseFileName.endsWith(originalExtension)
         ? baseFileName
-        : baseFileName + i + originalExtension;
+        : `${baseFileName}${i}${originalExtension}`;
 
       let fullPath: string | undefined;
       if (writeToDisk) {
-        fullPath = join(options.storePath, safeFileName);
+        fullPath = `${basePath}/${safeFileName}`;
         await Bun.write(fullPath, buffer);
       }
 
@@ -92,6 +87,7 @@ export async function handleFileUpload(
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
     const originalExtension = getExtension(file.name);
+
     const baseFileName =
       typeof options.fileName === "string"
         ? options.fileName
@@ -99,11 +95,11 @@ export async function handleFileUpload(
 
     const safeFileName = baseFileName.endsWith(originalExtension)
       ? baseFileName
-      : baseFileName + originalExtension;
+      : `${baseFileName}${originalExtension}`;
 
     let fullPath: string | undefined;
     if (writeToDisk) {
-      fullPath = join(options.storePath, safeFileName);
+      fullPath = `${basePath}/${safeFileName}`;
       await Bun.write(fullPath, buffer);
     }
 
@@ -124,22 +120,24 @@ export async function handleFileUpload(
 export async function deleteFiles(
   paths: string | string[] | undefined,
   basePath: string,
-  userId?: string | ObjectId, // Pass userId to update storage
+  userId?: string | ObjectId,
 ): Promise<string[]> {
   if (!paths) return [];
 
+  const cleanedBasePath = basePath.replace(/\/+$/, ""); // Clean trailing slashes
   const fileList = Array.isArray(paths) ? paths : [paths];
   const deleted: string[] = [];
   let totalFreedBytes = 0;
 
   for (const fileName of fileList) {
-    const fullPath = join(basePath, fileName);
-    if (existsSync(fullPath)) {
-      try {
-        const stats = statSync(fullPath);
-        const fileSize = stats.size;
+    const file = Bun.file(`${cleanedBasePath}/${fileName}`);
 
-        unlinkSync(fullPath);
+    if (await file.exists()) {
+      try {
+        const fileArrayBuffer = await file.arrayBuffer();
+        const fileSize = fileArrayBuffer.byteLength;
+
+        await file.delete();
         deleted.push(fileName);
         totalFreedBytes += fileSize;
       } catch (err) {
