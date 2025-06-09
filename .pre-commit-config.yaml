@@ -11,3 +11,9 @@ repos:
         entry: bun
         args: ["run", "lints"]
         language: system
+
+      - id: bun-format
+        name: bun format code
+        entry: bun
+        args: ["run", "format"]
+        language: system
