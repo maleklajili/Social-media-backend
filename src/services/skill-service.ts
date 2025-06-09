@@ -123,14 +123,9 @@ export class SkillService extends BaseService<Skill> implements ISkillService {
         return ResponseHelper.error(`User not found for skill ${skill.name}`);
       }
 
-      if (
-        !skill?.name ||
-        !skill?.categorie ||
-        !skill?.level ||
-        !skill?.sousCategorie
-      ) {
+      if (!skill?.name || !skill?.categorie || !skill?.level) {
         return ResponseHelper.error(
-          "The fields name, categorie, level, and sousCategorie are required.",
+          "The fields name, categorie, level are required.",
         );
       }
 

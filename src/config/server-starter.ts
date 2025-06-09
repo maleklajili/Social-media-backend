@@ -1,6 +1,7 @@
 import type { BaseController } from "../controllers/base/base-controller";
 
 import { Registred } from "../routes/registred";
+import { runSeeds } from "../seed/seed-runner";
 import { createCorsResponse, handleOptionsRequest } from "../utils/cors";
 import { ConnectionDatabase } from "./connection-database";
 import { EnvLoader } from "./env";
@@ -28,12 +29,14 @@ export class ServerStarter implements IServerStarter {
       return;
     }
   }
-
+  async seedRunner(): Promise<void> {
+    await runSeeds();
+  }
   async listen(port: number): Promise<void> {
     this.port = port;
 
     const router = new Registred(this.Controllers);
-
+    await this.seedRunner();
     Bun.serve({
       port: this.port,
       fetch: async (req) => {
