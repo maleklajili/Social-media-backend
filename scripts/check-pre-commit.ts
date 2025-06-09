@@ -7,6 +7,7 @@ const exist = await hookPath.exists();
 if (Bun.env.MODEV !== "DEV") {
   process.exit(0);
 }
+
 if (!exist) {
   Logger.error("Pre-commit hook not installed.", false);
   Logger.info("Run: pip install pre-commit && pre-commit install", false);
