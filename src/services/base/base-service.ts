@@ -32,6 +32,7 @@ export class BaseService<T extends BaseModel> {
 
     if (lookups) {
       for (const lookup of lookups) {
+        // Lookup Stage
         pipeline.push({
           $lookup: {
             from: lookup.from,
@@ -41,6 +42,7 @@ export class BaseService<T extends BaseModel> {
           },
         });
 
+        // Optional Unwind
         if (lookup.unwind) {
           pipeline.push({
             $unwind: {
@@ -50,17 +52,25 @@ export class BaseService<T extends BaseModel> {
           });
         }
 
+        // Select Specific Fields from Foreign Collection
         if (lookup.select) {
-          // Keep only selected fields in the joined doc
-          const projectedFields: Record<string, unknown> = {};
-          for (const field of lookup.select) {
-            projectedFields[`${lookup.as}.${field}`] = 1;
-          }
-
-          // Always preserve root-level fields
-          projectedFields["_id"] = 1;
-
-          pipeline.push({ $project: projectedFields });
+          pipeline.push({
+            $addFields: {
+              [lookup.as]: {
+                $map: {
+                  input: `$${lookup.as}`,
+                  as: "item",
+                  in: lookup.select.reduce(
+                    (acc, field) => {
+                      acc[field] = `$$item.${field}`;
+                      return acc;
+                    },
+                    {} as Record<string, unknown>,
+                  ),
+                },
+              },
+            },
+          });
         }
       }
     }
