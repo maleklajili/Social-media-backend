@@ -81,39 +81,37 @@ export class SkillController extends BaseController<Skill, SkillService> {
       for (const skill of body.skills) {
         if (!skill) continue;
 
-        if (skill.level && isValidSkillLevel(skill.level)) {
-          skillDocs.push({
-            // Identity
-            userId,
+        skillDocs.push({
+          // Identity
+          userId,
 
-            // Classification
-            categorie: skill.categorie,
-            sousCategorie: skill.sousCategorie,
+          // Classification
+          categorie: skill.categorie,
+          sousCategorie: skill.sousCategorie,
 
-            // Core Skill Details
-            name: skill.name,
-            level: skill.level,
-            description: skill.description,
-            color: skill.color,
+          // Core Skill Details
+          name: skill.name,
+          level: skill.level,
+          description: skill.description,
+          color: skill.color,
 
-            // Metrics
-            experienceNumber: skill.experienceNumber,
-            projectNumber: skill.projectNumber,
-            percentage: skill.percentage,
+          // Metrics
+          experienceNumber: skill.experienceNumber,
+          projectNumber: skill.projectNumber,
+          percentage: skill.percentage,
 
-            // Certifications
-            certifications: [],
-            certifed: skill.certifed,
+          // Certifications
+          certifications: [],
+          certifed: skill.certifed,
 
-            // Flags
-            favorite: skill.favorite,
-            apprenticeship: skill.apprenticeship,
+          // Flags
+          favorite: skill.favorite,
+          apprenticeship: skill.apprenticeship,
 
-            // Timestamps
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-        }
+          // Timestamps
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
       }
 
       return this.service.createManySkills(

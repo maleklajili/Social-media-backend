@@ -9,6 +9,7 @@ import type { Certification } from "../models/certifications";
 import { type Skill } from "../models/skill";
 import { ResponseHelper } from "../utils/response-helper";
 import { deleteFiles, handleFileUpload } from "../utils/upload-helper";
+import { isValidSkillLevel } from "../utils/validate-skill-level";
 import { BaseService } from "./base/base-service";
 
 export class SkillService extends BaseService<Skill> implements ISkillService {
@@ -123,10 +124,14 @@ export class SkillService extends BaseService<Skill> implements ISkillService {
         return ResponseHelper.error(`User not found for skill ${skill.name}`);
       }
 
-      if (!skill?.name || !skill?.categorie || !skill?.level) {
-        return ResponseHelper.error(
-          "The fields name, categorie, level are required.",
-        );
+      if (!skill?.name || !skill?.categorie) {
+        return ResponseHelper.error("The fields name, categorie are required.");
+      }
+
+      if (skill.level) {
+        if (isValidSkillLevel(skill.level)) {
+          return ResponseHelper.error("level invalid");
+        }
       }
 
       const existingSkill = await this.skillRepository.findByName(skill.name);
@@ -240,15 +245,14 @@ export class SkillService extends BaseService<Skill> implements ISkillService {
         }
       }
 
-      if (
-        !skillUpdate?.name ||
-        !skillUpdate?.categorie ||
-        !skillUpdate?.level ||
-        !skillUpdate?.sousCategorie
-      ) {
-        return ResponseHelper.error(
-          "The fields name, categorie, level, and sousCategorie are required.",
-        );
+      if (!skillUpdate?.name || !skillUpdate?.categorie) {
+        return ResponseHelper.error("The fields name, categorie are required.");
+      }
+
+      if (skillUpdate.level) {
+        if (isValidSkillLevel(skillUpdate.level)) {
+          return ResponseHelper.error("level invalid");
+        }
       }
 
       const updatedSkill: Skill = {

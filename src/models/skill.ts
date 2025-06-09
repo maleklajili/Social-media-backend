@@ -16,7 +16,7 @@ export interface Skill extends BaseModel {
   sousCategorie: string;
   // Skill Details
   name: string;
-  level: SkillLevel;
+  level?: SkillLevel;
   description?: string;
   color?: string;
   // Metrics
