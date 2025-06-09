@@ -13,7 +13,6 @@ import { Get, Post, Put } from "../routes/router-manager";
 import { SkillService } from "../services/skill-service";
 import { ResponseHelper } from "../utils/response-helper";
 
-import { isValidSkillLevel } from "../utils/validate-skill-level";
 import { BaseController } from "./base/base-controller";
 
 export class SkillController extends BaseController<Skill, SkillService> {
@@ -140,39 +139,39 @@ export class SkillController extends BaseController<Skill, SkillService> {
         if (!skill) {
           return ResponseHelper.error("invalid data");
         }
-        if (skill.level && isValidSkillLevel(skill.level))
-          skillDocs.push({
-            _id: !skill._id ? new ObjectId() : new ObjectId(skill._id),
-            // Identity
-            userId,
 
-            // Classification
-            categorie: skill.categorie,
-            sousCategorie: skill.sousCategorie,
+        skillDocs.push({
+          _id: !skill._id ? new ObjectId() : new ObjectId(skill._id),
+          // Identity
+          userId,
 
-            // Core Skill Details
-            name: skill.name,
-            level: skill.level,
-            description: skill.description,
-            color: skill.color,
+          // Classification
+          categorie: skill.categorie,
+          sousCategorie: skill.sousCategorie,
 
-            // Metrics
-            experienceNumber: skill.experienceNumber,
-            projectNumber: skill.projectNumber,
-            percentage: skill.percentage,
+          // Core Skill Details
+          name: skill.name,
+          level: skill.level,
+          description: skill.description,
+          color: skill.color,
 
-            // Certifications
-            certifications: [],
-            certifed: skill.certifed,
+          // Metrics
+          experienceNumber: skill.experienceNumber,
+          projectNumber: skill.projectNumber,
+          percentage: skill.percentage,
 
-            // Flags
-            favorite: skill.favorite,
-            apprenticeship: skill.apprenticeship,
+          // Certifications
+          certifications: [],
+          certifed: skill.certifed,
 
-            // Timestamps
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
+          // Flags
+          favorite: skill.favorite,
+          apprenticeship: skill.apprenticeship,
+
+          // Timestamps
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
       }
 
       return this.service.updateManySkills(
