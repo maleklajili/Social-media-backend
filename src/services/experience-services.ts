@@ -28,9 +28,9 @@ export class ExperienceServices
   ): Promise<Response> {
     if (
       !experience.place ||
-      experience.post ||
-      experience.entreprise ||
-      experience.startDate
+      !experience.post ||
+      !experience.entreprise ||
+      !experience.startDate
     ) {
       return ResponseHelper.error("complete all");
     }
