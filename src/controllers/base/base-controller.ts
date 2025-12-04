@@ -40,6 +40,8 @@ export abstract class BaseController<
   async getAll(
     req: RequestWithPagination,
     lookups?: LookupConfig[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    filter?: Record<string, any>,
   ): Promise<Response> {
     try {
       const pagination = req.pagination;
@@ -47,8 +49,9 @@ export abstract class BaseController<
         pagination?.skip,
         pagination?.take,
         lookups,
+        filter,
       );
-      const totalCount = this.service.countAll();
+      const totalCount = this.service.countAll(filter);
       return autoPaginateResponse(req, dataPromise, totalCount);
     } catch (error) {
       return ResponseHelper.serverError(String(error));

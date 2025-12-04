@@ -27,12 +27,14 @@ export class BaseService<T extends BaseModel> {
     skip?: number,
     limit?: number,
     lookups?: LookupConfig[],
+    filter: Filter<T> = {},
   ): Promise<WithId<T>[]> {
-    const pipeline: Document[] = [];
+    const pipeline: Document[] = [
+      { $match: filter }, // Ajoutez le filtre au début du pipeline
+    ];
 
     if (lookups) {
       for (const lookup of lookups) {
-        // Lookup Stage
         pipeline.push({
           $lookup: {
             from: lookup.from,
@@ -42,7 +44,6 @@ export class BaseService<T extends BaseModel> {
           },
         });
 
-        // Optional Unwind
         if (lookup.unwind) {
           pipeline.push({
             $unwind: {
@@ -52,7 +53,6 @@ export class BaseService<T extends BaseModel> {
           });
         }
 
-        // Select Specific Fields from Foreign Collection
         if (lookup.select) {
           pipeline.push({
             $addFields: {
@@ -83,8 +83,8 @@ export class BaseService<T extends BaseModel> {
     >;
   }
 
-  async countAll(): Promise<number> {
-    return this.collection.countDocuments();
+  async countAll(filter: Filter<T> = {}): Promise<number> {
+    return this.collection.countDocuments(filter);
   }
 
   async create(
@@ -104,5 +104,10 @@ export class BaseService<T extends BaseModel> {
 
   async deleteAll(): Promise<void> {
     await this.collection.deleteMany();
+  }
+
+  async deleteById(_id: ObjectId): Promise<void> {
+    const filter: Filter<T> = { _id } as Filter<T>;
+    await this.collection.deleteOne(filter);
   }
 }

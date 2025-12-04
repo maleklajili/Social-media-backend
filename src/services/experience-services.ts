@@ -34,6 +34,9 @@ export class ExperienceServices
     ) {
       return ResponseHelper.error("complete all");
     }
+
+    experience.userId = userId;
+
     const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.cerifications}`;
 
     if (formData.has("certificates")) {
