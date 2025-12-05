@@ -17,6 +17,6 @@ export interface BaseUser extends BaseModel {
   postalCode: number;
   phone: string;
   fullName: string;
-
+  coins: number;
   skills?: [ObjectId];
 }

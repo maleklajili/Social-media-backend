@@ -61,6 +61,7 @@ export async function createUser(
     ...userData,
     password: hashPassword,
     userName,
+    coins: 300,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
