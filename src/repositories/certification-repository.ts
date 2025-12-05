@@ -17,4 +17,23 @@ export class CertificationRepository implements ICertificationRepository {
   async deleteOne(id: ObjectId): Promise<void> {
     await this.collection.deleteOne({ _id: id });
   }
+
+  async deleteCertificationsByIds(ids: ObjectId[]): Promise<void> {
+    if (ids.length === 0) return;
+
+    await this.collection.deleteMany({
+      _id: { $in: ids },
+    });
+  }
+  async getCertificationsByIds(ids: ObjectId[]): Promise<Certification[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    const certifications = await this.collection
+      .find({ _id: { $in: ids } })
+      .toArray();
+
+    return certifications as Certification[];
+  }
 }

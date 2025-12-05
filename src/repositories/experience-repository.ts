@@ -9,6 +9,12 @@ export class ExperienceRepository implements IExerienceRepository {
   }
 
   async updatedExperience(experience: Experience): Promise<void> {
-    await this.collection.updateOne({ _id: experience._id }, experience);
+    await this.collection.updateOne(
+      {
+        _id: experience._id,
+        userId: experience.userId,
+      },
+      { $set: experience },
+    );
   }
 }
