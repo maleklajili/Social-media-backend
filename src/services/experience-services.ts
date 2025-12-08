@@ -37,7 +37,6 @@ export class ExperienceServices
     }
 
     experience.userId = userId;
-
     const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.cerifications}`;
 
     if (formData.has("certificates")) {
@@ -72,7 +71,8 @@ export class ExperienceServices
     }
     experience.startDate = new Date(experience.startDate);
     experience.endDate = new Date(experience.endDate);
-    experience.currentPost = Boolean(experience.currentPost);
+    experience.currentPost =
+      String(experience.currentPost).toLowerCase() === "true";
     await this.experienceRepository.addExperience(experience);
 
     return ResponseHelper.success(experience);

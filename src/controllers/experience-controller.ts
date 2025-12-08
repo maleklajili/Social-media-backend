@@ -39,7 +39,20 @@ export class ExperienceController extends BaseController<
       }
 
       const filter = { userId: req.user._id };
-      return super.getAll(req, undefined, filter);
+      return super.getAll(
+        req,
+        [
+          {
+            from: "certifications",
+            localField: "certificates",
+            foreignField: "_id",
+            as: "certificates",
+            select: ["_id", "file", "name", "userId"],
+            unwind: false,
+          },
+        ],
+        filter,
+      );
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

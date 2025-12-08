@@ -10,6 +10,7 @@ import type { RefreshToken } from "../refresh-token";
 import type { Skill } from "../skill";
 import type { User } from "../user";
 import type { UserStorage } from "../user-storage";
+import type { Education } from "../education";
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -22,6 +23,7 @@ export class CollectionsManager {
   static userStrorageCollection: Collection<UserStorage>;
   static experienceCollection: Collection<Experience>;
   static skillCategorieCollection: Collection<SkillCategory>;
+  static educationCollection: Collection<Education>;
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -38,5 +40,6 @@ export class CollectionsManager {
     this.experienceCollection = db.collection<Experience>("experiences");
     this.skillCategorieCollection =
       db.collection<SkillCategory>("skill-categories");
+    this.educationCollection = db.collection<Education>("educations");
   }
 }

@@ -1,4 +1,5 @@
 import AuthController from "../auth-controller";
+import { EducationController } from "../education-controller";
 import { ExperienceController } from "../experience-controller";
 import PostController from "../post-controller";
 import { SkillController } from "../skill-controller";
@@ -12,6 +13,7 @@ export class ControllerManager {
       AuthController,
       SkillController,
       ExperienceController,
+      EducationController,
     ];
   }
 }
