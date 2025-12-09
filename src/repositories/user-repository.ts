@@ -51,4 +51,23 @@ export class userRepository implements IUserRepository {
 
     return updatedUser;
   }
+
+  async addCoins(userId: ObjectId, amount: number): Promise<void> {
+    await this.collection.updateOne(
+      { _id: userId },
+      { $inc: { coins: amount } },
+    );
+  }
+  // Dans user-repository.ts
+  async removeCoins(userId: ObjectId, amount: number): Promise<void> {
+    await this.collection.updateOne(
+      { _id: userId },
+      { $inc: { coins: -amount } },
+    );
+
+    await this.collection.updateOne(
+      { _id: userId, coins: { $lt: 0 } },
+      { $set: { coins: 0 } },
+    );
+  }
 }

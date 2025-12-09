@@ -19,4 +19,6 @@ export interface IUserRepository {
     userId: ObjectId | undefined,
     userData: User,
   ): Promise<User | null>;
+  addCoins(userId: ObjectId, amount: number): Promise<void>;
+  removeCoins(userId: ObjectId, amount: number): Promise<void>;
 }

@@ -10,6 +10,7 @@ import { handleFileUpload } from "../utils/upload-helper";
 import { UPLOAD_PATHS } from "../config/config";
 import type { Certification } from "../models/certifications";
 import { FileService } from "../utils/file-service";
+import type { IUserRepository } from "../interfaces/user/i-user-repository";
 
 export class EducationServices
   extends BaseService<Education>
@@ -18,6 +19,7 @@ export class EducationServices
   constructor(
     private educationRepository: IEducationRepository,
     private certificationRepository: ICertificationRepository,
+    private userRepository: IUserRepository,
   ) {
     super(CollectionsManager.educationCollection);
   }
@@ -88,6 +90,12 @@ export class EducationServices
 
     // Save education
     await this.educationRepository.addEducation(education);
+    try {
+      await this.userRepository.addCoins(userId, 10);
+    } catch (err) {
+      return ResponseHelper.serverError(`error add coins ${String(err)}`);
+    }
+
     return ResponseHelper.success(education);
   }
 
@@ -251,9 +259,15 @@ export class EducationServices
         _id: educationId,
         userId: userId,
       });
-      console.log(existingEducation);
       if (!existingEducation) {
         return ResponseHelper.error("Education not found or access denied");
+      }
+      try {
+        await this.userRepository.removeCoins(userId, 10);
+      } catch (err) {
+        console.error("❌ Erreur lors de la suppression des coins:", err);
+        // Ne pas retourner une erreur ici - continuer la suppression
+        // Vous pouvez logger l'erreur mais continuer avec la suppression de l'éducation
       }
 
       // Supprimer les fichiers de certification associés

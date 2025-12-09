@@ -11,6 +11,7 @@ import { BaseController } from "./base/base-controller";
 import { EducationRepository } from "../repositories/education-repository";
 import { CertificationRepository } from "../repositories/certification-repository";
 import { EducationServices } from "../services/education-services";
+import { userRepository } from "../repositories/user-repository";
 
 export class EducationController extends BaseController<
   Education,
@@ -29,6 +30,7 @@ export class EducationController extends BaseController<
     return new EducationServices(
       new EducationRepository(),
       new CertificationRepository(),
+      new userRepository(),
     );
   }
 
