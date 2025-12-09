@@ -12,7 +12,7 @@ export interface Education extends BaseModel {
   current: boolean;
   type: "diploma" | "certification" | "course";
   grade?: string;
-  skills?: ObjectId[]; // Références aux compétences
+  skills?: string[]; // Références aux compétences
   certificates?: ObjectId[]; // Références aux certificats
   url?: string;
   featured?: boolean;

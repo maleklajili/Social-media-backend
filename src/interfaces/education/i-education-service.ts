@@ -9,7 +9,12 @@ export interface IEducationService {
   ): Promise<Response>;
   updateEducation(
     userId: ObjectId,
+    educationId: ObjectId,
     education: Education,
     formData: FormData,
+  ): Promise<Response>;
+  deleteEducationWithFiles(
+    userId: ObjectId,
+    educationId: ObjectId,
   ): Promise<Response>;
 }

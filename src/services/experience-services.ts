@@ -225,7 +225,8 @@ export class ExperienceServices
       experience.endDate = new Date(experience.endDate);
     }
     if (experience.currentPost !== undefined) {
-      experience.currentPost = Boolean(experience.currentPost);
+      experience.currentPost =
+        String(experience.currentPost).toLowerCase() === "true";
     }
 
     // Conserver les autres champs

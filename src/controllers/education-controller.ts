@@ -35,17 +35,29 @@ export class EducationController extends BaseController<
   @Get("/getAll", [authMiddleware, paginationMiddleware])
   async getAll(req: RequestWithPagination): Promise<Response> {
     try {
+      if (!req.user?._id) {
+        return ResponseHelper.error("Utilisateur non authentifié");
+      }
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const filter: any = { userId: req.user._id };
+      if (req.query?.type) {
+        filter.type = req.query.type;
+      }
       // Populate skills avec _id, name et category
-      return super.getAll(req, [
-        {
-          from: "skills",
-          localField: "skills",
-          foreignField: "_id",
-          as: "skills",
-          select: ["_id", "name", "category"],
-          unwind: false,
-        },
-      ]);
+      return super.getAll(
+        req,
+        [
+          {
+            from: "skills",
+            localField: "skills",
+            foreignField: "_id",
+            as: "skills",
+            select: ["_id", "name", "category"],
+            unwind: false,
+          },
+        ],
+        filter,
+      );
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
@@ -59,55 +71,31 @@ export class EducationController extends BaseController<
       }
       const formData = (await req.formData()) as FormData;
       const body = await this.parseFormData<Education>(formData);
-
-      // Parser skills si envoyé en string JSON
-      if (formData.has("skills")) {
-        try {
-          const skillsRaw = formData.get("skills") as string;
-          // Si le frontend envoie ["id1","id2"]
-          const skillIds = JSON.parse(skillsRaw);
-          if (Array.isArray(skillIds)) {
-            body.skills = skillIds.map((id: string) => new ObjectId(id));
-          } else {
-            body.skills = [];
-          }
-          body.userId = new ObjectId(req.user._id);
-        } catch {
-          console.error("Error parsing skills");
-          body.skills = [];
-        }
-      }
-
       return this.service.addEducation(req.user._id, body, formData);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
   }
 
-  @Put("/update-education", [authMiddleware])
+  @Put("/update-education/:id", [authMiddleware])
   async updateEducation(req: ServerRequest): Promise<Response> {
     try {
+      const { id } = req.params;
+
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing education id");
+      }
       if (!req.user?._id) {
         return ResponseHelper.error("undefined current user");
       }
       const formData = (await req.formData()) as FormData;
       const body = await this.parseFormData<Education>(formData);
-
-      // Parser skills si envoyé en string JSON
-      if (formData.has("skills")) {
-        const skillsRaw = formData.get("skills") as string;
-        try {
-          body.skills = JSON.parse(skillsRaw).map(
-            (id: string) => new ObjectId(id),
-          );
-        } catch (err) {
-          return ResponseHelper.serverError(
-            `Invalid skills format,${String(err)}`,
-          );
-        }
-      }
-
-      return this.service.updateEducation(req.user._id, body, formData);
+      return this.service.updateEducation(
+        req.user._id,
+        new ObjectId(id),
+        body,
+        formData,
+      );
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
@@ -117,26 +105,20 @@ export class EducationController extends BaseController<
   async deleteEducation(req: ServerRequest): Promise<Response> {
     try {
       const { id } = req.params;
-      // Vérification de l'id de l'éducation
+
       if (!id || !ObjectId.isValid(id)) {
         return ResponseHelper.error("Invalid or missing education id");
       }
-      // Vérification de l'utilisateur connecté
+
       if (!req.user?._id) {
         return ResponseHelper.error("undefined current user");
       }
 
-      const deleted = await this.service.deleteEducation(
+      // Utiliser la nouvelle méthode qui supprime aussi les fichiers
+      return this.service.deleteEducationWithFiles(
+        req.user._id,
         new ObjectId(id),
-        req.user._id, // :coche_blanche: maintenant c'est sûr que _id existe
       );
-
-      if (!deleted) {
-        return ResponseHelper.notFound("Education not found or unauthorized");
-      }
-      return ResponseHelper.success({
-        message: "Education deleted successfully",
-      });
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
