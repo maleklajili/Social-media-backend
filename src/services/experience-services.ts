@@ -1,4 +1,4 @@
-import type { ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { UPLOAD_PATHS } from "../config/config";
 import type { IExerienceRepository } from "../interfaces/experience/i-experience-repository";
 import type { IExperienceService } from "../interfaces/experience/i-experience-service";
@@ -77,7 +77,157 @@ export class ExperienceServices
 
     return ResponseHelper.success(experience);
   }
-  // Dans experience-services.ts - ajouter cette méthode
+
+  async updateExperience(
+    userId: ObjectId,
+    experienceId: ObjectId,
+    experience: Experience,
+    formData: FormData,
+  ): Promise<Response> {
+    try {
+      const existingExperience = await this.collection.findOne({
+        _id: experienceId,
+        userId: userId,
+      });
+
+      if (!existingExperience) {
+        return ResponseHelper.error("Experience not found or access denied");
+      }
+
+      const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.cerifications}`;
+
+      experience._id = experienceId;
+      experience.userId = userId;
+
+      // Initialiser avec les certificats existants
+      experience.certificates = [...(existingExperience.certificates || [])];
+
+      // 1. GÉRER LES SUPPRESSIONS DE CERTIFICATS
+      if (formData.has("filesToDelete")) {
+        try {
+          const filesToDeleteRaw = formData.get("filesToDelete") as string;
+          const filesToDelete: string[] = JSON.parse(filesToDeleteRaw);
+
+          if (filesToDelete && filesToDelete.length > 0) {
+            // Convertir les IDs string en ObjectId
+            const fileIdsToDelete = filesToDelete
+              .filter((id) => ObjectId.isValid(id))
+              .map((id) => new ObjectId(id));
+
+            if (fileIdsToDelete.length > 0) {
+              // Récupérer les certifications à supprimer
+              const certsToDelete =
+                await this.certificationRepository.getCertificationsByIds(
+                  fileIdsToDelete,
+                );
+
+              // Supprimer les fichiers physiques
+              if (certsToDelete.length > 0) {
+                await FileService.deleteMultipleCertificationFiles(
+                  certsToDelete,
+                  userId.toString(),
+                );
+              }
+
+              // Supprimer de la base de données
+              await this.certificationRepository.deleteCertificationsByIds(
+                fileIdsToDelete,
+              );
+
+              // Retirer les IDs des certificats supprimés du tableau
+              experience.certificates = experience.certificates.filter(
+                (certId) =>
+                  !fileIdsToDelete.some((toDeleteId) =>
+                    toDeleteId.equals(certId as ObjectId),
+                  ),
+              );
+            }
+          }
+        } catch (err) {
+          console.error(
+            "❌ Erreur lors de la suppression des certificats sélectionnés:",
+            err,
+          );
+          // Continuer même en cas d'erreur
+        }
+      }
+
+      // 2. AJOUTER LES NOUVEAUX CERTIFICATS
+      if (formData.has("certificates")) {
+        const uploadResults = await handleFileUpload(formData, {
+          fieldName: "certificates",
+          storePath,
+          fileName: new Date().getTime().toString(),
+          multiple: true,
+          writeToDisk: true,
+          userId: userId,
+        });
+
+        if (Array.isArray(uploadResults) && uploadResults.length > 0) {
+          for (let i = 0; i < uploadResults.length; i++) {
+            const result = uploadResults[i];
+            const name = `Certification-${experience.post} ${i + 1}`;
+
+            const certification: Certification = {
+              userId: userId,
+              file: result?.fileName || undefined,
+              name: name,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+
+            const savedCertif =
+              await this.certificationRepository.addCertification(
+                certification,
+              );
+            experience.certificates.push(savedCertif._id!);
+          }
+        }
+      }
+
+      // Conversion des dates
+      if (experience.startDate) {
+        experience.startDate = new Date(experience.startDate);
+      } else {
+        experience.startDate = existingExperience.startDate;
+      }
+
+      if (experience.endDate) {
+        experience.endDate = new Date(experience.endDate);
+      } else {
+        experience.endDate = existingExperience.endDate;
+      }
+
+      if (experience.currentPost !== undefined) {
+        experience.currentPost =
+          String(experience.currentPost).toLowerCase() === "true";
+      } else {
+        experience.currentPost = existingExperience.currentPost;
+      }
+
+      // Conserver les autres champs
+      experience.place = experience.place || existingExperience.place;
+      experience.post = experience.post || existingExperience.post;
+      experience.entreprise =
+        experience.entreprise || existingExperience.entreprise;
+      experience.KeyAchievements =
+        experience.KeyAchievements || existingExperience.KeyAchievements;
+      experience.skills = experience.skills || existingExperience.skills;
+      //experience.description = experience.description || existingExperience.description;
+
+      // Mettre à jour l'expérience
+      await this.experienceRepository.updatedExperience(experience);
+
+      // Nettoyer le dossier si vide
+      await FileService.cleanEmptyCertificationDirectory(userId.toString());
+
+      return ResponseHelper.success(experience);
+    } catch (err) {
+      console.error("❌ Erreur lors de la mise à jour de l'expérience:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
   async deleteExperienceWithFiles(
     userId: ObjectId,
     experienceId: ObjectId,
@@ -128,114 +278,5 @@ export class ExperienceServices
       console.error("❌ Erreur lors de la suppression de l'expérience:", err);
       return ResponseHelper.serverError(String(err));
     }
-  }
-  async updateExperience(
-    userId: ObjectId,
-    experienceId: ObjectId,
-    experience: Experience,
-    formData: FormData,
-  ): Promise<Response> {
-    const existingExperience = await this.collection.findOne({
-      _id: experienceId,
-      userId: userId,
-    });
-
-    if (!existingExperience) {
-      return ResponseHelper.error("Experience not found or access denied");
-    }
-
-    const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.cerifications}`;
-
-    experience._id = experienceId;
-    experience.userId = userId;
-
-    // 1. SUPPRESSION DES ANCIENS FICHIERS DE CERTIFICATION
-    if (
-      existingExperience.certificates &&
-      existingExperience.certificates.length > 0
-    ) {
-      try {
-        const existingCerts =
-          await this.certificationRepository.getCertificationsByIds(
-            existingExperience.certificates,
-          );
-
-        if (existingCerts.length > 0) {
-          // UTILISATION DE FileService DEPUIS UTILS
-          await FileService.deleteMultipleCertificationFiles(
-            existingCerts,
-            userId.toString(),
-          );
-        }
-
-        await this.certificationRepository.deleteCertificationsByIds(
-          existingExperience.certificates,
-        );
-
-        // Nettoyer le dossier si vide
-        await FileService.cleanEmptyCertificationDirectory(userId.toString());
-      } catch (err) {
-        console.error(
-          "❌ Erreur lors de la suppression des anciens certificats:",
-          err,
-        );
-        return ResponseHelper.error("Failed to delete old certificates");
-      }
-    }
-
-    // 2. Initialiser nouveau tableau pour certificats
-    experience.certificates = [];
-
-    // 3. Traiter les nouveaux certificats
-    if (formData.has("certificates")) {
-      const uploadResults = await handleFileUpload(formData, {
-        fieldName: "certificates",
-        storePath,
-        fileName: new Date().getTime().toString(),
-        multiple: true,
-        writeToDisk: true,
-        userId: userId,
-      });
-
-      if (Array.isArray(uploadResults) && uploadResults.length > 0) {
-        for (let i = 0; i < uploadResults.length; i++) {
-          const result = uploadResults[i];
-          const name = `Certification-${experience.post} ${i + 1}`;
-
-          const certification: Certification = {
-            userId: userId,
-            file: result?.fileName || undefined,
-            name: name,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
-
-          const savedCertif =
-            await this.certificationRepository.addCertification(certification);
-          experience.certificates.push(savedCertif._id!);
-        }
-      }
-    }
-
-    // Conversion des dates
-    if (experience.startDate) {
-      experience.startDate = new Date(experience.startDate);
-    }
-    if (experience.endDate) {
-      experience.endDate = new Date(experience.endDate);
-    }
-    if (experience.currentPost !== undefined) {
-      experience.currentPost =
-        String(experience.currentPost).toLowerCase() === "true";
-    }
-
-    // Conserver les autres champs
-    experience.KeyAchievements =
-      experience.KeyAchievements || existingExperience.KeyAchievements;
-    experience.skills = experience.skills || existingExperience.skills;
-
-    await this.experienceRepository.updatedExperience(experience);
-
-    return ResponseHelper.success(experience);
   }
 }

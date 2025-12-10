@@ -1,4 +1,4 @@
-import type { ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { BaseService } from "./base/base-service";
 import type { Education } from "../models/education";
 import { CollectionsManager } from "../models/base/collection-manager";
@@ -104,8 +104,8 @@ export class EducationServices
    */
   async updateEducation(
     userId: ObjectId,
-    educationId: ObjectId, // <-- Nouveau paramètre
-    education: Education, // <-- Education sans _id
+    educationId: ObjectId,
+    education: Education,
     formData: FormData,
   ): Promise<Response> {
     try {
@@ -125,43 +125,58 @@ export class EducationServices
 
       const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.cerifications}`;
 
-      // 1. SUPPRESSION DES ANCIENS CERTIFICATS
-      if (
-        existingEducation.certificates &&
-        existingEducation.certificates.length > 0
-      ) {
+      // Initialiser avec les certificats existants
+      education.certificates = [...(existingEducation.certificates || [])];
+
+      // 1. SUPPRESSION DES CERTIFICATS SÉLECTIONNÉS
+      if (formData.has("filesToDelete")) {
         try {
-          const existingCerts =
-            await this.certificationRepository.getCertificationsByIds(
-              existingEducation.certificates,
-            );
+          const filesToDeleteRaw = formData.get("filesToDelete") as string;
+          const filesToDelete: string[] = JSON.parse(filesToDeleteRaw);
 
-          if (existingCerts.length > 0) {
-            await FileService.deleteMultipleCertificationFiles(
-              existingCerts,
-              userId.toString(),
-            );
+          if (filesToDelete && filesToDelete.length > 0) {
+            // Convertir les IDs string en ObjectId
+            const fileIdsToDelete = filesToDelete
+              .filter((id) => ObjectId.isValid(id))
+              .map((id) => new ObjectId(id));
+
+            if (fileIdsToDelete.length > 0) {
+              // Récupérer les certifications à supprimer
+              const existingCerts =
+                await this.certificationRepository.getCertificationsByIds(
+                  fileIdsToDelete,
+                );
+
+              if (existingCerts.length > 0) {
+                await FileService.deleteMultipleCertificationFiles(
+                  existingCerts,
+                  userId.toString(),
+                );
+              }
+
+              await this.certificationRepository.deleteCertificationsByIds(
+                fileIdsToDelete,
+              );
+
+              // Retirer les IDs des certificats supprimés du tableau
+              education.certificates = education.certificates.filter(
+                (certId) =>
+                  !fileIdsToDelete.some((toDeleteId) =>
+                    toDeleteId.equals(certId as ObjectId),
+                  ),
+              );
+            }
           }
-
-          await this.certificationRepository.deleteCertificationsByIds(
-            existingEducation.certificates,
-          );
-
-          // Nettoyer le dossier si vide
-          await FileService.cleanEmptyCertificationDirectory(userId.toString());
         } catch (err) {
           console.error(
-            "❌ Erreur lors de la suppression des anciens certificats:",
+            "❌ Erreur lors de la suppression des certificats sélectionnés:",
             err,
           );
-          // Continuer même si erreur de suppression fichiers
+          // Continuer même si erreur de suppression
         }
       }
 
-      // 2. Initialiser nouveau tableau pour certificats
-      education.certificates = [];
-
-      // 3. Traiter les nouveaux certificats
+      // 2. AJOUTER LES NOUVEAUX CERTIFICATS
       if (formData.has("certificates")) {
         const uploadResults = await handleFileUpload(formData, {
           fieldName: "certificates",
@@ -191,25 +206,21 @@ export class EducationServices
             education.certificates.push(savedCertif._id!);
           }
         }
-      } else {
-        // Si aucun nouveau certificat, conserver les anciens (s'ils n'ont pas été supprimés)
-        education.certificates = existingEducation.certificates || [];
       }
 
-      // 4. Traiter les compétences
+      // 3. Traiter les compétences
       if (formData.has("skills")) {
         const skillsRaw = formData.get("skills") as string;
         try {
           education.skills = JSON.parse(skillsRaw) as string[];
         } catch {
-          education.skills = existingEducation.skills; // Conserver anciennes en cas d'erreur
+          education.skills = existingEducation.skills;
         }
       } else {
-        // Conserver les compétences existantes si non fournies
         education.skills = existingEducation.skills;
       }
 
-      // 5. Normaliser les dates et autres champs
+      // 4. Normaliser les dates et autres champs
       if (education.startDate) {
         education.startDate = new Date(education.startDate);
       } else {
@@ -228,15 +239,18 @@ export class EducationServices
         education.current = existingEducation.current;
       }
 
-      // 6. Conserver les champs non fournis
+      // 5. Conserver les champs non fournis
       education.degree = education.degree || existingEducation.degree;
       education.school = education.school || existingEducation.school;
       education.type = education.type || existingEducation.type;
       education.description =
         education.description || existingEducation.description;
 
-      // 7. Mettre à jour l'éducation
+      // 6. Mettre à jour l'éducation
       await this.educationRepository.updateEducation(education);
+
+      // 7. Nettoyer le dossier si vide
+      await FileService.cleanEmptyCertificationDirectory(userId.toString());
 
       return ResponseHelper.success(education);
     } catch (err) {
@@ -267,7 +281,6 @@ export class EducationServices
       } catch (err) {
         console.error("❌ Erreur lors de la suppression des coins:", err);
         // Ne pas retourner une erreur ici - continuer la suppression
-        // Vous pouvez logger l'erreur mais continuer avec la suppression de l'éducation
       }
 
       // Supprimer les fichiers de certification associés

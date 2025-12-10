@@ -14,4 +14,8 @@ export interface IExperienceService {
     experience: Experience,
     formData: FormData,
   ): Promise<Response>;
+  deleteExperienceWithFiles(
+    userId: ObjectId,
+    experienceId: ObjectId,
+  ): Promise<Response>;
 }
