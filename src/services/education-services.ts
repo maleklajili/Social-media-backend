@@ -70,17 +70,6 @@ export class EducationServices
       }
     }
 
-    if (formData.has("skills")) {
-      const skillsRaw = formData.get("skills") as string;
-      try {
-        // Convert JSON string -> ObjectId[]
-        education.skills = JSON.parse(skillsRaw) as string[];
-      } catch (err) {
-        return ResponseHelper.serverError(
-          `Invalid skills format ${String(err)}`,
-        );
-      }
-    }
     // Normalize data
     education.startDate = new Date(education.startDate);
     if (education.endDate) {
@@ -206,18 +195,6 @@ export class EducationServices
             education.certificates.push(savedCertif._id!);
           }
         }
-      }
-
-      // 3. Traiter les compétences
-      if (formData.has("skills")) {
-        const skillsRaw = formData.get("skills") as string;
-        try {
-          education.skills = JSON.parse(skillsRaw) as string[];
-        } catch {
-          education.skills = existingEducation.skills;
-        }
-      } else {
-        education.skills = existingEducation.skills;
       }
 
       // 4. Normaliser les dates et autres champs
