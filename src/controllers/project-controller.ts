@@ -47,14 +47,6 @@ export class ProjectController extends BaseController<
         req,
         [
           {
-            from: "skills",
-            localField: "skills",
-            foreignField: "_id",
-            as: "skills",
-            select: ["_id", "name", "category"],
-            unwind: false,
-          },
-          {
             from: "certifications",
             localField: "certificates",
             foreignField: "_id",
