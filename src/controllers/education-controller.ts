@@ -46,20 +46,7 @@ export class EducationController extends BaseController<
         filter.type = req.query.type;
       }
       // Populate skills avec _id, name et category
-      return super.getAll(
-        req,
-        [
-          {
-            from: "skills",
-            localField: "skills",
-            foreignField: "_id",
-            as: "skills",
-            select: ["_id", "name", "category"],
-            unwind: false,
-          },
-        ],
-        filter,
-      );
+      return super.getAll(req, undefined, filter);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
