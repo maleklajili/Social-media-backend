@@ -147,6 +147,17 @@ export class ProjectServices
         // Keep existing image
         project.image = existingProject.image;
       }
+      // 5. Handle technologies
+      if (formData.has("technologies")) {
+        const techsRaw = formData.get("technologies") as string;
+        try {
+          project.technologies = JSON.parse(techsRaw) as string[];
+        } catch {
+          project.technologies = existingProject.technologies || [];
+        }
+      } else {
+        project.technologies = existingProject.technologies || [];
+      }
 
       // 6. Normalize dates
       if (project.startDate && typeof project.startDate === "string") {
