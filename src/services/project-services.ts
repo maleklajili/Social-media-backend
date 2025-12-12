@@ -41,7 +41,6 @@ export class ProjectServices
     }
 
     project.userId = userId;
-    console.log(formData);
     // Handle project image upload
     if (formData.has("image")) {
       const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.projects}`;
