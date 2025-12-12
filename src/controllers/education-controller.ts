@@ -46,7 +46,20 @@ export class EducationController extends BaseController<
         filter.type = req.query.type;
       }
       // Populate skills avec _id, name et category
-      return super.getAll(req, undefined, filter);
+      return super.getAll(
+        req,
+        [
+          {
+            from: "certifications",
+            localField: "certificates",
+            foreignField: "_id",
+            as: "certificates",
+            select: ["_id", "file", "name", "userId"],
+            unwind: false,
+          },
+        ],
+        filter,
+      );
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
