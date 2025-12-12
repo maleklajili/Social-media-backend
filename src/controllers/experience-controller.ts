@@ -11,6 +11,7 @@ import { Delete, Get, Post, Put } from "../routes/router-manager";
 import { ExperienceServices } from "../services/experience-services";
 import { ResponseHelper } from "../utils/response-helper";
 import { BaseController } from "./base/base-controller";
+import { userRepository } from "../repositories/user-repository";
 
 export class ExperienceController extends BaseController<
   Experience,
@@ -27,6 +28,7 @@ export class ExperienceController extends BaseController<
     return new ExperienceServices(
       new ExperienceRepository(),
       new CertificationRepository(),
+      new userRepository(),
     );
   }
 

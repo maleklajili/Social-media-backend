@@ -1,7 +1,7 @@
 import type { ObjectId } from "mongodb";
-import type { IOtpVerificationRepository } from "../interfaces/auth/i-otp--verification-repository";
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { OtpVerification } from "../models/otp-verification";
+import type { IOtpVerificationRepository } from "../interfaces/auth/repo/i-otp--verification-repository";
 
 export class otpVerificationRepository implements IOtpVerificationRepository {
   private collection = CollectionsManager.otpCollection;

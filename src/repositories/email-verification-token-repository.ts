@@ -1,7 +1,7 @@
 import type { ObjectId } from "mongodb";
-import type { IEmailVerificationRepository } from "../interfaces/auth/i-email-verification-token-repository";
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { EmailVerificationToken } from "../models/email-verification-token";
+import type { IEmailVerificationRepository } from "../interfaces/auth/repo/i-email-verification-token-repository";
 
 export class EmailVerificationTokenRespository
   implements IEmailVerificationRepository

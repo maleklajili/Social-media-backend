@@ -10,6 +10,7 @@ import { ResponseHelper } from "../utils/response-helper";
 import { handleFileUpload } from "../utils/upload-helper";
 import { BaseService } from "./base/base-service";
 import { FileService } from "../utils/file-service";
+import type { IUserRepository } from "../interfaces/user/i-user-repository";
 
 export class ExperienceServices
   extends BaseService<Experience>
@@ -18,6 +19,7 @@ export class ExperienceServices
   constructor(
     private experienceRepository: IExerienceRepository,
     private certificationRepository: ICertificationRepository,
+    private userRepository: IUserRepository,
   ) {
     super(CollectionsManager.experienceCollection);
   }
@@ -74,7 +76,11 @@ export class ExperienceServices
     experience.currentPost =
       String(experience.currentPost).toLowerCase() === "true";
     await this.experienceRepository.addExperience(experience);
-
+    try {
+      await this.userRepository.addCoins(userId, 10);
+    } catch (err) {
+      return ResponseHelper.serverError(`error add coins ${String(err)}`);
+    }
     return ResponseHelper.success(experience);
   }
 
@@ -194,10 +200,7 @@ export class ExperienceServices
 
       if (experience.endDate) {
         experience.endDate = new Date(experience.endDate);
-      } else {
-        experience.endDate = existingExperience.endDate;
       }
-
       if (experience.currentPost !== undefined) {
         experience.currentPost =
           String(experience.currentPost).toLowerCase() === "true";
@@ -242,7 +245,12 @@ export class ExperienceServices
       if (!existingExperience) {
         return ResponseHelper.error("Experience not found or access denied");
       }
-
+      try {
+        await this.userRepository.removeCoins(userId, 10);
+      } catch (err) {
+        console.error("❌ Erreur lors de la suppression des coins:", err);
+        // Ne pas retourner une erreur ici - continuer la suppression
+      }
       // Supprimer les fichiers de certification associés
       if (
         existingExperience.certificates &&
