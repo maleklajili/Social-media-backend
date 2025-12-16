@@ -5,12 +5,16 @@ import { CollectionsManager } from "../../models/base/collection-manager";
 import type { ILanguageRepository } from "../../interfaces/skills/i-language-repository";
 import type { ILanguageService } from "../../interfaces/skills/i-language-service";
 import { ResponseHelper } from "../../utils/response-helper";
+import type { IUserRepository } from "../../interfaces/user/i-user-repository";
 
 export class LanguageService
   extends BaseService<Language>
   implements ILanguageService
 {
-  constructor(private languageRepository: ILanguageRepository) {
+  constructor(
+    private languageRepository: ILanguageRepository,
+    private userRepository: IUserRepository,
+  ) {
     super(CollectionsManager.languageCollection);
   }
 
@@ -54,6 +58,11 @@ export class LanguageService
 
       const createdLanguage =
         await this.languageRepository.addLanguage(language);
+      try {
+        await this.userRepository.addCoins(userId, 10);
+      } catch (err) {
+        return ResponseHelper.serverError(`error add coins ${String(err)}`);
+      }
       return ResponseHelper.success(createdLanguage);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
@@ -96,7 +105,12 @@ export class LanguageService
       if (!existingLanguage || !existingLanguage.userId.equals(userId)) {
         return ResponseHelper.error("Langue non trouvée ou accès refusé");
       }
-
+      try {
+        await this.userRepository.removeCoins(userId, 10);
+      } catch (err) {
+        console.error("❌ Erreur lors de la suppression des coins:", err);
+        // Ne pas retourner une erreur ici - continuer la suppression
+      }
       const deleted = await this.languageRepository.deleteLanguage(languageId);
       if (!deleted) {
         return ResponseHelper.error("Échec de la suppression");

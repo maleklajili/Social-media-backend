@@ -10,6 +10,7 @@ import { BaseController } from "../base/base-controller";
 import { LanguageRepository } from "../../repositories/skills/language-repository";
 import { LanguageService } from "../../services/skills/language-service";
 import { authMiddleware } from "../../middleware/aut-middleware";
+import { userRepository } from "../../repositories/user-repository";
 
 export class LanguageController extends BaseController<
   Language,
@@ -25,7 +26,7 @@ export class LanguageController extends BaseController<
   }
 
   protected createService(): LanguageService {
-    return new LanguageService(new LanguageRepository());
+    return new LanguageService(new LanguageRepository(), new userRepository());
   }
 
   @Get("/getAll", [authMiddleware, paginationMiddleware])
