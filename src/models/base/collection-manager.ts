@@ -12,6 +12,7 @@ import type { User } from "../user";
 import type { UserStorage } from "../user-storage";
 import type { Education } from "../education";
 import type { Project } from "../project";
+import type { PersonalSkill } from "../skills/personal-skill";
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -26,6 +27,7 @@ export class CollectionsManager {
   static skillCategorieCollection: Collection<SkillCategory>;
   static educationCollection: Collection<Education>;
   static projectCollection: Collection<Project>;
+  static personalSkillCollection: Collection<PersonalSkill>;
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -44,5 +46,7 @@ export class CollectionsManager {
       db.collection<SkillCategory>("skill-categories");
     this.educationCollection = db.collection<Education>("educations");
     this.projectCollection = db.collection<Project>("projects");
+    this.personalSkillCollection =
+      db.collection<PersonalSkill>("personal-skills");
   }
 }

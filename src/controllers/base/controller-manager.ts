@@ -4,6 +4,7 @@ import { ExperienceController } from "../experience-controller";
 import PostController from "../post-controller";
 import { ProjectController } from "../project-controller";
 import { SkillController } from "../skill-controller";
+import { PersonalSkillController } from "../skills/personal-skill-controller";
 import UserController from "../user-controller";
 
 export class ControllerManager {
@@ -16,6 +17,7 @@ export class ControllerManager {
       ExperienceController,
       EducationController,
       ProjectController,
+      PersonalSkillController,
     ];
   }
 }
