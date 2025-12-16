@@ -16,4 +16,5 @@ export interface Language extends BaseModel {
   listening: number;
   accent?: string;
   lastPractice: string;
+  contexts?: string[];
 }

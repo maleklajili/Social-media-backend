@@ -3,29 +3,29 @@ import type { RequestWithPagination } from "../../config/interfaces/i-pagination
 import type { ServerRequest } from "../../config/interfaces/i-request";
 import { paginationMiddleware } from "../../middleware/pagination-middleware";
 import { CollectionsManager } from "../../models/base/collection-manager";
-import type { PersonalSkill } from "../../models/skills/personal-skill";
+import type { Language } from "../../models/skills/language";
 import { Delete, Get, Post, Put } from "../../routes/router-manager";
 import { ResponseHelper } from "../../utils/response-helper";
 import { BaseController } from "../base/base-controller";
-import { PersonalSkillRepository } from "../../repositories/skills/personal-skill-repository";
-import { PersonalSkillService } from "../../services/skills/personal-skill-service";
+import { LanguageRepository } from "../../repositories/skills/language-repository";
+import { LanguageService } from "../../services/skills/language-service";
 import { authMiddleware } from "../../middleware/aut-middleware";
 
-export class PersonalSkillController extends BaseController<
-  PersonalSkill,
-  PersonalSkillService
+export class LanguageController extends BaseController<
+  Language,
+  LanguageService
 > {
   constructor() {
-    super("/personal-skills");
+    super("/languages");
     this.initializeService(this.createService());
   }
 
-  protected initializeCollection(): Collection<PersonalSkill> {
-    return CollectionsManager.personalSkillCollection;
+  protected initializeCollection(): Collection<Language> {
+    return CollectionsManager.languageCollection;
   }
 
-  protected createService(): PersonalSkillService {
-    return new PersonalSkillService(new PersonalSkillRepository());
+  protected createService(): LanguageService {
+    return new LanguageService(new LanguageRepository());
   }
 
   @Get("/getAll", [authMiddleware, paginationMiddleware])
@@ -41,21 +41,21 @@ export class PersonalSkillController extends BaseController<
     }
   }
 
-  @Post("/add-personal-skill", [authMiddleware])
-  async addPersonalSkill(req: ServerRequest): Promise<Response> {
+  @Post("/add-language", [authMiddleware])
+  async addLanguage(req: ServerRequest): Promise<Response> {
     try {
       if (!req.user?._id) {
         return ResponseHelper.error("Utilisateur non authentifié");
       }
-      const body = (await req.json()) as Partial<PersonalSkill>;
-      return this.service.addPersonalSkill(req.user._id, body);
+      const body = (await req.json()) as Partial<Language>;
+      return this.service.addLanguage(req.user._id, body);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
   }
 
-  @Put("/update-personal-skill/:id", [authMiddleware])
-  async updatePersonalSkill(req: ServerRequest): Promise<Response> {
+  @Put("/update-language/:id", [authMiddleware])
+  async updateLanguage(req: ServerRequest): Promise<Response> {
     try {
       const { id } = req.params;
       if (!id || !ObjectId.isValid(id)) {
@@ -64,19 +64,15 @@ export class PersonalSkillController extends BaseController<
       if (!req.user?._id) {
         return ResponseHelper.error("Utilisateur non authentifié");
       }
-      const body = (await req.json()) as Partial<PersonalSkill>;
-      return this.service.updatePersonalSkill(
-        req.user._id,
-        new ObjectId(id),
-        body,
-      );
+      const body = (await req.json()) as Partial<Language>;
+      return this.service.updateLanguage(req.user._id, new ObjectId(id), body);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
   }
 
-  @Delete("/delete-personal-skill/:id", [authMiddleware])
-  async deletePersonalSkill(req: ServerRequest): Promise<Response> {
+  @Delete("/delete-language/:id", [authMiddleware])
+  async deleteLanguage(req: ServerRequest): Promise<Response> {
     try {
       const { id } = req.params;
       if (!id || !ObjectId.isValid(id)) {
@@ -85,20 +81,20 @@ export class PersonalSkillController extends BaseController<
       if (!req.user?._id) {
         return ResponseHelper.error("Utilisateur non authentifié");
       }
-      return this.service.deletePersonalSkill(req.user._id, new ObjectId(id));
+      return this.service.deleteLanguage(req.user._id, new ObjectId(id));
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
   }
 
-  @Get("/get-personal-skill/:id", [authMiddleware])
-  async getPersonalSkillById(req: ServerRequest): Promise<Response> {
+  @Get("/get-language/:id", [authMiddleware])
+  async getLanguageById(req: ServerRequest): Promise<Response> {
     try {
       const { id } = req.params;
       if (!id || !ObjectId.isValid(id)) {
         return ResponseHelper.error("ID invalide");
       }
-      return this.service.getPersonalSkillById(new ObjectId(id));
+      return this.service.getLanguageById(new ObjectId(id));
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
