@@ -6,6 +6,7 @@ import type { ILanguageRepository } from "../../interfaces/skills/i-language-rep
 import type { ILanguageService } from "../../interfaces/skills/i-language-service";
 import { ResponseHelper } from "../../utils/response-helper";
 import type { IUserRepository } from "../../interfaces/user/i-user-repository";
+import { COINS_CONFIG } from "../../utils/coins-config";
 
 export class LanguageService
   extends BaseService<Language>
@@ -59,7 +60,7 @@ export class LanguageService
       const createdLanguage =
         await this.languageRepository.addLanguage(language);
       try {
-        await this.userRepository.addCoins(userId, 10);
+        await this.userRepository.addCoins(userId, COINS_CONFIG.ADD_LANGUAGE);
       } catch (err) {
         return ResponseHelper.serverError(`error add coins ${String(err)}`);
       }
@@ -106,7 +107,10 @@ export class LanguageService
         return ResponseHelper.error("Langue non trouvée ou accès refusé");
       }
       try {
-        await this.userRepository.removeCoins(userId, 10);
+        await this.userRepository.removeCoins(
+          userId,
+          COINS_CONFIG.REMOVE_LANGUAGE,
+        );
       } catch (err) {
         console.error("❌ Erreur lors de la suppression des coins:", err);
         // Ne pas retourner une erreur ici - continuer la suppression
