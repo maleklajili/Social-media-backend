@@ -76,6 +76,7 @@ export class EducationServices
       education.endDate = new Date(education.endDate);
     }
     education.current = String(education.current).toLowerCase() === "true";
+    education.featured = String(education.featured).toLowerCase() === "true";
 
     // Save education
     await this.educationRepository.addEducation(education);
@@ -215,7 +216,12 @@ export class EducationServices
       } else {
         education.current = existingEducation.current;
       }
-
+      if (education.featured !== undefined) {
+        education.featured =
+          String(education.featured).toLowerCase() === "true";
+      } else {
+        education.featured = existingEducation.featured;
+      }
       // 5. Conserver les champs non fournis
       education.degree = education.degree || existingEducation.degree;
       education.school = education.school || existingEducation.school;

@@ -45,6 +45,10 @@ export class EducationController extends BaseController<
       if (req.query?.type) {
         filter.type = req.query.type;
       }
+      if (req.query?.featured !== undefined) {
+        const featuredValue = req.query.featured === "true";
+        filter.featured = featuredValue;
+      }
       // Populate skills avec _id, name et category
       return super.getAll(
         req,
