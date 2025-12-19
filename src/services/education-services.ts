@@ -207,8 +207,6 @@ export class EducationServices
 
       if (education.endDate) {
         education.endDate = new Date(education.endDate);
-      } else {
-        education.endDate = existingEducation.endDate;
       }
 
       if (education.current !== undefined) {
