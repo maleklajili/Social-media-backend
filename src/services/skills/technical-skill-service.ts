@@ -150,4 +150,89 @@ export class TechnicalSkillService
       return ResponseHelper.serverError(String(err));
     }
   }
+  async getTechnicalSkillsGroupedByCategory(
+    userId: ObjectId,
+  ): Promise<Response> {
+    try {
+      const skills =
+        await this.technicalSkillRepository.getTechnicalSkillsByUserId(userId);
+
+      // Grouper les compétences par catégorie
+      const groupedByCategory = skills.reduce(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (acc: Record<string, any[]>, skill: any) => {
+          const category = skill.category || "Autre";
+          if (!acc[category]) {
+            acc[category] = [];
+          }
+
+          // Transformer chaque compétence au format désiré
+          acc[category].push({
+            name: skill.name,
+            level: skill.level || 0,
+            certified: skill.certified || false,
+            yearsOfExperience: skill.yearsOfExperience || 0,
+            isFavorite: skill.isFavorite || false,
+            color: skill.color,
+            // Ajoutez d'autres champs si nécessaire
+          });
+
+          return acc;
+        },
+        {},
+      );
+
+      // Convertir l'objet en tableau structuré
+      const structuredResult = Object.keys(groupedByCategory).map(
+        (category, index) => {
+          // Définir l'icône en fonction de la catégorie
+          let icon;
+          switch (category.toLowerCase()) {
+            case "frontend":
+            case "développement front-end":
+              icon = { className: "h-5 w-5 text-blue-500", type: "Code" };
+              break;
+            case "backend":
+            case "développement back-end":
+              icon = { className: "h-5 w-5 text-green-500", type: "Code" };
+              break;
+            case "devops":
+            case "devops & outils":
+              icon = { className: "h-5 w-5 text-purple-500", type: "Code" };
+              break;
+            default:
+              icon = { className: "h-5 w-5 text-gray-500", type: "Code" };
+          }
+
+          return {
+            id: index + 1,
+            name: this.formatCategoryName(category),
+            icon: icon,
+            expanded: true, // Par défaut, les sections sont développées
+            skills: groupedByCategory[category],
+          };
+        },
+      );
+
+      return ResponseHelper.success(structuredResult);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  // Méthode utilitaire pour formater le nom des catégories
+  private formatCategoryName(category: string): string {
+    const categoryMap: Record<string, string> = {
+      frontend: "Développement Front-end",
+      backend: "Développement Back-end",
+      devops: "DevOps & Outils",
+      mobile: "Développement Mobile",
+      database: "Bases de données",
+      cloud: "Cloud & Infra",
+      design: "Design UI/UX",
+      other: "Autres Compétences",
+    };
+
+    return categoryMap[category.toLowerCase()] || category;
+  }
 }

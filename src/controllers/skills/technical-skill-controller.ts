@@ -88,4 +88,18 @@ export class TechnicalSkillController extends BaseController<
     }
     return this.service.getTechnicalSkillById(new ObjectId(id));
   }
+  // Dans technical-skill-controller.ts
+  @Get("/grouped-by-category", [authMiddleware])
+  async getGroupedByCategory(req: ServerRequest) {
+    try {
+      if (!req.user?._id) {
+        return ResponseHelper.error("Utilisateur non authentifié");
+      }
+      return await this.service.getTechnicalSkillsGroupedByCategory(
+        req.user._id,
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 }

@@ -15,4 +15,5 @@ export interface ITechnicalSkillService {
   ): Promise<Response>;
   deleteTechnicalSkill(userId: ObjectId, skillId: ObjectId): Promise<Response>;
   getTechnicalSkillById(skillId: ObjectId): Promise<Response>;
+  getTechnicalSkillsGroupedByCategory(userId: ObjectId): Promise<Response>;
 }
