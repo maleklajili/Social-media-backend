@@ -168,13 +168,13 @@ export class TechnicalSkillService
 
           // Transformer chaque compétence au format désiré
           acc[category].push({
+            _id: skill._id,
             name: skill.name,
             level: skill.level || 0,
             certified: skill.certified || false,
             yearsOfExperience: skill.yearsOfExperience || 0,
             isFavorite: skill.isFavorite || false,
             color: skill.color,
-            // Ajoutez d'autres champs si nécessaire
           });
 
           return acc;
