@@ -6,6 +6,7 @@ import { ProjectController } from "../project-controller";
 import { SkillController } from "../skill-controller";
 import { LanguageController } from "../skills/language-controller";
 import { PersonalSkillController } from "../skills/personal-skill-controller";
+import { TechnicalSkillController } from "../skills/technical-skill-controller";
 import UserController from "../user-controller";
 
 export class ControllerManager {
@@ -18,6 +19,7 @@ export class ControllerManager {
       ExperienceController,
       EducationController,
       ProjectController,
+      TechnicalSkillController,
       PersonalSkillController,
       LanguageController,
     ];

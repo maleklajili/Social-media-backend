@@ -14,6 +14,7 @@ import type { Education } from "../education";
 import type { Project } from "../project";
 import type { PersonalSkill } from "../skills/personal-skill";
 import type { Language } from "../skills/language";
+import type { TechnicalSkill } from "../skills/technical-skill";
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -28,6 +29,7 @@ export class CollectionsManager {
   static skillCategorieCollection: Collection<SkillCategory>;
   static educationCollection: Collection<Education>;
   static projectCollection: Collection<Project>;
+  static technicalSkillCollection: Collection<TechnicalSkill>;
   static personalSkillCollection: Collection<PersonalSkill>;
   static languageCollection: Collection<Language>;
 
@@ -48,6 +50,8 @@ export class CollectionsManager {
       db.collection<SkillCategory>("skill-categories");
     this.educationCollection = db.collection<Education>("educations");
     this.projectCollection = db.collection<Project>("projects");
+    this.technicalSkillCollection =
+      db.collection<TechnicalSkill>("technical-skills");
     this.personalSkillCollection =
       db.collection<PersonalSkill>("personal-skills");
     this.languageCollection = db.collection<Language>("languages");

@@ -13,7 +13,7 @@ export interface TechnicalSkill extends BaseModel {
   projectsCount?: number;
   isFavorite?: boolean;
   isInLearning?: boolean;
-  color: string;
+  color?: string;
   tags?: string[];
   endorsements?: ObjectId[];
 }
