@@ -175,6 +175,12 @@ export class TechnicalSkillService
             yearsOfExperience: skill.yearsOfExperience || 0,
             isFavorite: skill.isFavorite || false,
             color: skill.color,
+            endorsements: skill.endorsements,
+            icon: skill.icon || "Code",
+            projectsCount: skill.projectsCount || 0,
+            isInLearning: skill.isInLearning || false,
+            subcategory: skill.subcategory,
+            category: skill.category,
           });
 
           return acc;
