@@ -176,7 +176,6 @@ export class TechnicalSkillService
             isFavorite: skill.isFavorite || false,
             color: skill.color,
             endorsements: skill.endorsements,
-            icon: skill.icon || "Code",
             projectsCount: skill.projectsCount || 0,
             isInLearning: skill.isInLearning || false,
             subcategory: skill.subcategory,
