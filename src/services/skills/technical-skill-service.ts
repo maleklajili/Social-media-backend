@@ -8,6 +8,7 @@ import type { ITechnicalSkillService } from "../../interfaces/skills/i-technical
 import { ResponseHelper } from "../../utils/response-helper";
 import type { IUserRepository } from "../../interfaces/user/i-user-repository";
 import { COINS_CONFIG } from "../../utils/coins-config";
+import type { TransactionService } from "../transaction-services";
 
 export class TechnicalSkillService
   extends BaseService<TechnicalSkill>
@@ -16,6 +17,7 @@ export class TechnicalSkillService
   constructor(
     private technicalSkillRepository: ITechnicalSkillRepository,
     private userRepository: IUserRepository,
+    private transactionService: TransactionService,
   ) {
     super(CollectionsManager.technicalSkillCollection);
   }
@@ -62,9 +64,19 @@ export class TechnicalSkillService
 
       // Ajout de coins (optionnel)
       try {
-        await this.userRepository.addCoins(
+        await this.userRepository.addCoins(userId, COINS_CONFIG.ADD_SKILL);
+        await this.transactionService.addStandardEarning(
           userId,
-          COINS_CONFIG.ADD_SKILL || 15,
+          COINS_CONFIG.ADD_SKILL,
+          "skill",
+          createdSkill._id!,
+          `Ajout d'une compétence`,
+          {
+            name: createdSkill.name,
+            category: createdSkill.category,
+            subcategory: createdSkill.subcategory,
+            level: createdSkill.level,
+          },
         );
       } catch (coinErr) {
         console.error("Erreur lors de l'ajout de coins:", coinErr);
@@ -124,6 +136,13 @@ export class TechnicalSkillService
       try {
         await this.userRepository.removeCoins(
           userId,
+          COINS_CONFIG.REMOVE_SKILL || 10,
+        );
+        await this.transactionService.addStandardSpending(
+          userId,
+          "skill",
+          skillId,
+          `Suppression d'une compétence`,
           COINS_CONFIG.REMOVE_SKILL || 10,
         );
       } catch (coinErr) {

@@ -12,6 +12,8 @@ import { TechnicalSkillRepository } from "../../repositories/skills/technical-sk
 import { TechnicalSkillService } from "../../services/skills/technical-skill-service";
 import { userRepository } from "../../repositories/user-repository";
 import { authMiddleware } from "../../middleware/aut-middleware";
+import { TransactionService } from "../../services/transaction-services";
+import { TransactionRepository } from "../../repositories/transaction-repository";
 
 export class TechnicalSkillController extends BaseController<
   TechnicalSkill,
@@ -30,6 +32,7 @@ export class TechnicalSkillController extends BaseController<
     return new TechnicalSkillService(
       new TechnicalSkillRepository(),
       new userRepository(),
+      new TransactionService(new TransactionRepository(), new userRepository()),
     );
   }
 

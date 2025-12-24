@@ -1,4 +1,4 @@
-import type { Collection, MongoClient } from "mongodb";
+import { Collection, type MongoClient } from "mongodb";
 import { EnvLoader } from "../../config/env";
 import type { Certification } from "../certifications";
 import type { EmailVerificationToken } from "../email-verification-token";
@@ -15,6 +15,7 @@ import type { Project } from "../project";
 import type { PersonalSkill } from "../skills/personal-skill";
 import type { Language } from "../skills/language";
 import type { TechnicalSkill } from "../skills/technical-skill";
+import type { Transaction } from "../transaction";
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -32,6 +33,7 @@ export class CollectionsManager {
   static technicalSkillCollection: Collection<TechnicalSkill>;
   static personalSkillCollection: Collection<PersonalSkill>;
   static languageCollection: Collection<Language>;
+  static transactionCollection: Collection<Transaction>;
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -55,5 +57,6 @@ export class CollectionsManager {
     this.personalSkillCollection =
       db.collection<PersonalSkill>("personal-skills");
     this.languageCollection = db.collection<Language>("languages");
+    this.transactionCollection = db.collection<Transaction>("transactions");
   }
 }

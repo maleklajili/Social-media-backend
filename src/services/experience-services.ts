@@ -11,6 +11,8 @@ import { handleFileUpload } from "../utils/upload-helper";
 import { BaseService } from "./base/base-service";
 import { FileService } from "../utils/file-service";
 import type { IUserRepository } from "../interfaces/user/i-user-repository";
+import type { TransactionService } from "./transaction-services";
+import { COINS_CONFIG } from "../utils/coins-config";
 
 export class ExperienceServices
   extends BaseService<Experience>
@@ -20,6 +22,7 @@ export class ExperienceServices
     private experienceRepository: IExerienceRepository,
     private certificationRepository: ICertificationRepository,
     private userRepository: IUserRepository,
+    private transactionService: TransactionService,
   ) {
     super(CollectionsManager.experienceCollection);
   }
@@ -77,7 +80,21 @@ export class ExperienceServices
       String(experience.currentPost).toLowerCase() === "true";
     await this.experienceRepository.addExperience(experience);
     try {
-      await this.userRepository.addCoins(userId, 10);
+      await this.userRepository.addCoins(userId, COINS_CONFIG.ADD_EXPERIENCE);
+      await this.transactionService.addStandardEarning(
+        userId,
+        COINS_CONFIG.ADD_EXPERIENCE,
+        "experience",
+        experience._id!,
+        `Ajout d'une experience`,
+        {
+          post: experience.post,
+          entreprise: experience.entreprise,
+          place: experience.place,
+          startDate: experience.startDate,
+          endDate: experience.endDate,
+        },
+      );
     } catch (err) {
       return ResponseHelper.serverError(`error add coins ${String(err)}`);
     }
@@ -246,7 +263,17 @@ export class ExperienceServices
         return ResponseHelper.error("Experience not found or access denied");
       }
       try {
-        await this.userRepository.removeCoins(userId, 10);
+        await this.userRepository.removeCoins(
+          userId,
+          COINS_CONFIG.REMOVE_EXPERIENCE,
+        );
+        await this.transactionService.addStandardSpending(
+          userId,
+          "experience",
+          experienceId,
+          `Suppression d'une experience`,
+          COINS_CONFIG.REMOVE_EXPERIENCE,
+        );
       } catch (err) {
         console.error("❌ Erreur lors de la suppression des coins:", err);
         // Ne pas retourner une erreur ici - continuer la suppression

@@ -11,6 +11,8 @@ import { LanguageRepository } from "../../repositories/skills/language-repositor
 import { LanguageService } from "../../services/skills/language-service";
 import { authMiddleware } from "../../middleware/aut-middleware";
 import { userRepository } from "../../repositories/user-repository";
+import { TransactionService } from "../../services/transaction-services";
+import { TransactionRepository } from "../../repositories/transaction-repository";
 
 export class LanguageController extends BaseController<
   Language,
@@ -26,7 +28,11 @@ export class LanguageController extends BaseController<
   }
 
   protected createService(): LanguageService {
-    return new LanguageService(new LanguageRepository(), new userRepository());
+    return new LanguageService(
+      new LanguageRepository(),
+      new userRepository(),
+      new TransactionService(new TransactionRepository(), new userRepository()),
+    );
   }
 
   @Get("/getAll", [authMiddleware, paginationMiddleware])

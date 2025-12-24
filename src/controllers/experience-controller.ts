@@ -12,6 +12,8 @@ import { ExperienceServices } from "../services/experience-services";
 import { ResponseHelper } from "../utils/response-helper";
 import { BaseController } from "./base/base-controller";
 import { userRepository } from "../repositories/user-repository";
+import { TransactionService } from "../services/transaction-services";
+import { TransactionRepository } from "../repositories/transaction-repository";
 
 export class ExperienceController extends BaseController<
   Experience,
@@ -29,6 +31,7 @@ export class ExperienceController extends BaseController<
       new ExperienceRepository(),
       new CertificationRepository(),
       new userRepository(),
+      new TransactionService(new TransactionRepository(), new userRepository()),
     );
   }
 

@@ -12,6 +12,8 @@ import { ProjectRepository } from "../repositories/project-repository";
 import { CertificationRepository } from "../repositories/certification-repository";
 import { ProjectServices } from "../services/project-services";
 import { userRepository } from "../repositories/user-repository";
+import { TransactionService } from "../services/transaction-services";
+import { TransactionRepository } from "../repositories/transaction-repository";
 
 export class ProjectController extends BaseController<
   Project,
@@ -31,6 +33,7 @@ export class ProjectController extends BaseController<
       new ProjectRepository(),
       new CertificationRepository(),
       new userRepository(),
+      new TransactionService(new TransactionRepository(), new userRepository()),
     );
   }
 

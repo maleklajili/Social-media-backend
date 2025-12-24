@@ -12,6 +12,8 @@ import { EducationRepository } from "../repositories/education-repository";
 import { CertificationRepository } from "../repositories/certification-repository";
 import { EducationServices } from "../services/education-services";
 import { userRepository } from "../repositories/user-repository";
+import { TransactionService } from "../services/transaction-services";
+import { TransactionRepository } from "../repositories/transaction-repository";
 
 export class EducationController extends BaseController<
   Education,
@@ -31,6 +33,7 @@ export class EducationController extends BaseController<
       new EducationRepository(),
       new CertificationRepository(),
       new userRepository(),
+      new TransactionService(new TransactionRepository(), new userRepository()),
     );
   }
 

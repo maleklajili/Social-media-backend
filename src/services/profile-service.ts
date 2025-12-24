@@ -125,7 +125,8 @@ export class ProfileService {
       startDate: this.formatDate(exp.startDate),
       endDate: exp.currentPost ? null : this.formatDate(exp.endDate),
       description: exp.description || exp.KeyAchievements || "",
-      skills: exp.skills.map((skill: Skill) => skill.name) || [],
+      skills:
+        (exp.skills && exp.skills.map((skill: Skill) => skill.name)) || [],
       current: exp.currentPost || exp.currentPost || false,
     }));
   }

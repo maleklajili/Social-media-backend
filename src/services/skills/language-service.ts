@@ -7,6 +7,7 @@ import type { ILanguageService } from "../../interfaces/skills/i-language-servic
 import { ResponseHelper } from "../../utils/response-helper";
 import type { IUserRepository } from "../../interfaces/user/i-user-repository";
 import { COINS_CONFIG } from "../../utils/coins-config";
+import type { TransactionService } from "../transaction-services";
 
 export class LanguageService
   extends BaseService<Language>
@@ -15,6 +16,7 @@ export class LanguageService
   constructor(
     private languageRepository: ILanguageRepository,
     private userRepository: IUserRepository,
+    private transactionService: TransactionService,
   ) {
     super(CollectionsManager.languageCollection);
   }
@@ -61,6 +63,18 @@ export class LanguageService
         await this.languageRepository.addLanguage(language);
       try {
         await this.userRepository.addCoins(userId, COINS_CONFIG.ADD_LANGUAGE);
+        await this.transactionService.addStandardEarning(
+          userId,
+          COINS_CONFIG.REMOVE_LANGUAGE,
+          "language",
+          createdLanguage._id!,
+          `Ajout de la langue ${language.name}`,
+          {
+            name: language.name,
+            level: language.level,
+            proficiency: language.proficiency,
+          },
+        );
       } catch (err) {
         return ResponseHelper.serverError(`error add coins ${String(err)}`);
       }
@@ -109,6 +123,13 @@ export class LanguageService
       try {
         await this.userRepository.removeCoins(
           userId,
+          COINS_CONFIG.REMOVE_LANGUAGE,
+        );
+        await this.transactionService.addStandardSpending(
+          userId,
+          "language",
+          languageId,
+          `Suppression d'une langue`,
           COINS_CONFIG.REMOVE_LANGUAGE,
         );
       } catch (err) {

@@ -12,6 +12,8 @@ import { handleFileUpload, type UploadResult } from "../utils/upload-helper";
 import { UPLOAD_PATHS } from "../config/config";
 import { FileService } from "../utils/file-service";
 import type { IUserRepository } from "../interfaces/user/i-user-repository";
+import { COINS_CONFIG } from "../utils/coins-config";
+import type { TransactionService } from "./transaction-services";
 
 export class ProjectServices
   extends BaseService<Project>
@@ -21,6 +23,7 @@ export class ProjectServices
     private projectRepository: IProjectRepository,
     private certificationRepository: ICertificationRepository,
     private userRepository: IUserRepository,
+    private transactionService: TransactionService,
   ) {
     super(CollectionsManager.projectCollection);
   }
@@ -85,7 +88,19 @@ export class ProjectServices
 
     // Add coins to user
     try {
-      await this.userRepository.addCoins(userId, 10); // Plus de coins pour un projet
+      await this.userRepository.addCoins(userId, COINS_CONFIG.ADD_PROJECT); // Plus de coins pour un projet
+      await this.transactionService.addStandardEarning(
+        userId,
+        COINS_CONFIG.ADD_PROJECT,
+        "project",
+        project._id!,
+        "Ajout d'un projet",
+        {
+          projectTitle: project.title,
+          projectStartDate: project.startDate,
+          projectEndDate: project.endDate,
+        },
+      );
     } catch (err) {
       console.error(`Error adding coins: ${String(err)}`);
     }
@@ -236,7 +251,22 @@ export class ProjectServices
       if (existingProject.image) {
         await this.deleteProjectImage(existingProject.image, userId.toString());
       }
-
+      try {
+        await this.userRepository.removeCoins(
+          userId,
+          COINS_CONFIG.REMOVE_PROJECT,
+        );
+        await this.transactionService.addStandardSpending(
+          userId,
+          "project",
+          projectId,
+          `Suppression d'un projet`,
+          COINS_CONFIG.REMOVE_PROJECT,
+        );
+      } catch (err) {
+        console.error("❌ Erreur lors de la suppression des coins:", err);
+        // Ne pas retourner une erreur ici - continuer la suppression
+      }
       // Delete project
       await this.projectRepository.deleteProject(projectId, userId);
 

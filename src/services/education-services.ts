@@ -11,6 +11,8 @@ import { UPLOAD_PATHS } from "../config/config";
 import type { Certification } from "../models/certifications";
 import { FileService } from "../utils/file-service";
 import type { IUserRepository } from "../interfaces/user/i-user-repository";
+import type { TransactionService } from "./transaction-services";
+import { COINS_CONFIG } from "../utils/coins-config";
 
 export class EducationServices
   extends BaseService<Education>
@@ -20,6 +22,7 @@ export class EducationServices
     private educationRepository: IEducationRepository,
     private certificationRepository: ICertificationRepository,
     private userRepository: IUserRepository,
+    private transactionService: TransactionService,
   ) {
     super(CollectionsManager.educationCollection);
   }
@@ -81,7 +84,20 @@ export class EducationServices
     // Save education
     await this.educationRepository.addEducation(education);
     try {
-      await this.userRepository.addCoins(userId, 10);
+      await this.userRepository.addCoins(userId, COINS_CONFIG.ADD_EDUCATION);
+      // Enregistrer la transaction (version simplifiée)
+      await this.transactionService.addStandardEarning(
+        userId,
+        COINS_CONFIG.ADD_EDUCATION,
+        "education",
+        education._id!,
+        `Ajout d'une formation`,
+        {
+          degree: education.degree,
+          school: education.school,
+          type: education.type,
+        },
+      );
     } catch (err) {
       return ResponseHelper.serverError(`error add coins ${String(err)}`);
     }
@@ -258,7 +274,17 @@ export class EducationServices
         return ResponseHelper.error("Education not found or access denied");
       }
       try {
-        await this.userRepository.removeCoins(userId, 10);
+        await this.userRepository.removeCoins(
+          userId,
+          COINS_CONFIG.REMOVE_EDUCATION,
+        );
+        await this.transactionService.addStandardSpending(
+          userId,
+          "education",
+          educationId,
+          `Suppression d'une formation`,
+          COINS_CONFIG.REMOVE_EDUCATION,
+        );
       } catch (err) {
         console.error("❌ Erreur lors de la suppression des coins:", err);
         // Ne pas retourner une erreur ici - continuer la suppression

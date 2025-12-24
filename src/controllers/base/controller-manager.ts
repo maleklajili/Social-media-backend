@@ -8,6 +8,7 @@ import { SkillController } from "../skill-controller";
 import { LanguageController } from "../skills/language-controller";
 import { PersonalSkillController } from "../skills/personal-skill-controller";
 import { TechnicalSkillController } from "../skills/technical-skill-controller";
+import { TransactionController } from "../transaction-controller";
 import UserController from "../user-controller";
 
 export class ControllerManager {
@@ -24,6 +25,7 @@ export class ControllerManager {
       PersonalSkillController,
       LanguageController,
       ProfileController,
+      TransactionController,
     ];
   }
 }
