@@ -1,3 +1,4 @@
+import type { ObjectId } from "mongodb";
 import type { IExerienceRepository } from "../interfaces/experience/i-experience-repository";
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { Experience } from "../models/experience";
@@ -16,5 +17,8 @@ export class ExperienceRepository implements IExerienceRepository {
       },
       { $set: experience },
     );
+  }
+  async getExperiencesByUserId(userId: ObjectId): Promise<Experience[]> {
+    return this.collection.find({ userId }).toArray();
   }
 }

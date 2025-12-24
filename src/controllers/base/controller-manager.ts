@@ -2,6 +2,7 @@ import AuthController from "../auth-controller";
 import { EducationController } from "../education-controller";
 import { ExperienceController } from "../experience-controller";
 import PostController from "../post-controller";
+import { ProfileController } from "../profile-controller";
 import { ProjectController } from "../project-controller";
 import { SkillController } from "../skill-controller";
 import { LanguageController } from "../skills/language-controller";
@@ -22,6 +23,7 @@ export class ControllerManager {
       TechnicalSkillController,
       PersonalSkillController,
       LanguageController,
+      ProfileController,
     ];
   }
 }
