@@ -6,6 +6,7 @@ export interface Experience extends BaseModel {
   post: string;
   entreprise: string;
   place: string;
+  description: string;
   startDate: Date;
   endDate: Date;
   currentPost: boolean;

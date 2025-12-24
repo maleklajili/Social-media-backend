@@ -119,14 +119,14 @@ export class ProfileService {
   ): IUserProfileResponse["experiences"] {
     return experiences.map((exp, index) => ({
       id: index + 1,
-      title: exp.post || exp.title || "",
-      company: exp.entreprise || exp.company || "",
-      location: exp.place || exp.location || "",
+      title: exp.post || "",
+      company: exp.entreprise || "",
+      location: exp.place || "",
       startDate: this.formatDate(exp.startDate),
-      endDate: exp.current ? null : this.formatDate(exp.endDate),
+      endDate: exp.currentPost ? null : this.formatDate(exp.endDate),
       description: exp.description || exp.KeyAchievements || "",
       skills: exp.skills.map((skill: Skill) => skill.name) || [],
-      current: exp.current || exp.currentPost || false,
+      current: exp.currentPost || exp.currentPost || false,
     }));
   }
 
