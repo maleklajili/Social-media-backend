@@ -6,6 +6,7 @@ export const COINS_CONFIG = {
   ADD_LANGUAGE: 10,
   ADD_SKILL: 10,
   ADD_PROJECT: 10,
+  ADD_COMPANY: 50,
 
   // Pénalités de suppression (peuvent être différentes)
   REMOVE_EXPERIENCE: 10,
@@ -13,6 +14,7 @@ export const COINS_CONFIG = {
   REMOVE_LANGUAGE: 10,
   REMOVE_SKILL: 10,
   REMOVE_PROJECT: 10,
+  REMOVE_COMPANY: 50,
 } as const;
 
 export type CoinAction = keyof typeof COINS_CONFIG;
