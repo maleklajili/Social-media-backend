@@ -17,6 +17,7 @@ import type { Language } from "../skills/language";
 import type { TechnicalSkill } from "../skills/technical-skill";
 import type { Transaction } from "../transaction";
 import type { Company } from "../company";
+import type { Job } from "../job";
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -36,6 +37,7 @@ export class CollectionsManager {
   static languageCollection: Collection<Language>;
   static transactionCollection: Collection<Transaction>;
   static companyCollection: Collection<Company>;
+  static jobCollection: Collection<Job>;
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -61,5 +63,6 @@ export class CollectionsManager {
     this.languageCollection = db.collection<Language>("languages");
     this.transactionCollection = db.collection<Transaction>("transactions");
     this.companyCollection = db.collection<Company>("companies");
+    this.jobCollection = db.collection<Job>("jobs");
   }
 }

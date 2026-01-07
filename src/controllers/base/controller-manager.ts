@@ -2,6 +2,7 @@ import AuthController from "../auth-controller";
 import { CompanyController } from "../company-controller";
 import { EducationController } from "../education-controller";
 import { ExperienceController } from "../experience-controller";
+import { JobController } from "../job-controller";
 import PostController from "../post-controller";
 import { ProfileController } from "../profile-controller";
 import { ProjectController } from "../project-controller";
@@ -28,6 +29,7 @@ export class ControllerManager {
       ProfileController,
       TransactionController,
       CompanyController,
+      JobController,
     ];
   }
 }
