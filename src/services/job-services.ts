@@ -256,8 +256,7 @@ export class JobServices extends BaseService<Job> implements IJobService {
       }
 
       queryFilters.status = "active";
-      queryFilters.expiresAt = { $gt: new Date() }; // Not expired
-
+      queryFilters.expiresAt = { $gt: new Date() };
       const jobs = await this.collection.find(queryFilters).toArray();
       return ResponseHelper.success(jobs);
     } catch (err) {
