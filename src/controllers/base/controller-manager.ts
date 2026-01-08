@@ -14,7 +14,8 @@ import { TransactionController } from "../transaction-controller";
 import UserController from "../user-controller";
 
 export class ControllerManager {
-  static getAllControllers() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static getAllControllers(): Array<new () => any> {
     return [
       UserController,
       PostController,
