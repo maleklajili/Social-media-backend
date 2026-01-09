@@ -134,16 +134,18 @@ export class ProfileService {
   private formatEducation(
     education: Education[],
   ): IUserProfileResponse["education"] {
-    return education.map((edu, index) => ({
-      id: index + 1,
-      degree: edu.degree || "",
-      school: edu.school || "",
-      location: edu.location || "",
-      startDate: this.formatDate(edu.startDate),
-      endDate: edu.current ? "Present" : this.formatDate(edu.endDate!),
-      description: edu.description || "",
-      current: edu.current || false,
-    }));
+    return education
+      .filter((edu) => edu.type === "diploma")
+      .map((edu, index) => ({
+        id: index + 1,
+        degree: edu.degree || "",
+        school: edu.school || "",
+        location: edu.location || "",
+        startDate: this.formatDate(edu.startDate),
+        endDate: edu.current ? "Present" : this.formatDate(edu.endDate!),
+        description: edu.description || "",
+        current: edu.current || false,
+      }));
   }
 
   private formatProjects(
