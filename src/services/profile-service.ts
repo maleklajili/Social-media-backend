@@ -54,6 +54,7 @@ export class ProfileService {
 
       // Format the response according to your requirements
       const profile: IUserProfileResponse = {
+        _id: user._id,
         name: user.fullName || user.userName || "Unknown",
         title: user.professionalTitle || "Developer",
         bio: user.bio || "",
@@ -61,6 +62,7 @@ export class ProfileService {
         phone: user.phone || "",
         location: user.location || "",
         website: user.website || "",
+        image: user.image || "",
 
         // Combine all skills from different sources
         skills: this.combineSkills(technicalSkills, personalSkills),

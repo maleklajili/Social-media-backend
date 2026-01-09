@@ -1,9 +1,13 @@
+import type { ObjectId } from "mongodb";
+
 // src/interfaces/user/i-user-profile.ts
 export interface IUserProfileResponse {
+  _id?: string | ObjectId;
   name: string;
   title: string;
   bio: string;
   email: string;
+  image?: string;
   phone: string;
   location: string;
   website: string;
