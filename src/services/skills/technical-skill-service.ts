@@ -199,6 +199,7 @@ export class TechnicalSkillService
             isInLearning: skill.isInLearning || false,
             subcategory: skill.subcategory,
             category: skill.category,
+            description: skill.description,
           });
 
           return acc;
