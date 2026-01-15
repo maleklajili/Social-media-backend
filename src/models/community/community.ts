@@ -1,5 +1,5 @@
 import type { ObjectId } from "mongodb";
-import type { BaseModel } from "./base/base-model";
+import type { BaseModel } from "../base/base-model";
 
 export interface Community extends BaseModel {
   name: string; // Nom unique de la communauté (ex: "webdesign")

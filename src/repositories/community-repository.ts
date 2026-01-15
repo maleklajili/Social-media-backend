@@ -1,10 +1,12 @@
 import { ObjectId } from "mongodb";
 import type { ICommunityRepository } from "../interfaces/community/i-community-repository";
 import { CollectionsManager } from "../models/base/collection-manager";
-import type { Community } from "../models/community";
+import type { Community } from "../models/community/community";
+import type { CommunityMember } from "../models/community/community-member";
 
 export class CommunityRepository implements ICommunityRepository {
   private collection = CollectionsManager.communityCollection;
+  private memberCollection = CollectionsManager.communityMemberCollection;
 
   async createCommunity(community: Community): Promise<void> {
     await this.collection.insertOne(community);
@@ -86,5 +88,51 @@ export class CommunityRepository implements ICommunityRepository {
       { _id: communityId },
       { $inc: { members: -amount } },
     );
+  }
+
+  // Méthodes pour les membres
+  async addMember(member: CommunityMember): Promise<void> {
+    await this.memberCollection.insertOne(member);
+  }
+
+  async removeMember(
+    communityId: ObjectId,
+    userId: ObjectId,
+  ): Promise<boolean> {
+    const result = await this.memberCollection.deleteOne({
+      communityId,
+      userId,
+    });
+    return result.deletedCount === 1;
+  }
+
+  async getMember(
+    communityId: ObjectId,
+    userId: ObjectId,
+  ): Promise<CommunityMember | null> {
+    return this.memberCollection.findOne({ communityId, userId });
+  }
+
+  async getCommunityMembers(communityId: ObjectId): Promise<CommunityMember[]> {
+    return this.memberCollection
+      .find({ communityId })
+      .sort({ joinedAt: -1 })
+      .toArray();
+  }
+
+  async getCommunityMembersCount(communityId: ObjectId): Promise<number> {
+    return this.memberCollection.countDocuments({ communityId });
+  }
+
+  async getUserCommunities(userId: ObjectId): Promise<Community[]> {
+    const memberships = await this.memberCollection.find({ userId }).toArray();
+
+    const communityIds = memberships.map((m) => m.communityId);
+
+    if (communityIds.length === 0) {
+      return [];
+    }
+
+    return this.collection.find({ _id: { $in: communityIds } }).toArray();
   }
 }

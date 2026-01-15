@@ -3,7 +3,7 @@ import type { ServerRequest } from "../config/interfaces/i-request";
 import { authMiddleware } from "../middleware/aut-middleware";
 import { paginationMiddleware } from "../middleware/pagination-middleware";
 import { CollectionsManager } from "../models/base/collection-manager";
-import type { Community } from "../models/community";
+import type { Community } from "../models/community/community";
 import { Delete, Get, Post, Put } from "../routes/router-manager";
 import { ResponseHelper } from "../utils/response-helper";
 import { BaseController } from "./base/base-controller";
@@ -27,7 +27,7 @@ export class CommunityController extends BaseController<
   protected createService(): CommunityServices {
     return new CommunityServices(new CommunityRepository());
   }
-  @Get("/getAll", [authMiddleware, paginationMiddleware])
+  @Get("/getAll", [paginationMiddleware])
   async getAll(req: RequestWithPagination): Promise<Response> {
     try {
       // Filtrer par userId de l'utilisateur connecté
@@ -35,7 +35,7 @@ export class CommunityController extends BaseController<
         return ResponseHelper.error("Utilisateur non authentifié");
       }
 
-      const filter = { createdBy: req.user._id };
+      const filter = {};
       return super.getAll(req, undefined, filter);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
@@ -77,7 +77,46 @@ export class CommunityController extends BaseController<
       return ResponseHelper.serverError(String(err));
     }
   }
+  @Get("/:id/members", [authMiddleware, paginationMiddleware])
+  async getCommunityMembers(req: RequestWithPagination): Promise<Response> {
+    try {
+      const { id } = req.params;
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing community id");
+      }
+      return this.service.getCommunityMembers(new ObjectId(id));
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 
+  @Get("/:id/check-membership", [authMiddleware])
+  async checkUserMembership(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing community id");
+      }
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+      return this.service.checkUserMembership(req.user._id, new ObjectId(id));
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/user/my-communities", [authMiddleware])
+  async getUserCommunities(req: ServerRequest): Promise<Response> {
+    try {
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+      return this.service.getUserCommunities(req.user._id);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   @Post("/create", [authMiddleware])
   async createCommunity(req: ServerRequest): Promise<Response> {
     try {

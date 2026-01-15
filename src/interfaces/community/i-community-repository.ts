@@ -1,5 +1,6 @@
 import type { ObjectId } from "mongodb";
-import type { Community } from "../../models/community";
+import type { Community } from "../../models/community/community";
+import type { CommunityMember } from "../../models/community/community-member";
 
 export interface ICommunityRepository {
   createCommunity(community: Community): Promise<void>;
@@ -16,4 +17,15 @@ export interface ICommunityRepository {
   getCommunitiesByCategory(category: string): Promise<Community[]>;
   incrementMembers(communityId: ObjectId, amount: number): Promise<void>;
   decrementMembers(communityId: ObjectId, amount: number): Promise<void>;
+
+  // Méthodes pour les membres
+  addMember(member: CommunityMember): Promise<void>;
+  removeMember(communityId: ObjectId, userId: ObjectId): Promise<boolean>;
+  getMember(
+    communityId: ObjectId,
+    userId: ObjectId,
+  ): Promise<CommunityMember | null>;
+  getCommunityMembers(communityId: ObjectId): Promise<CommunityMember[]>;
+  getCommunityMembersCount(communityId: ObjectId): Promise<number>;
+  getUserCommunities(userId: ObjectId): Promise<Community[]>;
 }

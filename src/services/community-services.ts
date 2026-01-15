@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { BaseService } from "./base/base-service";
-import type { Community } from "../models/community";
+import type { Community } from "../models/community/community";
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { ICommunityRepository } from "../interfaces/community/i-community-repository";
 import type { ICommunityService } from "../interfaces/community/i-community-service";
@@ -8,6 +8,7 @@ import { ResponseHelper } from "../utils/response-helper";
 import { handleFileUpload, type UploadResult } from "../utils/upload-helper";
 import { UPLOAD_PATHS } from "../config/config";
 import { FileService } from "../utils/file-service";
+import type { CommunityMember } from "../models/community/community-member";
 
 export class CommunityServices
   extends BaseService<Community>
@@ -50,13 +51,14 @@ export class CommunityServices
         isPublic: communityData.isPublic ?? true,
         category: communityData.category || "general",
         tags: communityData.tags || [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        banner: "",
       };
 
       // Gérer l'upload de bannière
       if (formData?.has("banner")) {
-        const storePath = `${UPLOAD_PATHS.images}/${UPLOAD_PATHS.communities}/${community.name}`;
+        const communityName = communityData.name.toLowerCase();
+        const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.communities}/${communityName}`;
+
         const uploadResults = (await handleFileUpload(formData, {
           fieldName: "banner",
           storePath,
@@ -64,16 +66,30 @@ export class CommunityServices
           multiple: false,
           writeToDisk: true,
           userId,
-        })) as UploadResult[];
+        })) as UploadResult;
 
-        if (uploadResults && uploadResults.length > 0) {
-          community.banner = uploadResults[0]?.fileName;
+        if (uploadResults?.fileName) {
+          community.banner = uploadResults.fileName;
+        } else {
+          console.log("❌ No file uploaded");
         }
       }
 
+      if (!community._id) {
+        throw new Error("Community ID is missing after creation!");
+      }
       // Sauvegarder la communauté
       await this.communityRepository.createCommunity(community);
-
+      const member: CommunityMember = {
+        _id: new ObjectId(),
+        communityId: community._id,
+        userId,
+        role: "admin",
+        joinedAt: new Date(),
+        isMuted: false,
+        isBanned: false,
+      };
+      await this.communityRepository.addMember(member);
       return ResponseHelper.success({
         message: "Community created successfully",
         community,
@@ -126,7 +142,7 @@ export class CommunityServices
 
       // Gérer l'upload de nouvelle bannière
       if (formData?.has("banner")) {
-        const storePath = `${UPLOAD_PATHS.images}/${UPLOAD_PATHS.communities}/${existingCommunity.name}`;
+        const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.communities}/${existingCommunity.name}`;
 
         // Supprimer l'ancienne bannière si elle existe
         if (existingCommunity.banner) {
@@ -140,11 +156,14 @@ export class CommunityServices
           multiple: false,
           writeToDisk: true,
           userId,
-        })) as UploadResult[];
+        })) as UploadResult;
 
-        if (uploadResults && uploadResults.length > 0) {
-          updatedCommunity.banner = uploadResults[0]?.fileName;
+        if (uploadResults?.fileName) {
+          updatedCommunity.banner = uploadResults?.fileName;
         }
+      } else {
+        // Keep existing banner
+        updatedCommunity.banner = existingCommunity.banner;
       }
 
       await this.communityRepository.updateCommunity(updatedCommunity);
@@ -199,18 +218,40 @@ export class CommunityServices
     communityId: ObjectId,
   ): Promise<Response> {
     try {
-      // Vérifier que la communauté existe
       const community =
         await this.communityRepository.getCommunityById(communityId);
       if (!community) {
         return ResponseHelper.error("Community not found");
       }
 
-      // Incrémenter le nombre de membres
+      const existingMember = await this.communityRepository.getMember(
+        communityId,
+        userId,
+      );
+      if (existingMember) {
+        return ResponseHelper.success({
+          message: "You are already a member of this community",
+          isMember: true,
+          community,
+        });
+      }
+
+      const member: CommunityMember = {
+        _id: new ObjectId(),
+        communityId,
+        userId,
+        role: "member",
+        joinedAt: new Date(),
+        isMuted: false,
+        isBanned: false,
+      };
+
+      await this.communityRepository.addMember(member);
       await this.communityRepository.incrementMembers(communityId, 1);
 
       return ResponseHelper.success({
         message: "Joined community successfully",
+        isMember: true,
         community,
       });
     } catch (err) {
@@ -224,25 +265,39 @@ export class CommunityServices
     communityId: ObjectId,
   ): Promise<Response> {
     try {
-      // Vérifier que la communauté existe
       const community =
         await this.communityRepository.getCommunityById(communityId);
       if (!community) {
         return ResponseHelper.error("Community not found");
       }
 
-      // Vérifier si c'est le créateur
+      const member = await this.communityRepository.getMember(
+        communityId,
+        userId,
+      );
+      if (!member) {
+        return ResponseHelper.error("You are not a member of this community");
+      }
+
       if (community.createdBy.equals(userId)) {
         return ResponseHelper.error(
           "Community creator cannot leave. Delete community first.",
         );
       }
 
-      // Décrémenter le nombre de membres
+      const removed = await this.communityRepository.removeMember(
+        communityId,
+        userId,
+      );
+      if (!removed) {
+        return ResponseHelper.error("Failed to leave community");
+      }
+
       await this.communityRepository.decrementMembers(communityId, 1);
 
       return ResponseHelper.success({
         message: "Left community successfully",
+        isMember: false,
       });
     } catch (err) {
       console.error("❌ Error leaving community:", err);
@@ -315,6 +370,95 @@ export class CommunityServices
       return ResponseHelper.success(formattedCommunities);
     } catch (err) {
       console.error("❌ Error searching communities:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  async getCommunityMembers(communityId: ObjectId): Promise<Response> {
+    try {
+      const community =
+        await this.communityRepository.getCommunityById(communityId);
+      if (!community) {
+        return ResponseHelper.error("Community not found");
+      }
+
+      const members =
+        await this.communityRepository.getCommunityMembers(communityId);
+      const membersCount =
+        await this.communityRepository.getCommunityMembersCount(communityId);
+
+      return ResponseHelper.success({
+        members,
+        total: membersCount,
+        community: {
+          _id: community._id,
+          name: community.name,
+          title: community.title,
+        },
+      });
+    } catch (err) {
+      console.error("❌ Error getting community members:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async checkUserMembership(
+    userId: ObjectId,
+    communityId: ObjectId,
+  ): Promise<Response> {
+    try {
+      const community =
+        await this.communityRepository.getCommunityById(communityId);
+      if (!community) {
+        return ResponseHelper.error("Community not found");
+      }
+
+      const member = await this.communityRepository.getMember(
+        communityId,
+        userId,
+      );
+      const isMember = !!member;
+
+      return ResponseHelper.success({
+        isMember,
+        member: isMember
+          ? {
+              role: member!.role,
+              joinedAt: member!.joinedAt,
+              isMuted: member!.isMuted,
+              isBanned: member!.isBanned,
+            }
+          : null,
+        community: {
+          _id: community._id,
+          name: community.name,
+          title: community.title,
+          members: community.members,
+        },
+      });
+    } catch (err) {
+      console.error("❌ Error checking user membership:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getUserCommunities(userId: ObjectId): Promise<Response> {
+    try {
+      const communities =
+        await this.communityRepository.getUserCommunities(userId);
+
+      const formattedCommunities = communities.map((community) => ({
+        ...community,
+        banner: community.banner
+          ? `/uploads/${UPLOAD_PATHS.communities}/${community.name}/${community.banner}`
+          : null,
+      }));
+
+      return ResponseHelper.success({
+        communities: formattedCommunities,
+        total: communities.length,
+      });
+    } catch (err) {
+      console.error("❌ Error getting user communities:", err);
       return ResponseHelper.serverError(String(err));
     }
   }

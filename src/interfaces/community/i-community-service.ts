@@ -1,5 +1,5 @@
 import type { ObjectId } from "mongodb";
-import type { Community } from "../../models/community";
+import type { Community } from "../../models/community/community";
 
 export interface ICommunityService {
   createCommunity(
@@ -26,4 +26,13 @@ export interface ICommunityService {
   getPopularCommunities(limit?: number): Promise<Response>;
 
   searchCommunities(query: string, limit?: number): Promise<Response>;
+
+  getCommunityMembers(communityId: ObjectId): Promise<Response>;
+
+  checkUserMembership(
+    userId: ObjectId,
+    communityId: ObjectId,
+  ): Promise<Response>;
+
+  getUserCommunities(userId: ObjectId): Promise<Response>;
 }
