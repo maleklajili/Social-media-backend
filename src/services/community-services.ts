@@ -118,6 +118,7 @@ export class CommunityServices
       if (!existingCommunity.createdBy.equals(userId)) {
         return ResponseHelper.error("Only the community creator can edit it");
       }
+
       // VÉRIFIER SI LE NOUVEAU NOM N'EST PAS DÉJÀ UTILISÉ PAR UNE AUTRE COMMUNAUTÉ
       if (communityData.name) {
         const nameAlreadyUsed =
@@ -144,9 +145,16 @@ export class CommunityServices
       if (formData?.has("banner")) {
         const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.communities}/${existingCommunity.name}`;
 
-        // Supprimer l'ancienne bannière si elle existe
+        // CORRECTION: Supprimer l'ancienne bannière si elle existe
         if (existingCommunity.banner) {
-          await FileService.deleteFile(existingCommunity.banner);
+          // Construire le chemin complet du fichier
+          const oldFilePath = `${storePath}/${existingCommunity.banner}`;
+          try {
+            await FileService.deleteFile(oldFilePath);
+          } catch (deleteError) {
+            console.warn(`⚠️ Could not delete old banner: ${deleteError}`);
+            // On continue même si la suppression échoue
+          }
         }
 
         const uploadResults = (await handleFileUpload(formData, {
@@ -159,10 +167,13 @@ export class CommunityServices
         })) as UploadResult;
 
         if (uploadResults?.fileName) {
-          updatedCommunity.banner = uploadResults?.fileName;
+          updatedCommunity.banner = uploadResults.fileName;
+        } else {
+          // Garder l'ancienne bannière si l'upload échoue
+          updatedCommunity.banner = existingCommunity.banner;
         }
       } else {
-        // Keep existing banner
+        // Si pas de nouvelle bannière, garder l'existante
         updatedCommunity.banner = existingCommunity.banner;
       }
 
