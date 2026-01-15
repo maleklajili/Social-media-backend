@@ -1,4 +1,5 @@
 import AuthController from "../auth-controller";
+import { CommunityController } from "../community-controller";
 import { CompanyController } from "../company-controller";
 import { EducationController } from "../education-controller";
 import { ExperienceController } from "../experience-controller";
@@ -31,6 +32,7 @@ export class ControllerManager {
       TransactionController,
       CompanyController,
       JobController,
+      CommunityController,
     ];
   }
 }

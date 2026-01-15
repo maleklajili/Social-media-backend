@@ -3,4 +3,5 @@ export const UPLOAD_PATHS = {
   cerifications: "certfication",
   projects: "projects",
   companies: "companies",
+  communities: "communities",
 };

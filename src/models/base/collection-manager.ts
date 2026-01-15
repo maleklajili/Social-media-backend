@@ -18,6 +18,7 @@ import type { TechnicalSkill } from "../skills/technical-skill";
 import type { Transaction } from "../transaction";
 import type { Company } from "../company";
 import type { Job } from "../job";
+import type { Community } from "../community";
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -38,6 +39,7 @@ export class CollectionsManager {
   static transactionCollection: Collection<Transaction>;
   static companyCollection: Collection<Company>;
   static jobCollection: Collection<Job>;
+  static communityCollection: Collection<Community>;
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -64,5 +66,6 @@ export class CollectionsManager {
     this.transactionCollection = db.collection<Transaction>("transactions");
     this.companyCollection = db.collection<Company>("companies");
     this.jobCollection = db.collection<Job>("jobs");
+    this.communityCollection = db.collection<Community>("communities");
   }
 }
