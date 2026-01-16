@@ -77,7 +77,7 @@ export class CommunityController extends BaseController<
       return ResponseHelper.serverError(String(err));
     }
   }
-  @Get("/:id/members", [authMiddleware, paginationMiddleware])
+  @Get("/:id/members", [authMiddleware])
   async getCommunityMembers(req: RequestWithPagination): Promise<Response> {
     try {
       const { id } = req.params;
