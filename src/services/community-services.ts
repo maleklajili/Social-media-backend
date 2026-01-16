@@ -48,7 +48,7 @@ export class CommunityServices
         members: 1, // Le créateur est le premier membre
         online: 0,
         createdBy: userId,
-        isPublic: communityData.isPublic ?? true,
+        isPublic: String(communityData.isPublic).toLowerCase() === "true",
         category: communityData.category || "general",
         tags: communityData.tags || [],
         banner: "",
@@ -138,6 +138,10 @@ export class CommunityServices
       const updatedCommunity: Community = {
         ...existingCommunity,
         ...communityData,
+        isPublic:
+          communityData.isPublic !== undefined
+            ? String(communityData.isPublic).toLowerCase() === "true"
+            : existingCommunity.isPublic,
         updatedAt: new Date(),
       };
 
