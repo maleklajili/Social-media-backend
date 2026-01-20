@@ -7,7 +7,7 @@ export interface BaseUser extends BaseModel {
   userName: string;
   email: string;
   password: string;
-
+  birthday: Date;
   image?: string;
   cover?: string;
   bio: string;
