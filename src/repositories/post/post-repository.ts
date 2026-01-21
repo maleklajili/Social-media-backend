@@ -117,9 +117,10 @@ export class PostRepository implements IPostRepository {
       .toArray();
   }
 
-  /*  private async getUserCommunities(userId: ObjectId): Promise<string[]> {
+  private async getUserCommunities(userId: ObjectId): Promise<string[]> {
+    console.log(userId);
     // TODO: Récupérer les communautés de l'utilisateur
     // Pour l'instant, retourner un tableau vide
     return [];
-  } */
+  }
 }
