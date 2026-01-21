@@ -7,6 +7,7 @@ export interface UploadResult {
   mimeType: string;
   fullPath?: string;
   size?: number;
+  fileType?: string;
 }
 
 interface HandleFileUploadOptions {

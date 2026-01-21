@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { UPLOAD_PATHS } from "../config/config";
 import type { Certification } from "../models/certifications";
+import type { PostMedia } from "../models/post";
 
 export class FileService {
   /**
@@ -87,7 +88,117 @@ export class FileService {
       throw error;
     }
   }
+  /**
+   * Supprime un fichier de post (image ou vidéo)
+   */
+  static async deletePostFile(
+    fileName: string,
+    userId: string,
+    mediaType: "image" | "video" | "document" = "image",
+  ): Promise<void> {
+    try {
+      if (!fileName || fileName.trim() === "") {
+        console.warn(`⚠️ Nom de fichier vide pour userId: ${userId}`);
+        return;
+      }
 
+      const basePath = process.cwd();
+      const folder = mediaType === "image" ? "images" : "videos";
+      const fullPath = path.join(
+        basePath,
+        "uploads",
+        `${folder}-${userId}`,
+        UPLOAD_PATHS.posts,
+        fileName,
+      );
+
+      await this.deleteFile(fullPath);
+      console.log(`✅ Fichier de post supprimé: ${fileName}`);
+    } catch (error) {
+      console.error(
+        `❌ Erreur lors de la suppression du fichier de post ${fileName}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Supprime plusieurs fichiers de posts
+   */
+  static async deleteMultiplePostFiles(
+    mediaItems: PostMedia[],
+    userId: string,
+  ): Promise<void> {
+    try {
+      if (!mediaItems || mediaItems.length === 0) {
+        console.log("ℹ️ Aucun média de post à supprimer");
+        return;
+      }
+
+      const deletePromises = mediaItems
+        .filter((media) => media.url && media.url.trim() !== "")
+        .map((media) => {
+          const fileName = this.extractFileNameFromUrl(media.url);
+          return this.deletePostFile(fileName, userId, media.type);
+        });
+
+      if (deletePromises.length === 0) {
+        console.log("ℹ️ Aucun fichier physique à supprimer");
+        return;
+      }
+
+      await Promise.all(deletePromises);
+      console.log(`✅ ${deletePromises.length} fichiers de post supprimés`);
+    } catch (error) {
+      console.error(
+        "❌ Erreur lors de la suppression multiple des fichiers de post:",
+        error,
+      );
+      throw error;
+    }
+  }
+  /**
+   * Supprime plusieurs fichiers depuis des URLs
+   */
+  static async deleteMultipleFiles(
+    urls: string[],
+    userId: string,
+  ): Promise<void> {
+    try {
+      if (!urls || urls.length === 0) {
+        console.log("ℹ️ Aucune URL à supprimer");
+        return;
+      }
+
+      const deletePromises = urls
+        .filter((url) => url && url.trim() !== "")
+        .map((url) => {
+          const fileName = this.extractFileNameFromUrl(url);
+          // Déterminer le type de média basé sur l'extension
+          const isVideo = /\.(mp4|mov|avi|wmv|flv|webm)$/i.test(fileName);
+          return this.deletePostFile(
+            fileName,
+            userId,
+            isVideo ? "video" : "image",
+          );
+        });
+
+      if (deletePromises.length === 0) {
+        console.log("ℹ️ Aucun fichier physique à supprimer");
+        return;
+      }
+
+      await Promise.all(deletePromises);
+      console.log(`✅ ${deletePromises.length} fichiers supprimés`);
+    } catch (error) {
+      console.error(
+        "❌ Erreur lors de la suppression multiple des fichiers:",
+        error,
+      );
+      throw error;
+    }
+  }
   /**
    * Nettoie le dossier des certifications vides
    */
@@ -115,6 +226,21 @@ export class FileService {
       } else {
         console.warn(`⚠️ Impossible de nettoyer le dossier:`, error);
       }
+    }
+  }
+  /**
+   * Extrait le nom du fichier depuis une URL
+   */
+  private static extractFileNameFromUrl(url: string): string {
+    if (!url) return "";
+
+    // Si c'est une URL complète, extraire le chemin
+    try {
+      const urlObj = new URL(url);
+      return path.basename(urlObj.pathname);
+    } catch {
+      // Si ce n'est pas une URL valide, traiter comme un chemin local
+      return path.basename(url);
     }
   }
 
