@@ -13,6 +13,7 @@ import { TransactionService } from "../services/transaction-services";
 import { TransactionRepository } from "../repositories/transaction-repository";
 import { PostRepository } from "../repositories/post/post-repository";
 import { PostServices } from "../services/post/post-services";
+import { CommentRepository } from "../repositories/comment/comment-repository";
 
 export class PostController extends BaseController<Post, PostServices> {
   constructor() {
@@ -29,6 +30,7 @@ export class PostController extends BaseController<Post, PostServices> {
       new PostRepository(),
       new userRepository(),
       new TransactionService(new TransactionRepository(), new userRepository()),
+      new CommentRepository(), // ✅ Ajout du repository de commentaires
     );
   }
 
@@ -150,13 +152,115 @@ export class PostController extends BaseController<Post, PostServices> {
     }
   }
 
-  @PostMethod("/:id/comment", [authMiddleware])
-  async commentPost(req: ServerRequest): Promise<Response> {
+  @Get("/:id/comments", [authMiddleware])
+  async getComments(req: RequestWithPagination): Promise<Response> {
     try {
       const { id } = req.params;
-
       if (!id || !ObjectId.isValid(id)) {
-        return ResponseHelper.error("Invalid or missing post ID");
+        return ResponseHelper.error("Invalid post ID");
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const sort = (req.query.sort as "recent" | "popular") || "recent";
+
+      return this.service.getPostComments(new ObjectId(id), page, limit, sort);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @PostMethod("/:id/comments", [authMiddleware])
+  async createComment(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid post ID");
+      }
+
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+
+      const { content, parentCommentId } = (await req.json()) as {
+        content: string;
+        parentCommentId?: string;
+      };
+
+      if (!content || typeof content !== "string") {
+        return ResponseHelper.error("Comment content is required");
+      }
+
+      const parentId =
+        parentCommentId && ObjectId.isValid(parentCommentId)
+          ? new ObjectId(parentCommentId)
+          : undefined;
+
+      return this.service.commentPost(
+        req.user._id,
+        new ObjectId(id),
+        content,
+        parentId,
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/comments/:commentId/replies", [authMiddleware])
+  async getCommentReplies(req: ServerRequest): Promise<Response> {
+    try {
+      const { commentId } = req.params;
+      if (!commentId || !ObjectId.isValid(commentId)) {
+        return ResponseHelper.error("Invalid comment ID");
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      return this.service.getCommentReplies(
+        new ObjectId(commentId),
+        page,
+        limit,
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @PostMethod("/comments/:commentId/vote", [authMiddleware])
+  async voteComment(req: ServerRequest): Promise<Response> {
+    try {
+      const { commentId } = req.params;
+      if (!commentId || !ObjectId.isValid(commentId)) {
+        return ResponseHelper.error("Invalid comment ID");
+      }
+
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+
+      const { vote } = (await req.json()) as { vote: "up" | "down" };
+      if (vote !== "up" && vote !== "down") {
+        return ResponseHelper.error("Invalid vote value");
+      }
+
+      return this.service.voteComment(
+        req.user._id,
+        new ObjectId(commentId),
+        vote,
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Put("/comments/:commentId", [authMiddleware])
+  async updateComment(req: ServerRequest): Promise<Response> {
+    try {
+      const { commentId } = req.params;
+      if (!commentId || !ObjectId.isValid(commentId)) {
+        return ResponseHelper.error("Invalid comment ID");
       }
 
       if (!req.user?._id) {
@@ -168,7 +272,29 @@ export class PostController extends BaseController<Post, PostServices> {
         return ResponseHelper.error("Comment content is required");
       }
 
-      return this.service.commentPost(req.user._id, new ObjectId(id), content);
+      return this.service.updateComment(
+        req.user._id,
+        new ObjectId(commentId),
+        content,
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Delete("/comments/:commentId", [authMiddleware])
+  async deleteComment(req: ServerRequest): Promise<Response> {
+    try {
+      const { commentId } = req.params;
+      if (!commentId || !ObjectId.isValid(commentId)) {
+        return ResponseHelper.error("Invalid comment ID");
+      }
+
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+
+      return this.service.deleteComment(req.user._id, new ObjectId(commentId));
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
@@ -221,34 +347,4 @@ export class PostController extends BaseController<Post, PostServices> {
       return ResponseHelper.serverError(String(err));
     }
   }
-
-  /*  @Get("/user/:userId", [authMiddleware])
-  async getUserPosts(req: ServerRequest): Promise<Response> {
-    try {
-      const { userId } = req.params;
-      if (!userId || !ObjectId.isValid(userId)) {
-        return ResponseHelper.error("Invalid or missing user ID");
-      }
-
-      const posts = await this.service.getPostsByUserId(new ObjectId(userId));
-      return ResponseHelper.success(posts);
-    } catch (err) {
-      return ResponseHelper.serverError(String(err));
-    }
-  } */
-
-  /*   @Get("/community/:community", [authMiddleware])
-  async getCommunityPosts(req: ServerRequest): Promise<Response> {
-    try {
-      const { community } = req.params;
-      if (!community) {
-        return ResponseHelper.error("Community name is required");
-      }
-
-      const posts = await this.service.getPostsByCommunity(community);
-      return ResponseHelper.success(posts);
-    } catch (err) {
-      return ResponseHelper.serverError(String(err));
-    }
-  } */
 }

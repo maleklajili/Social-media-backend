@@ -117,10 +117,16 @@ export class PostRepository implements IPostRepository {
       .toArray();
   }
 
+  async updateLastComment(
+    postId: ObjectId,
+    lastComment: Post["lastComment"],
+  ): Promise<void> {
+    await this.collection.updateOne({ _id: postId }, { $set: { lastComment } });
+  }
+
   private async getUserCommunities(userId: ObjectId): Promise<string[]> {
     console.log(userId);
     // TODO: Récupérer les communautés de l'utilisateur
-    // Pour l'instant, retourner un tableau vide
     return [];
   }
 }

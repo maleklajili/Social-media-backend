@@ -23,16 +23,6 @@ export interface PostVote {
   createdAt: Date;
 }
 
-export interface PostComment {
-  id: string;
-  userId: ObjectId;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-  votes: number;
-  replies?: PostComment[];
-}
-
 export interface PostAward {
   type: string;
   count: number;
@@ -58,13 +48,20 @@ export interface Post extends BaseModel {
     transitionSpeed: number;
   };
 
-  // Engagement
+  // Engagement (SIMPLIFIÉ)
   votes: number;
-  comments: PostComment[]; // Correction: c'est un tableau, pas un nombre
-  commentsCount: number; // Ajouter pour compter le total
+  commentsCount: number;
   views: number;
   shares: number;
   saves: number;
+
+  // Preview du dernier commentaire (optionnel)
+  lastComment?: {
+    id: ObjectId;
+    userId: ObjectId;
+    content: string;
+    createdAt: Date;
+  };
 
   // User interaction
   userVotes?: PostVote[];

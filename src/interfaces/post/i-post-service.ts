@@ -30,7 +30,30 @@ export interface IPostService {
     userId: ObjectId,
     postId: ObjectId,
     content: string,
+    parentCommentId?: ObjectId,
   ): Promise<Response>;
+  getPostComments(
+    postId: ObjectId,
+    page?: number,
+    limit?: number,
+    sort?: "recent" | "popular",
+  ): Promise<Response>;
+  getCommentReplies(
+    commentId: ObjectId,
+    page?: number,
+    limit?: number,
+  ): Promise<Response>;
+  voteComment(
+    userId: ObjectId,
+    commentId: ObjectId,
+    vote: "up" | "down",
+  ): Promise<Response>;
+  updateComment(
+    userId: ObjectId,
+    commentId: ObjectId,
+    content: string,
+  ): Promise<Response>;
+  deleteComment(userId: ObjectId, commentId: ObjectId): Promise<Response>;
   savePost(userId: ObjectId, postId: ObjectId): Promise<Response>;
   unsavePost(userId: ObjectId, postId: ObjectId): Promise<Response>;
   getTrendingPosts(limit?: number): Promise<Response>;

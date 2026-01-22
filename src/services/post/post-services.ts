@@ -1,25 +1,31 @@
 import { ObjectId } from "mongodb";
-
-import { COINS_CONFIG } from "../../utils/coins-config";
 import { BaseService } from "../base/base-service";
 import type { Post } from "../../models/post";
-import { CollectionsManager } from "../../models/base/collection-manager";
-import { ResponseHelper } from "../../utils/response-helper";
-import { FileService } from "../../utils/file-service";
-import { UPLOAD_PATHS } from "../../config/config";
-import { handleFileUpload, type UploadResult } from "../../utils/upload-helper";
 import type { IPostService } from "../../interfaces/post/i-post-service";
+import { CommentRepository } from "../../repositories/comment/comment-repository";
 import type { IPostRepository } from "../../interfaces/post/i-post-repository";
 import type { IUserRepository } from "../../interfaces/user/i-user-repository";
 import type { TransactionService } from "../transaction-services";
+import { CollectionsManager } from "../../models/base/collection-manager";
+import { ResponseHelper } from "../../utils/response-helper";
+import { COINS_CONFIG } from "../../utils/coins-config";
+import { FileService } from "../../utils/file-service";
+import type { Comment } from "../../models/comment";
+import { UPLOAD_PATHS } from "../../config/config";
+import { handleFileUpload, type UploadResult } from "../../utils/upload-helper";
+import type { ICommentRepository } from "../../interfaces/comment/i-comment-repository";
 
 export class PostServices extends BaseService<Post> implements IPostService {
+  private commentRepository: ICommentRepository;
+
   constructor(
     private postRepository: IPostRepository,
     private userRepository: IUserRepository,
     private transactionService: TransactionService,
+    commentRepository?: ICommentRepository,
   ) {
     super(CollectionsManager.postCollection);
+    this.commentRepository = commentRepository || new CommentRepository();
   }
 
   async createPost(
@@ -28,15 +34,12 @@ export class PostServices extends BaseService<Post> implements IPostService {
     formData: FormData,
   ): Promise<Response> {
     try {
-      // Validation
       if (!post.title || !post.community) {
         return ResponseHelper.error("Title and community are required");
       }
 
-      // Initialiser le post
       post.userId = userId;
       post.votes = 0;
-      post.comments = [];
       post.commentsCount = 0;
       post.views = 0;
       post.shares = 0;
@@ -45,7 +48,6 @@ export class PostServices extends BaseService<Post> implements IPostService {
       post.updatedAt = new Date();
       post.lastActivityAt = new Date();
 
-      // Gérer le type de contenu
       switch (post.type) {
         case "image":
           await this.handleImagePost(post, formData, userId);
@@ -63,13 +65,9 @@ export class PostServices extends BaseService<Post> implements IPostService {
           break;
       }
 
-      // Calculer le score de trending
       post.trendingScore = this.calculateTrendingScore(post);
-
-      // Sauvegarder le post
       await this.postRepository.addPost(post);
 
-      // Ajouter des coins
       try {
         await this.userRepository.addCoins(userId, COINS_CONFIG.CREATE_POST);
         await this.transactionService.addStandardEarning(
@@ -111,14 +109,11 @@ export class PostServices extends BaseService<Post> implements IPostService {
         return ResponseHelper.error("Post not found or access denied");
       }
 
-      // Mettre à jour le post
       post._id = postId;
       post.userId = userId;
       post.updatedAt = new Date();
 
-      // Gérer les médias
       if (formData.has("media")) {
-        // Supprimer les anciens fichiers
         if (existingPost.media && existingPost.media.length > 0) {
           await FileService.deleteMultipleFiles(
             existingPost.media.map((m) => m.url),
@@ -126,12 +121,10 @@ export class PostServices extends BaseService<Post> implements IPostService {
           );
         }
 
-        // Ajouter les nouveaux médias
         await this.handlePostMedia(post, formData, userId);
       }
 
       await this.postRepository.updatePost(post);
-
       return ResponseHelper.success(post);
     } catch (err) {
       console.error("Error updating post:", err);
@@ -150,7 +143,6 @@ export class PostServices extends BaseService<Post> implements IPostService {
         return ResponseHelper.error("Post not found or access denied");
       }
 
-      // Supprimer les fichiers média
       if (existingPost.media && existingPost.media.length > 0) {
         await FileService.deleteMultipleFiles(
           existingPost.media.map((m) => m.url),
@@ -158,10 +150,8 @@ export class PostServices extends BaseService<Post> implements IPostService {
         );
       }
 
-      // Supprimer le post
       await this.postRepository.deletePost(postId, userId);
 
-      // Retirer les coins
       try {
         await this.userRepository.removeCoins(userId, COINS_CONFIG.DELETE_POST);
         await this.transactionService.addStandardSpending(
@@ -192,9 +182,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
         return ResponseHelper.error("Post not found");
       }
 
-      // Incrémenter les vues
       await this.postRepository.incrementViews(postId);
-
       return ResponseHelper.success(post);
     } catch (err) {
       console.error("Error getting post:", err);
@@ -249,24 +237,19 @@ export class PostServices extends BaseService<Post> implements IPostService {
         return ResponseHelper.error("Post not found");
       }
 
-      // Vérifier si l'utilisateur a déjà voté
       const existingVote = post.userVotes?.find((v) => v.userId.equals(userId));
       const voteValue = vote === "up" ? 1 : -1;
 
       if (existingVote) {
-        // Retirer le vote existant
         const oldVoteValue = existingVote.vote === "up" ? 1 : -1;
         await this.postRepository.incrementVotes(postId, -oldVoteValue);
 
-        // Si le nouveau vote est le même, annuler
         if (existingVote.vote === vote) {
-          // Supprimer le vote
           await this.collection.updateOne(
             { _id: postId },
             { $pull: { userVotes: { userId: userId } } },
           );
         } else {
-          // Changer le vote
           await this.collection.updateOne(
             { _id: postId, "userVotes.userId": userId },
             { $set: { "userVotes.$.vote": vote } },
@@ -274,7 +257,6 @@ export class PostServices extends BaseService<Post> implements IPostService {
           await this.postRepository.incrementVotes(postId, voteValue);
         }
       } else {
-        // Ajouter un nouveau vote
         await this.collection.updateOne(
           { _id: postId },
           {
@@ -290,7 +272,6 @@ export class PostServices extends BaseService<Post> implements IPostService {
         await this.postRepository.incrementVotes(postId, voteValue);
       }
 
-      // Mettre à jour le score de trending
       const updatedPost = await this.postRepository.getPostById(postId);
       if (updatedPost) {
         updatedPost.trendingScore = this.calculateTrendingScore(updatedPost);
@@ -311,6 +292,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
     userId: ObjectId,
     postId: ObjectId,
     content: string,
+    parentCommentId?: ObjectId,
   ): Promise<Response> {
     try {
       if (!content.trim()) {
@@ -318,39 +300,53 @@ export class PostServices extends BaseService<Post> implements IPostService {
       }
 
       const post = await this.postRepository.getPostById(postId);
-
       if (!post) {
         return ResponseHelper.error("Post not found");
       }
 
-      // Créer le commentaire
-      const comment = {
-        id: new ObjectId().toString(),
+      const comment: Comment = {
+        postId,
         userId,
         content,
+        parentCommentId: parentCommentId || null,
+        repliesCount: 0,
+        votes: 0,
+        isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
-        votes: 0,
       };
 
-      // Ajouter le commentaire
+      const savedComment = await this.commentRepository.createComment(comment);
+
+      if (parentCommentId) {
+        await this.commentRepository.incrementReplies(parentCommentId);
+      }
+
+      const lastComment = {
+        id: savedComment._id!,
+        userId: savedComment.userId,
+        content: savedComment.content.substring(0, 100),
+        createdAt: savedComment.createdAt || new Date(),
+      };
+
       await this.collection.updateOne(
         { _id: postId },
         {
-          $push: { comments: comment },
           $inc: { commentsCount: 1 },
-          $set: { lastActivityAt: new Date() },
+          $set: {
+            lastActivityAt: new Date(),
+            lastComment,
+          },
         },
       );
 
-      // Ajouter des coins pour le commentaire
       try {
         await this.userRepository.addCoins(userId, COINS_CONFIG.ADD_COMMENT);
         await this.transactionService.addStandardEarning(
           userId,
           COINS_CONFIG.ADD_COMMENT,
           "comment",
-          new ObjectId(comment.id),
+          savedComment._id!,
           "Commentaire sur un post",
           {
             postId: postId.toString(),
@@ -363,10 +359,158 @@ export class PostServices extends BaseService<Post> implements IPostService {
 
       return ResponseHelper.success({
         message: "Comment added",
-        comment,
+        comment: savedComment,
       });
     } catch (err) {
       console.error("Error commenting post:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getPostComments(
+    postId: ObjectId,
+    page: number = 1,
+    limit: number = 10,
+    sort: "recent" | "popular" = "recent",
+  ): Promise<Response> {
+    try {
+      const comments = await this.commentRepository.getCommentsByPostId(
+        postId,
+        page,
+        limit,
+        sort,
+      );
+
+      const total = await this.commentRepository.getCommentsCount(postId);
+
+      return ResponseHelper.success({
+        comments,
+        page,
+        limit,
+        total,
+        hasMore: page * limit < total,
+      });
+    } catch (err) {
+      console.error("Error getting comments:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getCommentReplies(
+    commentId: ObjectId,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<Response> {
+    try {
+      const replies = await this.commentRepository.getReplies(
+        commentId,
+        page,
+        limit,
+      );
+
+      return ResponseHelper.success({
+        replies,
+        page,
+        limit,
+        total: replies.length,
+      });
+    } catch (err) {
+      console.error("Error getting replies:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async voteComment(
+    userId: ObjectId,
+    commentId: ObjectId,
+    vote: "up" | "down",
+  ): Promise<Response> {
+    try {
+      const success = await this.commentRepository.voteComment(
+        commentId,
+        userId,
+        vote,
+      );
+
+      if (!success) {
+        return ResponseHelper.error("Comment not found");
+      }
+
+      return ResponseHelper.success({
+        message: "Vote recorded",
+      });
+    } catch (err) {
+      console.error("Error voting comment:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async updateComment(
+    userId: ObjectId,
+    commentId: ObjectId,
+    content: string,
+  ): Promise<Response> {
+    try {
+      const comment = await this.commentRepository.getCommentById(commentId);
+      if (!comment) {
+        return ResponseHelper.error("Comment not found");
+      }
+
+      if (!comment.userId.equals(userId)) {
+        return ResponseHelper.error("Access denied");
+      }
+
+      const success = await this.commentRepository.updateComment(
+        commentId,
+        content,
+      );
+
+      if (!success) {
+        return ResponseHelper.error("Failed to update comment");
+      }
+
+      return ResponseHelper.success({
+        message: "Comment updated",
+      });
+    } catch (err) {
+      console.error("Error updating comment:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async deleteComment(
+    userId: ObjectId,
+    commentId: ObjectId,
+  ): Promise<Response> {
+    try {
+      const comment = await this.commentRepository.getCommentById(commentId);
+      if (!comment) {
+        return ResponseHelper.error("Comment not found");
+      }
+
+      if (!comment.userId.equals(userId)) {
+        return ResponseHelper.error("Access denied");
+      }
+
+      const success = await this.commentRepository.deleteComment(
+        commentId,
+        userId,
+      );
+
+      if (!success) {
+        return ResponseHelper.error("Failed to delete comment");
+      }
+
+      await this.collection.updateOne(
+        { _id: comment.postId },
+        { $inc: { commentsCount: -1 } },
+      );
+
+      return ResponseHelper.success({
+        message: "Comment deleted",
+      });
+    } catch (err) {
+      console.error("Error deleting comment:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -409,7 +553,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
     const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.posts}`;
 
     const uploadResults = (await handleFileUpload(formData, {
-      fieldName: "images",
+      fieldName: "media",
       storePath,
       fileName: `post-${Date.now()}`,
       multiple: true,
@@ -418,10 +562,9 @@ export class PostServices extends BaseService<Post> implements IPostService {
     })) as UploadResult[];
 
     if (uploadResults && uploadResults.length > 0) {
-      if ("images" in post) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      /* if ("media" in post) {
         delete (post as any).images;
-      }
+      } */
       post.media = uploadResults.map((result, index) => ({
         id: new ObjectId().toString(),
         type: "image" as const,
@@ -482,7 +625,6 @@ export class PostServices extends BaseService<Post> implements IPostService {
         order: index,
       }));
 
-      // Configuration par défaut de la galerie
       post.galleryConfig = {
         aspectRatio: "original",
         showArrows: true,
@@ -524,13 +666,11 @@ export class PostServices extends BaseService<Post> implements IPostService {
     const postTime = new Date(post.createdAt!).getTime();
     const hoursSincePost = (now - postTime) / (1000 * 60 * 60);
 
-    // Formule de trending : votes récents + commentaires + partages
     let score = post.votes * 2;
     score += post.commentsCount * 1.5;
     score += post.shares * 3;
     score += post.views * 0.1;
 
-    // Décroissance temporelle
     const decayFactor = Math.exp(-hoursSincePost / 24);
     score *= decayFactor;
 

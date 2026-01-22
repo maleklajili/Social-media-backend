@@ -16,4 +16,8 @@ export interface IPostRepository {
   removeFromSaved(userId: ObjectId, postId: ObjectId): Promise<void>;
   getSavedPosts(userId: ObjectId): Promise<Post[]>;
   getTrendingPosts(limit: number): Promise<Post[]>;
+  updateLastComment(
+    postId: ObjectId,
+    lastComment: Post["lastComment"],
+  ): Promise<void>;
 }

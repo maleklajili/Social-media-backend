@@ -20,6 +20,7 @@ import type { Company } from "../company";
 import type { Job } from "../job";
 import type { Community } from "../community/community";
 import type { CommunityMember } from "../community/community-member";
+import type { Comment } from "../comment";
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -42,6 +43,7 @@ export class CollectionsManager {
   static jobCollection: Collection<Job>;
   static communityCollection: Collection<Community>;
   static communityMemberCollection: Collection<CommunityMember>;
+  static commentCollection: Collection<Comment>;
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -71,5 +73,6 @@ export class CollectionsManager {
     this.communityCollection = db.collection<Community>("communities");
     this.communityMemberCollection =
       db.collection<CommunityMember>("community-members");
+    this.commentCollection = db.collection<Comment>("comments");
   }
 }
