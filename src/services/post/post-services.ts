@@ -650,11 +650,12 @@ export class PostServices extends BaseService<Post> implements IPostService {
       writeToDisk: true,
       userId,
     })) as UploadResult[];
-
     if (uploadResults && uploadResults.length > 0) {
       post.media = uploadResults.map((result, index) => ({
         id: new ObjectId().toString(),
-        type: result.fileType?.includes("image") ? "image" : ("video" as const),
+        type: result.mimeType?.startsWith("image/")
+          ? "image"
+          : ("video" as const),
         url: result.fileName || "",
         order: index,
       }));
