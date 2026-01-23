@@ -37,7 +37,16 @@ export class PostServices extends BaseService<Post> implements IPostService {
       if (!post.title || !post.community) {
         return ResponseHelper.error("Title and community are required");
       }
+      const privacyValue = formData.get("privacy") as string;
 
+      if (
+        privacyValue &&
+        ["public", "friends", "private"].includes(privacyValue)
+      ) {
+        post.privacy = privacyValue as "public" | "friends" | "private";
+      } else {
+        post.privacy = "friends"; // Valeur par défaut
+      }
       post.userId = userId;
       post.votes = 0;
       post.commentsCount = 0;
@@ -106,28 +115,80 @@ export class PostServices extends BaseService<Post> implements IPostService {
       });
 
       if (!existingPost) {
-        return ResponseHelper.error("Post not found or access denied");
+        return ResponseHelper.error("Post non trouvé ou accès refusé");
       }
 
       post._id = postId;
       post.userId = userId;
       post.updatedAt = new Date();
 
+      // Initialiser post.media si non défini
+      if (!post.media) {
+        post.media = [];
+      }
+
+      // Obtenir les fichiers à supprimer
+      const fichiersASupprimer: string[] = [];
+
+      // Vérifier si de nouveaux fichiers multimédias sont téléchargés
       if (formData.has("media")) {
+        // Obtenir les IDs des fichiers à conserver (envoyés par le frontend)
+        const mediaIdsAConserver = formData.get("keepMediaIds") as string;
+        const idsAConserver = mediaIdsAConserver
+          ? mediaIdsAConserver.split(",")
+          : [];
+
+        // Identifier les fichiers à supprimer (fichiers existants qui ne sont pas dans la liste de conservation)
         if (existingPost.media && existingPost.media.length > 0) {
-          await FileService.deleteMultipleFiles(
-            existingPost.media.map((m) => m.url),
-            userId.toString(),
-          );
+          existingPost.media.forEach((media) => {
+            if (!idsAConserver.includes(media.id)) {
+              fichiersASupprimer.push(media.url);
+            }
+          });
         }
 
+        // Traiter les nouveaux fichiers téléchargés
         await this.handlePostMedia(post, formData, userId);
+
+        // Fusionner les fichiers conservés et les nouveaux fichiers
+        const fichiersConserves =
+          existingPost.media?.filter((m) => idsAConserver.includes(m.id)) || [];
+        const nouveauxFichiers = post.media || [];
+
+        // Utiliser la méthode push pour éviter l'erreur de décomposition
+        post.media = [];
+
+        if (fichiersConserves.length > 0) {
+          post.media.push(...fichiersConserves);
+        }
+
+        if (nouveauxFichiers.length > 0) {
+          post.media.push(...nouveauxFichiers);
+        }
+
+        // Réordonner les fichiers
+        if (post.media && post.media.length > 0) {
+          post.media.forEach((media, index) => {
+            media.order = index;
+          });
+        }
+      } else {
+        // Si pas de nouveaux fichiers, conserver les fichiers existants
+        post.media = existingPost.media || [];
+      }
+
+      // Supprimer les fichiers si nécessaire
+      if (fichiersASupprimer.length > 0) {
+        await FileService.deleteMultipleFiles(
+          fichiersASupprimer,
+          userId.toString(),
+        );
       }
 
       await this.postRepository.updatePost(post);
       return ResponseHelper.success(post);
     } catch (err) {
-      console.error("Error updating post:", err);
+      console.error("Erreur lors de la mise à jour du post:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -625,13 +686,13 @@ export class PostServices extends BaseService<Post> implements IPostService {
         order: index,
       }));
 
-      post.galleryConfig = {
+      /*  post.galleryConfig = {
         aspectRatio: "original",
         showArrows: true,
         showIndicators: true,
         autoPlay: false,
         transitionSpeed: 3000,
-      };
+      }; */
     }
   }
 

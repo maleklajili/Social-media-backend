@@ -36,17 +36,17 @@ export interface Post extends BaseModel {
   type: PostType;
   community: string;
   communityIcon?: string;
-
+  privacy?: "public" | "friends" | "private";
   // Media
   media?: PostMedia[];
   url?: string;
-  galleryConfig?: {
+  /* galleryConfig?: {
     aspectRatio: string;
     showArrows: boolean;
     showIndicators: boolean;
     autoPlay: boolean;
     transitionSpeed: number;
-  };
+  }; */
 
   // Engagement (SIMPLIFIÉ)
   votes: number;
