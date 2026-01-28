@@ -67,7 +67,7 @@ export class CompanyServices
       });
 
       if (logoResult && !Array.isArray(logoResult) && logoResult.fileName) {
-        company.logo = `/uploads/${logoResult.fileName}`;
+        company.logo = `${logoResult.fileName}`;
       }
     }
 
@@ -84,7 +84,7 @@ export class CompanyServices
       });
 
       if (coverResult && !Array.isArray(coverResult) && coverResult.fileName) {
-        company.coverImage = `/uploads/${coverResult.fileName}`;
+        company.coverImage = `${coverResult.fileName}`;
       }
     }
 
@@ -107,7 +107,7 @@ export class CompanyServices
 
       if (Array.isArray(docsResult) && docsResult.length > 0) {
         company.verificationDocuments = docsResult.map((doc, index) => ({
-          file: `/uploads/${doc.fileName}`,
+          file: `${doc.fileName}`,
           type: (formData.get(`documentType${index}`) as string) || "document",
           name:
             (formData.get(`documentName${index}`) as string) ||
@@ -186,7 +186,7 @@ export class CompanyServices
         });
 
         if (logoResult && !Array.isArray(logoResult) && logoResult.fileName) {
-          company.logo = `/uploads/${logoResult.fileName}`;
+          company.logo = `${logoResult.fileName}`;
         }
       } else {
         company.logo = existingCompany.logo;
@@ -214,7 +214,7 @@ export class CompanyServices
           !Array.isArray(coverResult) &&
           coverResult.fileName
         ) {
-          company.coverImage = `/uploads/${coverResult.fileName}`;
+          company.coverImage = `${coverResult.fileName}`;
         }
       } else {
         company.coverImage = existingCompany.coverImage;
@@ -248,7 +248,7 @@ export class CompanyServices
 
         if (Array.isArray(docsResult) && docsResult.length > 0) {
           company.verificationDocuments = docsResult.map((doc, index) => ({
-            file: `/uploads/${doc.fileName}`,
+            file: `${doc.fileName}`,
             type:
               (formData.get(`documentType${index}`) as string) || "document",
             name:
