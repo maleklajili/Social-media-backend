@@ -47,7 +47,10 @@ export class CompanyController extends BaseController<
       if (req.query?.status) {
         filter.status = req.query.status;
       }
-
+      if (req.query?.userId) {
+        // Convertir en ObjectId pour MongoDB
+        filter.userId = new ObjectId(req.query.userId as string);
+      }
       if (req.query?.verified !== undefined) {
         const verifiedValue = req.query.verified === "true";
         filter.verified = verifiedValue;
