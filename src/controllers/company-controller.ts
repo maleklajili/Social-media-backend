@@ -42,7 +42,7 @@ export class CompanyController extends BaseController<
         return ResponseHelper.error("Utilisateur non authentifié");
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const filter: Record<string, any> = { userId: req.user._id };
+      const filter: Record<string, any> = {};
 
       if (req.query?.status) {
         filter.status = req.query.status;
