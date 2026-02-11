@@ -45,9 +45,9 @@ export class JobServices extends BaseService<Job> implements IJobService {
       }
 
       // Verify company is verified to post jobs (optional requirement)
-      if (!company.verified && company.verificationStatus !== "verified") {
+      /*    if (!company.verified && company.verificationStatus !== "verified") {
         return ResponseHelper.error("Company must be verified to post jobs.");
-      }
+      } */
 
       // Set job properties
       job.userId = userId;
