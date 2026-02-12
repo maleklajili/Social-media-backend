@@ -5,7 +5,17 @@ import type { IPostRepository } from "../../interfaces/post/i-post-repository";
 
 export class PostRepository implements IPostRepository {
   private collection = CollectionsManager.postCollection;
+  // In your PostRepository class
+  async getAllPosts(page: number = 1, limit: number = 10): Promise<Post[]> {
+    const skip = (page - 1) * limit;
 
+    return await this.collection
+      .find({})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+  }
   async addPost(post: Post): Promise<void> {
     await this.collection.insertOne(post);
   }

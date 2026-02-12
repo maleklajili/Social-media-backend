@@ -27,7 +27,16 @@ export class PostServices extends BaseService<Post> implements IPostService {
     super(CollectionsManager.postCollection);
     this.commentRepository = commentRepository || new CommentRepository();
   }
+  async getAllPosts(page: number = 1, limit: number = 10): Promise<Post[]> {
+    const skip = (page - 1) * limit;
 
+    return await this.collection
+      .find({})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+  }
   async createPost(
     userId: ObjectId,
     post: Post,
@@ -261,6 +270,9 @@ export class PostServices extends BaseService<Post> implements IPostService {
       let posts: Post[] = [];
 
       switch (filter) {
+        case "all":
+          posts = await this.postRepository.getAllPosts(page, limit);
+          break;
         case "popular":
           posts = await this.postRepository.getTrendingPosts(limit);
           break;

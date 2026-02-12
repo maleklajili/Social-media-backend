@@ -2,6 +2,7 @@ import type { ObjectId } from "mongodb";
 import type { Post } from "../../models/post";
 
 export interface IPostRepository {
+  getAllPosts(page: number, limit: number): Promise<Post[]>;
   addPost(post: Post): Promise<void>;
   updatePost(post: Post): Promise<void>;
   deletePost(id: ObjectId, userId: ObjectId): Promise<boolean>;
