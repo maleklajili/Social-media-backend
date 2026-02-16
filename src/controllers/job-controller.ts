@@ -145,19 +145,27 @@ export class JobController extends BaseController<Job, JobServices> {
     }
   }
 
-  @Get("/company/:companyId")
-  async getJobsByCompanyId(req: ServerRequest): Promise<Response> {
+  @Get("/company/:companyId", [paginationMiddleware])
+  async getJobsByCompanyId(req: RequestWithPagination): Promise<Response> {
     try {
-      const { companyId } = req.params;
-      if (!companyId || !ObjectId.isValid(companyId)) {
-        return ResponseHelper.error("Invalid or missing company id");
+      // Extract companyId from URL manually
+      const url = req.url || "";
+      const match = url.match(/\/company\/([a-f0-9]{24})(?:\?|$)/);
+
+      if (!match || !match[1]) {
+        return ResponseHelper.error("Could not extract company ID from URL");
       }
 
-      const jobs = await this.service.getJobsByCompanyId(
-        new ObjectId(companyId),
-      );
-      return jobs;
+      const companyId = match[1];
+
+      if (!ObjectId.isValid(companyId)) {
+        return ResponseHelper.error(`Invalid company ID format: ${companyId}`);
+      }
+
+      const filter = { companyId: new ObjectId(companyId) };
+      return super.getAll(req, [], filter);
     } catch (err) {
+      console.error("Error:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
