@@ -16,6 +16,9 @@ export class userRepository implements IUserRepository {
       { projection: { password: withPassword } },
     );
   }
+  async findByIds(ids: ObjectId[]): Promise<User[]> {
+    return this.collection.find({ _id: { $in: ids } }).toArray();
+  }
 
   async findByIdentifier(identifier: string): Promise<User | null> {
     const isEmail = validator.isEmail(identifier);
