@@ -655,14 +655,13 @@ export class PostServices extends BaseService<Post> implements IPostService {
     const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.posts}`;
 
     const uploadResults = (await handleFileUpload(formData, {
-      fieldName: "video",
+      fieldName: "media",
       storePath,
       fileName: `post-video-${Date.now()}`,
-      multiple: false,
+      multiple: true,
       writeToDisk: true,
       userId,
     })) as UploadResult[];
-
     if (uploadResults && uploadResults.length > 0) {
       post.media = [
         {
@@ -682,7 +681,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
     const storePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.posts}`;
 
     const uploadResults = (await handleFileUpload(formData, {
-      fieldName: "gallery",
+      fieldName: "media",
       storePath,
       fileName: `gallery-${Date.now()}`,
       multiple: true,
