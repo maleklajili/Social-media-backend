@@ -42,6 +42,14 @@ export class userRepository implements IUserRepository {
     );
   }
 
+  async findByIds(userIds: ObjectId[]): Promise<User[]> {
+    if (!userIds || userIds.length === 0) return [];
+    const users = await this.collection
+      .find({ _id: { $in: userIds } }, { projection: { password: 0 } })
+      .toArray();
+    return users;
+  }
+
   async updateProfile(userId: ObjectId, userData: User): Promise<User | null> {
     const updatedUser = await this.collection.findOneAndUpdate(
       { _id: userId },

@@ -1,5 +1,6 @@
 import type { ObjectId } from "mongodb";
 import type { BaseModel } from "./base/base-model";
+import type { User } from "./user";
 
 export type PostType = "text" | "image" | "video" | "link" | "poll" | "gallery";
 
@@ -30,7 +31,8 @@ export interface PostAward {
 }
 
 export interface Post extends BaseModel {
-  userId: ObjectId;
+  // In responses this field may be replaced with the populated User object.
+  userId: ObjectId | User;
   title: string;
   content: string;
   type: PostType;

@@ -6,6 +6,8 @@ export interface IUserRepository {
     userId: ObjectId | undefined,
     withPassword: number,
   ): Promise<User | null>;
+  // Fetch multiple users by their ObjectId values (password excluded)
+  findByIds(userIds: ObjectId[]): Promise<User[]>;
   findByIdentifier(identifier: string): Promise<User | null>;
 
   findByEmail(email: string): Promise<User | null>;

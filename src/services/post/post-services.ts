@@ -13,6 +13,7 @@ import { FileService } from "../../utils/file-service";
 import type { Comment } from "../../models/comment";
 import { UPLOAD_PATHS } from "../../config/config";
 import { handleFileUpload, type UploadResult } from "../../utils/upload-helper";
+import populateReferences from "../../utils/populate";
 import type { ICommentRepository } from "../../interfaces/comment/i-comment-repository";
 
 export class PostServices extends BaseService<Post> implements IPostService {
@@ -284,6 +285,13 @@ export class PostServices extends BaseService<Post> implements IPostService {
           break;
         default:
           posts = await this.postRepository.getFeedPosts(userId, page, limit);
+      }
+
+      // Populate userId with public user fields using generic helper
+      try {
+        await populateReferences(posts, this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate users for posts:", err);
       }
 
       return ResponseHelper.success({
