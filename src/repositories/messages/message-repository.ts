@@ -10,7 +10,6 @@ export class MessageRepository implements IMessageRepository {
     await this.collection.insertOne(message);
   }
 
-  // ----- MODIFIÉ : ajout du paramètre currentUserId et filtre deletedFor -----
   async getConversation(
     user1Id: ObjectId,
     user2Id: ObjectId,
@@ -22,7 +21,7 @@ export class MessageRepository implements IMessageRepository {
           { sender: user1Id, receiver: user2Id },
           { sender: user2Id, receiver: user1Id },
         ],
-        deletedFor: { $ne: currentUserId }, // exclut les messages supprimés pour l'utilisateur courant
+        deletedFor: { $ne: currentUserId },
       })
       .sort({ createdAt: 1 })
       .toArray();
@@ -44,7 +43,6 @@ export class MessageRepository implements IMessageRepository {
     return result.deletedCount === 1;
   }
 
-  // ----- CORRIGÉ : suppression de la ligne erronée avec userId -----
   async deleteConversation(
     user1Id: ObjectId,
     user2Id: ObjectId,
@@ -58,14 +56,14 @@ export class MessageRepository implements IMessageRepository {
     return result.deletedCount || 0;
   }
 
-  // ----- AMÉLIORÉ : ajout du filtre deletedFor pour les messages reçus aussi -----
   async getRecentChats(userId: ObjectId): Promise<Message[]> {
     const sentMessages = await this.collection
       .find({ sender: userId, deletedFor: { $ne: userId } })
       .project({ receiver: 1 })
       .toArray();
+
     const receivedMessages = await this.collection
-      .find({ receiver: userId, deletedFor: { $ne: userId } }) // filtre ajouté
+      .find({ receiver: userId, deletedFor: { $ne: userId } })
       .project({ sender: 1 })
       .toArray();
 
@@ -81,7 +79,7 @@ export class MessageRepository implements IMessageRepository {
             { sender: userId, receiver: contactId },
             { sender: contactId, receiver: userId },
           ],
-          deletedFor: { $ne: userId }, // filtre important ici aussi
+          deletedFor: { $ne: userId },
         })
         .sort({ createdAt: -1 })
         .limit(1)
@@ -96,6 +94,7 @@ export class MessageRepository implements IMessageRepository {
       (a, b) => b.createdAt!.getTime() - a.createdAt!.getTime(),
     );
   }
+
   async countUnreadMessages(
     userId: ObjectId,
     otherUserId: ObjectId,
@@ -123,13 +122,12 @@ export class MessageRepository implements IMessageRepository {
     payload: MessagePayload,
   ): Promise<boolean> {
     const result = await this.collection.updateOne(
-      { _id: messageId, sender: userId }, // seul l'expéditeur peut modifier
+      { _id: messageId, sender: userId },
       { $set: { payload, updatedAt: new Date() } },
     );
     return result.modifiedCount === 1;
   }
 
-  // ----- NOUVELLE MÉTHODE : soft delete -----
   async softDeleteConversationForUser(
     user1Id: ObjectId,
     user2Id: ObjectId,
@@ -147,6 +145,7 @@ export class MessageRepository implements IMessageRepository {
     );
     return result.modifiedCount;
   }
+
   async softDeleteMessage(
     messageId: ObjectId,
     userId: ObjectId,
@@ -156,5 +155,18 @@ export class MessageRepository implements IMessageRepository {
       { $addToSet: { deletedFor: userId } },
     );
     return result.modifiedCount > 0;
+  }
+
+  async getMessageMediaUrl(messageId: ObjectId): Promise<string | null> {
+    const message = await this.collection.findOne(
+      { _id: messageId },
+      { projection: { "payload.url": 1, type: 1 } },
+    );
+
+    if (message?.payload && "url" in message.payload) {
+      return message.payload.url;
+    }
+
+    return null;
   }
 }

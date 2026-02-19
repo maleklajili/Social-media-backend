@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb"; // or mongoose.Types.ObjectId if using Mongoose
+import { ObjectId } from "mongodb"; // ou mongoose.Types.ObjectId si tu utilises Mongoose
 import { syncUserStorageDelta } from "./asyn-user-storage";
 
 export interface UploadResult {
@@ -19,6 +19,9 @@ interface HandleFileUploadOptions {
   userId?: string | ObjectId;
 }
 
+// ✅ Type compatible pour Bun / undici
+type FormDataEntryValueCompatible = string | File;
+
 function getExtension(filename: string): string {
   const match = filename.match(/\.[^.]+$/);
   return match ? match[0] : "";
@@ -30,11 +33,12 @@ export async function handleFileUpload(
 ): Promise<UploadResult | UploadResult[] | null> {
   const writeToDisk = options.writeToDisk ?? false;
   const userId = options.userId?.toString();
-
   const basePath = options.storePath.replace(/\/+$/, ""); // Clean trailing slashes
 
   if (options.multiple === true) {
-    const files = formData.getAll(options.fieldName);
+    const files = formData.getAll(
+      options.fieldName,
+    ) as FormDataEntryValueCompatible[];
     if (!files.length) return null;
 
     const results: UploadResult[] = [];
@@ -42,7 +46,7 @@ export async function handleFileUpload(
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (!(file instanceof File)) return null;
+      if (!(file instanceof File)) return null; // ✅ type safe
       if (!file.name?.trim()) return null;
 
       const arrayBuffer = await file.arrayBuffer();
@@ -81,8 +85,10 @@ export async function handleFileUpload(
 
     return results;
   } else {
-    const file = formData.get(options.fieldName);
-    if (!file || !(file instanceof File)) return null;
+    const file = formData.get(
+      options.fieldName,
+    ) as FormDataEntryValueCompatible;
+    if (!file || !(file instanceof File)) return null; // ✅ type safe
     if (!file.name?.trim()) return null;
 
     const arrayBuffer = await file.arrayBuffer();

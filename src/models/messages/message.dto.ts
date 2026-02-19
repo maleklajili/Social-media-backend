@@ -1,21 +1,19 @@
-// types/message.dto.ts
-import {
-  MessageType,
-  type MessagePayload,
-} from "../../models/messages/message";
+import { MessageType, type MessagePayload } from "./message";
 
 export interface SendMessageInput {
   receiverId: string;
   type: MessageType;
   payload: MessagePayload;
 }
-// types/message.dto.ts
+
 export interface MarkAsReadInput {
   messageIds: string[];
 }
+
 export interface UpdateMessageInput {
   payload: MessagePayload;
 }
+
 export interface MessageResponse {
   _id: string;
   sender: {
@@ -33,8 +31,8 @@ export interface MessageResponse {
     image?: string;
   };
   type: MessageType;
-  payload: MessagePayload; // Plus de any, utilisation du type union du modèle
+  payload: MessagePayload;
   read: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
