@@ -142,7 +142,7 @@ export class PostController extends BaseController<Post, PostServices> {
       }
 
       const { vote } = (await req.json()) as { vote: string };
-      if (vote !== "up" && vote !== "down") {
+      if (vote !== "up" && vote !== "down" && vote !== null) {
         return ResponseHelper.error("Invalid vote value");
       }
 

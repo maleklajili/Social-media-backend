@@ -309,7 +309,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
   async votePost(
     userId: ObjectId,
     postId: ObjectId,
-    vote: "up" | "down",
+    vote: "up" | "down" | null,
   ): Promise<Response> {
     try {
       const post = await this.postRepository.getPostById(postId);
@@ -319,25 +319,39 @@ export class PostServices extends BaseService<Post> implements IPostService {
       }
 
       const existingVote = post.userVotes?.find((v) => v.userId.equals(userId));
-      const voteValue = vote === "up" ? 1 : -1;
 
-      if (existingVote) {
-        const oldVoteValue = existingVote.vote === "up" ? 1 : -1;
-        await this.postRepository.incrementVotes(postId, -oldVoteValue);
-
-        if (existingVote.vote === vote) {
+      // Handle vote removal (when vote is null)
+      if (vote === null) {
+        if (existingVote) {
+          // Just remove the vote from userVotes, don't adjust votes count
           await this.collection.updateOne(
             { _id: postId },
             { $pull: { userVotes: { userId: userId } } },
           );
-        } else {
-          await this.collection.updateOne(
-            { _id: postId, "userVotes.userId": userId },
-            { $set: { "userVotes.$.vote": vote } },
-          );
-          await this.postRepository.incrementVotes(postId, voteValue);
         }
+
+        const updatedPost = await this.postRepository.getPostById(postId);
+        if (updatedPost) {
+          updatedPost.trendingScore = this.calculateTrendingScore(updatedPost);
+          await this.postRepository.updatePost(updatedPost);
+        }
+
+        return ResponseHelper.success({
+          message: "Vote removed",
+          totalVotes: post.votes || 0,
+        });
+      }
+
+      // Handle voting (up or down)
+      if (existingVote) {
+        // User is changing their vote (up → down or down → up)
+        // Just update the vote type, don't change the votes count
+        await this.collection.updateOne(
+          { _id: postId, "userVotes.userId": userId },
+          { $set: { "userVotes.$.vote": vote } },
+        );
       } else {
+        // New vote - increment the votes counter
         await this.collection.updateOne(
           { _id: postId },
           {
@@ -348,9 +362,9 @@ export class PostServices extends BaseService<Post> implements IPostService {
                 createdAt: new Date(),
               },
             },
+            $inc: { votes: 1 }, // Only increment for new votes
           },
         );
-        await this.postRepository.incrementVotes(postId, voteValue);
       }
 
       const updatedPost = await this.postRepository.getPostById(postId);
@@ -361,7 +375,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
 
       return ResponseHelper.success({
         message: "Vote recorded",
-        totalVotes: (post.votes || 0) + (existingVote ? 0 : voteValue),
+        totalVotes: updatedPost?.votes || 0,
       });
     } catch (err) {
       console.error("Error voting post:", err);

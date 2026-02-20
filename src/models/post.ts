@@ -20,7 +20,7 @@ export interface PostMedia {
 
 export interface PostVote {
   userId: ObjectId;
-  vote: "up" | "down";
+  vote: "up" | "down" | null;
   createdAt: Date;
 }
 
