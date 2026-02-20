@@ -44,8 +44,8 @@ export class PostServices extends BaseService<Post> implements IPostService {
     formData: FormData,
   ): Promise<Response> {
     try {
-      if (!post.title || !post.community) {
-        return ResponseHelper.error("Title and community are required");
+      if (!post.title) {
+        return ResponseHelper.error("Title is required");
       }
       const privacyValue = formData.get("privacy") as string;
 
