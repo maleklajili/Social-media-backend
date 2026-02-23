@@ -8,7 +8,7 @@ export interface IPostRepository {
   deletePost(id: ObjectId, userId: ObjectId): Promise<boolean>;
   getPostById(id: ObjectId): Promise<Post | null>;
   getPostsByUserId(userId: ObjectId): Promise<Post[]>;
-  getPostsByCommunity(communityId: string): Promise<Post[]>;
+  getPostsByCommunity(communityId: ObjectId): Promise<Post[]>;
   getFeedPosts(userId: ObjectId, page: number, limit: number): Promise<Post[]>;
   incrementVotes(postId: ObjectId, increment: number): Promise<void>;
   incrementComments(postId: ObjectId, increment: number): Promise<void>;

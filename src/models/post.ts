@@ -36,7 +36,7 @@ export interface Post extends BaseModel {
   title: string;
   content: string;
   type: PostType;
-  community: string;
+  community: ObjectId;
   communityIcon?: string;
   privacy?: "public" | "friends" | "private";
   // Media

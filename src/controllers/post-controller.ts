@@ -127,7 +127,30 @@ export class PostController extends BaseController<Post, PostServices> {
       return ResponseHelper.serverError(String(err));
     }
   }
+  @Get("/community/:communityId", [authMiddleware])
+  async getPostsByCommunity(req: RequestWithPagination): Promise<Response> {
+    try {
+      const { communityId } = req.params;
 
+      if (!communityId || !ObjectId.isValid(communityId)) {
+        return ResponseHelper.error("Invalid or missing community ID");
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const sort =
+        (req.query.sort as "recent" | "popular" | "trending") || "recent";
+
+      return this.service.getPostsByCommunity(
+        new ObjectId(communityId),
+        page,
+        limit,
+        sort,
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   @PostMethod("/:id/vote", [authMiddleware])
   async votePost(req: ServerRequest): Promise<Response> {
     try {

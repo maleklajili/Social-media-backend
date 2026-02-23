@@ -67,6 +67,14 @@ export class PostServices extends BaseService<Post> implements IPostService {
       post.updatedAt = new Date();
       post.lastActivityAt = new Date();
 
+      if (post.community && typeof post.community === "string") {
+        if (ObjectId.isValid(post.community)) {
+          post.community = new ObjectId(post.community as string);
+        } else {
+          return ResponseHelper.error("Invalid community ID format");
+        }
+      }
+
       switch (post.type) {
         case "image":
           await this.handleImagePost(post, formData, userId);
@@ -305,7 +313,55 @@ export class PostServices extends BaseService<Post> implements IPostService {
       return ResponseHelper.serverError(String(err));
     }
   }
+  async getPostsByCommunity(
+    communityId: ObjectId,
+    page: number = 1,
+    limit: number = 10,
+    sort: "recent" | "popular" | "trending" = "recent",
+  ): Promise<Response> {
+    try {
+      let posts: Post[] = [];
 
+      // Get posts from repository
+      posts = await this.postRepository.getPostsByCommunity(communityId);
+
+      // Apply pagination manually since the repository method doesn't support it
+      const skip = (page - 1) * limit;
+      const paginatedPosts = posts.slice(skip, skip + limit);
+
+      // Apply sorting
+      if (sort === "recent") {
+        paginatedPosts.sort(
+          (a, b) =>
+            new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime(),
+        );
+      } else if (sort === "popular") {
+        paginatedPosts.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      } else if (sort === "trending") {
+        paginatedPosts.sort(
+          (a, b) => (b.trendingScore || 0) - (a.trendingScore || 0),
+        );
+      }
+
+      // Populate user information
+      try {
+        await populateReferences(paginatedPosts, this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate users for community posts:", err);
+      }
+
+      return ResponseHelper.success({
+        posts: paginatedPosts,
+        page,
+        limit,
+        total: posts.length,
+        hasMore: skip + limit < posts.length,
+      });
+    } catch (err) {
+      console.error("Error getting posts by community:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   async votePost(
     userId: ObjectId,
     postId: ObjectId,

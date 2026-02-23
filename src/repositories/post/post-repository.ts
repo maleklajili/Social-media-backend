@@ -38,7 +38,7 @@ export class PostRepository implements IPostRepository {
     return this.collection.find({ userId }).sort({ createdAt: -1 }).toArray();
   }
 
-  async getPostsByCommunity(communityId: string): Promise<Post[]> {
+  async getPostsByCommunity(communityId: ObjectId): Promise<Post[]> {
     return this.collection
       .find({ community: communityId })
       .sort({ createdAt: -1 })
@@ -52,13 +52,29 @@ export class PostRepository implements IPostRepository {
   ): Promise<Post[]> {
     const skip = (page - 1) * limit;
 
+    // Get communities as strings
+    const communityStrings = await this.getUserCommunities(userId);
+
+    // Convert strings to ObjectId
+    const communityObjectIds = communityStrings
+      .filter((id) => ObjectId.isValid(id))
+      .map((id) => new ObjectId(id));
+
+    // Build query
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const query: any = {};
+
+    if (communityObjectIds.length > 0) {
+      query.$or = [
+        { userId: userId },
+        { community: { $in: communityObjectIds } },
+      ];
+    } else {
+      query.userId = userId;
+    }
+
     return this.collection
-      .find({
-        $or: [
-          { userId: userId },
-          { community: { $in: await this.getUserCommunities(userId) } },
-        ],
-      })
+      .find(query)
       .sort({ trendingScore: -1, createdAt: -1 })
       .skip(skip)
       .limit(limit)
