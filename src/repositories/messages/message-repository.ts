@@ -169,4 +169,22 @@ export class MessageRepository implements IMessageRepository {
 
     return null;
   }
+
+  async searchMessages(userId: ObjectId, query: string): Promise<Message[]> {
+    const searchRegex = new RegExp(query, "i");
+    return await this.collection
+      .find({
+        $and: [
+          {
+            $or: [{ sender: userId }, { receiver: userId }],
+          },
+          {
+            $or: [{ "payload.text": searchRegex }],
+          },
+          { deletedFor: { $ne: userId } },
+        ],
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+  }
 }

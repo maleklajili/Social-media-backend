@@ -98,6 +98,27 @@ interface RecentChatsUpdatedEvent {
   totalUnread: number;
 }
 
+interface SearchResultConversation {
+  user: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
+    image?: string;
+  };
+  messages: MessageResponse[];
+  nameMatch: boolean;
+  lastMessage: MessageResponse;
+  messageCount: number;
+}
+
+interface SearchResultsEvent {
+  query: string;
+  results: SearchResultConversation[];
+  timestamp: Date;
+  totalResults: number;
+}
+
 export class MessageService
   extends BaseService<Message>
   implements IMessageService
@@ -167,6 +188,8 @@ export class MessageService
       }
 
       const response = this.formatMessageResponse(message, sender, receiver);
+
+      // ✅ Émission INSTANTANÉE vers les deux users
       this.emitNewMessage(senderId, input.receiverId, response);
 
       return ResponseHelper.success(response);
@@ -182,61 +205,30 @@ export class MessageService
     formData: FormData,
   ): Promise<Response> {
     try {
-      console.log("🔵 [sendMediaMessage] Début de la méthode");
-      console.log("📤 senderId:", senderId);
-      console.log("📥 receiverId:", receiverId);
-
       const sender = await this.userRepo.findById(new ObjectId(senderId));
       const receiver = await this.userRepo.findById(new ObjectId(receiverId));
 
-      console.log("👤 sender trouvé:", !!sender);
-      console.log("👤 receiver trouvé:", !!receiver);
-
       if (!sender || !receiver) {
-        console.error("❌ Expéditeur ou destinataire introuvable");
         return ResponseHelper.error(
           "Expéditeur ou destinataire introuvable",
           404,
         );
       }
 
-      // Afficher toutes les clés du FormData
-      console.log("📋 Clés disponibles dans FormData:");
-      const formDataKeys: string[] = [];
-      for (const key of formData.keys()) {
-        formDataKeys.push(key);
-      }
-      console.log("Keys:", formDataKeys);
-
       const mediaType = formData.get("type") as string | null;
-      console.log("🎯 mediaType reçu:", mediaType);
-      console.log("📋 MessageType values:", Object.values(MessageType));
 
       if (!mediaType) {
-        console.error("❌ mediaType est null ou undefined");
         return ResponseHelper.error("Type de média invalide ou manquant", 400);
       }
 
       if (!Object.values(MessageType).includes(mediaType as MessageType)) {
-        console.error(`❌ mediaType "${mediaType}" n'est pas valide`);
-        console.log("✅ Types valides:", Object.values(MessageType));
         return ResponseHelper.error("Type de média invalide ou manquant", 400);
       }
 
       const typedMediaType = mediaType as MessageType;
-      console.log("✅ typedMediaType:", typedMediaType);
 
       const basePath = UPLOAD_PATHS.images.replace("./", "");
       const storePath = `${basePath}-${senderId}/${UPLOAD_PATHS.messages}`;
-      console.log("📁 storePath:", storePath);
-
-      // Vérifier si le fichier existe dans le FormData
-      const fileCheck = formData.get("file");
-      console.log("📎 file présent:", !!fileCheck);
-      if (fileCheck) {
-        console.log("📎 type du fichier:", fileCheck.constructor.name);
-        console.log("📎 instanceOf File:", fileCheck instanceof File);
-      }
 
       const uploadResult = (await handleFileUpload(formData, {
         fieldName: "file",
@@ -247,43 +239,16 @@ export class MessageService
         userId: new ObjectId(senderId),
       })) as UploadResult;
 
-      console.log("📦 uploadResult:", uploadResult);
-
-      if (!uploadResult) {
-        console.error("❌ uploadResult est null ou undefined");
+      if (!uploadResult || !uploadResult.fileName) {
         return ResponseHelper.error("Erreur lors de l'upload du fichier", 500);
       }
 
-      if (!uploadResult.fileName) {
-        console.error("❌ uploadResult.fileName est manquant");
-        return ResponseHelper.error("Nom de fichier manquant", 500);
-      }
-
-      console.log("📄 uploadResult.fileName:", uploadResult.fileName);
-      console.log("📄 uploadResult.size:", uploadResult.size);
-
-      // ✅ SOLUTION: Utiliser l'extension du fichier pour déterminer le type MIME
-      // au lieu de uploadResult.mimeType qui peut être undefined ou mal formaté
-      const fileExtension = path.extname(uploadResult.fileName).toLowerCase();
       const mimeTypeFromExt = this.getMimeTypeFromFileName(
         uploadResult.fileName,
       );
 
-      console.log("🔍 extension du fichier:", fileExtension);
-      console.log("🔍 mimeType depuis extension:", mimeTypeFromExt);
-
-      // ✅ Valider le type MIME basé sur l'extension
       const allowedTypes = this.getAllowedMimeTypes(typedMediaType);
-      console.log("✅ allowedTypes pour", typedMediaType, ":", allowedTypes);
-      console.log(
-        "🔍 allowedTypes includes mimeTypeFromExt:",
-        allowedTypes.includes(mimeTypeFromExt),
-      );
-
       if (!allowedTypes.includes(mimeTypeFromExt)) {
-        console.error(
-          `❌ Type de fichier "${fileExtension}" non autorisé pour ${typedMediaType}`,
-        );
         return ResponseHelper.error(
           `Type de fichier non autorisé. Types acceptés: ${allowedTypes.join(", ")}`,
           400,
@@ -291,12 +256,9 @@ export class MessageService
       }
 
       const maxSize = this.getMaxSize(typedMediaType);
-      console.log("📊 maxSize pour", typedMediaType, ":", maxSize, "bytes");
-
       if (uploadResult.size && uploadResult.size > maxSize) {
         const sizeMB = (uploadResult.size / (1024 * 1024)).toFixed(2);
         const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(2);
-        console.error(`❌ Taille ${sizeMB}MB > max ${maxSizeMB}MB`);
         return ResponseHelper.error(
           `Fichier trop volumineux (${sizeMB} MB). Taille max: ${maxSizeMB} MB`,
           400,
@@ -307,16 +269,13 @@ export class MessageService
         process.env.BASE_URL || `http://localhost:${process.env.PORT || 9000}`;
       const cleanPath = storePath.replace(/^\.\//, "");
       const fileUrl = `${baseUrl}/${cleanPath}/${uploadResult.fileName}`;
-      console.log("🔗 fileUrl généré:", fileUrl);
 
-      // ✅ Utiliser le mimeType basé sur l'extension pour le payload
       const payload: MediaPayload = {
         url: fileUrl,
-        mimeType: mimeTypeFromExt, // Maintenant toujours défini !
+        mimeType: mimeTypeFromExt,
         size: uploadResult.size,
         fileName: this.extractFileName(uploadResult.fileName),
       };
-      console.log("📦 payload créé:", payload);
 
       const message: Message = {
         _id: new ObjectId(),
@@ -329,14 +288,11 @@ export class MessageService
         updatedAt: new Date(),
       };
 
-      console.log("💾 Sauvegarde du message en base...");
       await this.messageRepo.sendMessage(message);
-      console.log("✅ Message sauvegardé avec ID:");
 
       if (this.transactionService) {
         try {
           const coinsAmount = this.getCoinsForMessageType(typedMediaType);
-          console.log("💰 Ajout de coins:", coinsAmount);
           await this.userRepo.addCoins(new ObjectId(senderId), coinsAmount);
           await this.transactionService.addStandardEarning(
             new ObjectId(senderId),
@@ -350,27 +306,23 @@ export class MessageService
               fileName: uploadResult.fileName,
             },
           );
-          console.log("✅ Coins ajoutés avec succès");
         } catch (err) {
           console.error("❌ Erreur lors de l'ajout de coins:", err);
         }
       }
 
       const response = this.formatMessageResponse(message, sender, receiver);
-      console.log("📤 Émission socket.io...");
+
+      // ✅ Émission INSTANTANÉE
       this.emitNewMessage(senderId, receiverId, response);
-      console.log("✅ Méthode terminée avec succès");
 
       return ResponseHelper.success(response);
     } catch (err) {
-      console.error("❌❌❌ ERREUR CATASTROPHIQUE dans sendMediaMessage:", err);
-      console.error(
-        "Stack trace:",
-        err instanceof Error ? err.stack : String(err),
-      );
+      console.error("❌❌❌ ERREUR dans sendMediaMessage:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
+
   async getConversation(
     userId: string,
     otherUserId: string,
@@ -381,6 +333,20 @@ export class MessageService
         new ObjectId(otherUserId),
         new ObjectId(userId),
       );
+
+      // ✅ MARQUAGE INSTANTANÉ des messages non lus
+      const unreadMessageIds = messages
+        .filter((msg) => !msg.read && msg.receiver.toString() === userId)
+        .map((msg) => msg._id!.toString());
+
+      if (unreadMessageIds.length > 0) {
+        // Ne pas attendre la réponse
+        setImmediate(() => {
+          this.markAsRead(userId, unreadMessageIds).catch((err) =>
+            console.error("Erreur marquage lecture:", err),
+          );
+        });
+      }
 
       if (!messages.length) {
         return ResponseHelper.success([]);
@@ -411,6 +377,7 @@ export class MessageService
         return this.formatMessageResponse(msg, sender, receiver);
       });
 
+      // ✅ Émission que la conversation a été vue
       this.emitConversationViewed(userId, otherUserId);
 
       return ResponseHelper.success(formattedMessages);
@@ -435,10 +402,35 @@ export class MessageService
         );
       }
 
+      // ✅ MISE À JOUR INSTANTANÉE en base
       await this.messageRepo.markAsRead(objectIds);
-      this.emitMessagesRead(messages, userId, messageIds);
+      console.log(`✅ [BD] ${messageIds.length} messages marqués lus en base`);
 
-      return ResponseHelper.success({ success: true });
+      // ✅ Émission socket vers TOUS les participants
+      const io = getIo();
+      const event: MessagesReadEvent = {
+        messageIds,
+        readerId: userId,
+      };
+
+      // Émettre à l'expéditeur pour qu'il voie que ses messages sont lus
+      const uniqueSenders = new Set<string>();
+      for (const message of messages) {
+        const senderId = message.sender.toString();
+        if (!uniqueSenders.has(senderId)) {
+          uniqueSenders.add(senderId);
+          io.to(`user:${senderId}`).emit("messages_read", event);
+          console.log(`📤 Émission messages_read vers user:${senderId}`);
+        }
+      }
+
+      // Émettre aussi au lecteur lui-même pour mettre à jour son UI
+      io.to(`user:${userId}`).emit("messages_read", event);
+
+      return ResponseHelper.success({
+        success: true,
+        modifiedCount: messageIds.length,
+      });
     } catch (err) {
       console.error("❌ Error in markAsRead:", err);
       return ResponseHelper.serverError(String(err));
@@ -493,6 +485,7 @@ export class MessageService
         }
       }
 
+      // ✅ Émission INSTANTANÉE de la suppression
       this.emitMessageDeleted(message, userId);
 
       return ResponseHelper.success({ message: "Message supprimé" });
@@ -566,6 +559,7 @@ export class MessageService
         receiver,
       );
 
+      // ✅ Émission INSTANTANÉE de la modification
       this.emitMessageUpdated(updatedMessage, response);
 
       return ResponseHelper.success(response);
@@ -597,6 +591,7 @@ export class MessageService
         new ObjectId(otherUserId),
       );
 
+      // ✅ Émission INSTANTANÉE de la suppression de conversation
       this.emitConversationDeleted(userId, otherUserId, count);
 
       return ResponseHelper.success({ deletedCount: count });
@@ -631,14 +626,13 @@ export class MessageService
       for (const msg of messages) {
         const otherUserIdObj =
           msg.sender.toString() === userId ? msg.receiver : msg.sender;
-        // ✅ Supprimé - const otherUserId = otherUserIdObj.toString(); (inutilisé)
 
         const otherUser = await this.userRepo.findById(otherUserIdObj);
         if (!otherUser) continue;
 
         const unreadCount = await this.messageRepo.countUnreadMessages(
           currentUserId,
-          otherUserIdObj, // ✅ Utilisation directe de l'objet ObjectId
+          otherUserIdObj,
         );
 
         const sender =
@@ -703,6 +697,7 @@ export class MessageService
         new ObjectId(userId),
       );
 
+      // ✅ Émission INSTANTANÉE
       this.emitAllMessagesDeleted(userId, count);
 
       return ResponseHelper.success({ deletedCount: count });
@@ -723,6 +718,7 @@ export class MessageService
         new ObjectId(userId),
       );
 
+      // ✅ Émission INSTANTANÉE
       this.emitConversationSoftDeleted(userId, otherUserId, count);
 
       return ResponseHelper.success({
@@ -766,6 +762,7 @@ export class MessageService
         return ResponseHelper.error("Message déjà masqué ou introuvable", 400);
       }
 
+      // ✅ Émission INSTANTANÉE
       this.emitMessageSoftDeleted(userId, messageId);
 
       return ResponseHelper.success({ message: "Message masqué pour vous" });
@@ -775,7 +772,101 @@ export class MessageService
     }
   }
 
-  // ------------------------- Méthodes privées pour Socket.IO -------------------------
+  async searchMessages(userId: string, query: string): Promise<Response> {
+    try {
+      if (!query || query.trim() === "") {
+        return ResponseHelper.error("La requête de recherche est vide", 400);
+      }
+
+      const currentUserId = new ObjectId(userId);
+
+      const messages = await this.messageRepo.searchMessages(
+        currentUserId,
+        query,
+      );
+
+      if (!messages.length) {
+        return ResponseHelper.success([]);
+      }
+
+      const userIds = new Set<string>();
+      messages.forEach((msg) => {
+        userIds.add(msg.sender.toString());
+        userIds.add(msg.receiver.toString());
+      });
+
+      const users = await this.userRepo.findByIds(
+        Array.from(userIds).map((id) => new ObjectId(id)),
+      );
+
+      const userMap = new Map<string, User>(
+        users.map((u: User) => [u._id!.toString(), u]),
+      );
+
+      const formattedMessages = messages.map((msg) => {
+        const sender = userMap.get(msg.sender.toString());
+        const receiver = userMap.get(msg.receiver.toString());
+
+        if (!sender || !receiver) {
+          throw new Error("Utilisateur introuvable lors du formatage");
+        }
+
+        return this.formatMessageResponse(msg, sender, receiver);
+      });
+
+      const conversations = new Map<string, SearchResultConversation>();
+
+      for (const msg of formattedMessages) {
+        const otherUserId =
+          msg.sender._id === userId ? msg.receiver._id : msg.sender._id;
+        const otherUser = msg.sender._id === userId ? msg.receiver : msg.sender;
+
+        if (!conversations.has(otherUserId)) {
+          const fullName =
+            `${otherUser.firstName} ${otherUser.lastName}`.toLowerCase();
+          const searchQuery = query.toLowerCase();
+
+          const nameMatches =
+            fullName.includes(searchQuery) ||
+            otherUser.firstName.toLowerCase().includes(searchQuery) ||
+            otherUser.lastName.toLowerCase().includes(searchQuery);
+
+          conversations.set(otherUserId, {
+            user: otherUser,
+            messages: [],
+            nameMatch: nameMatches,
+            lastMessage: msg,
+            messageCount: 0,
+          });
+        }
+
+        const conversation = conversations.get(otherUserId)!;
+        conversation.messages.push(msg);
+        conversation.messageCount = conversation.messages.length;
+        conversation.lastMessage = msg;
+      }
+
+      const result = Array.from(conversations.values()).sort(
+        (a, b) =>
+          b.lastMessage.createdAt!.getTime() -
+          a.lastMessage.createdAt!.getTime(),
+      );
+
+      // ✅ Émission des résultats de recherche
+      this.emitSearchResults(userId, result, query);
+
+      return ResponseHelper.success({
+        query,
+        results: result,
+        totalResults: result.length,
+      });
+    } catch (err) {
+      console.error("❌ Error in searchMessages:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  // ------------------------- MÉTHODES D'ÉMISSION SOCKET -------------------------
 
   private emitNewMessage(
     senderId: string,
@@ -806,25 +897,6 @@ export class MessageService
         `📤 Émission conversation_viewed entre ${userId} et ${otherUserId}`,
       );
       io.to(`user:${otherUserId}`).emit("conversation_viewed", event);
-    } catch (socketError) {
-      console.error("⚠️ Erreur Socket.IO:", socketError);
-    }
-  }
-
-  private emitMessagesRead(
-    messages: Message[],
-    userId: string,
-    messageIds: string[],
-  ): void {
-    try {
-      const io = getIo();
-      const event: MessagesReadEvent = {
-        messageIds,
-        readerId: userId,
-      };
-      for (const message of messages) {
-        io.to(`user:${message.sender.toString()}`).emit("messages_read", event);
-      }
     } catch (socketError) {
       console.error("⚠️ Erreur Socket.IO:", socketError);
     }
@@ -930,6 +1002,7 @@ export class MessageService
         timestamp: new Date(),
         totalUnread: chats.reduce((acc, chat) => acc + chat.unreadCount, 0),
       };
+
       console.log(
         `📤 Émission recent_chats_updated pour l'utilisateur ${userId}`,
       );
@@ -1012,7 +1085,27 @@ export class MessageService
     }
   }
 
-  // ------------------------- Méthodes privées utilitaires -------------------------
+  private emitSearchResults(
+    userId: string,
+    results: SearchResultConversation[],
+    query: string,
+  ): void {
+    try {
+      const io = getIo();
+      const event: SearchResultsEvent = {
+        query,
+        results,
+        timestamp: new Date(),
+        totalResults: results.length,
+      };
+      console.log(`📤 Émission search_results pour l'utilisateur ${userId}`);
+      io.to(`user:${userId}`).emit("search_results", event);
+    } catch (socketError) {
+      console.error("⚠️ Erreur Socket.IO:", socketError);
+    }
+  }
+
+  // ------------------------- MÉTHODES UTILITAIRES -------------------------
 
   private getStorePath(messageType: MessageType, userId: string): string {
     const basePath = UPLOAD_PATHS.images.replace("./", "");
@@ -1041,6 +1134,7 @@ export class MessageService
         return [];
     }
   }
+
   private getMaxSize(messageType: MessageType): number {
     switch (messageType) {
       case MessageType.IMAGE:

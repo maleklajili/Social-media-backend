@@ -26,7 +26,7 @@ function getExtension(filename: string): string {
   const match = filename.match(/\.[^.]+$/);
   return match ? match[0] : "";
 }
-
+/** */
 export async function handleFileUpload(
   formData: FormData,
   options: HandleFileUploadOptions,

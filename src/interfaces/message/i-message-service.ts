@@ -25,4 +25,5 @@ export interface IMessageService {
     messageId: string,
     input: UpdateMessageInput,
   ): Promise<Response>;
+  searchMessages(userId: string, query: string): Promise<Response>;
 }

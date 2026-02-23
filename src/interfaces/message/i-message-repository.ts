@@ -28,4 +28,5 @@ export interface IMessageRepository {
   countUnreadMessages(userId: ObjectId, otherUserId: ObjectId): Promise<number>;
   softDeleteMessage(messageId: ObjectId, userId: ObjectId): Promise<boolean>;
   getMessageMediaUrl(messageId: ObjectId): Promise<string | null>;
+  searchMessages(userId: ObjectId, query: string): Promise<Message[]>;
 }

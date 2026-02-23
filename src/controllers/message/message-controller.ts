@@ -285,4 +285,26 @@ export class MessageController extends BaseController<Message, MessageService> {
       return ResponseHelper.serverError(String(err));
     }
   }
+
+  @Get("/search", [authMiddleware])
+  async searchMessages(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      if (!userId) {
+        return ResponseHelper.error("Non authentifié", 401);
+      }
+
+      const url = new URL(req.url);
+      const query = url.searchParams.get("q");
+
+      if (!query) {
+        return ResponseHelper.error("Paramètre de recherche 'q' manquant", 400);
+      }
+
+      return await this.service.searchMessages(userId.toString(), query);
+    } catch (err) {
+      console.error("❌ Error in searchMessages:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 }

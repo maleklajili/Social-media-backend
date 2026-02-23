@@ -68,7 +68,7 @@ export class ServerStarter implements IServerStarter {
         const response = handleOptionsRequest();
         // Ajouter les headers CORS pour la pré-requête OPTIONS
         res.writeHead(response.status, {
-          "Access-Control-Allow-Origin": "http://localhost:3001",
+          "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods":
             "GET, POST, PUT, DELETE, PATCH, OPTIONS",
           "Access-Control-Allow-Headers":
@@ -84,7 +84,7 @@ export class ServerStarter implements IServerStarter {
 
       if (url.pathname === "/") {
         res.writeHead(200, {
-          "Access-Control-Allow-Origin": "http://localhost:3001",
+          "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Credentials": "true",
         });
         res.end("server is running");
@@ -94,7 +94,7 @@ export class ServerStarter implements IServerStarter {
       const uploadsResponse = await handleUploadsRequest(url);
       if (uploadsResponse) {
         res.writeHead(uploadsResponse.status, {
-          "Access-Control-Allow-Origin": "http://localhost:3001",
+          "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Credentials": "true",
         });
         res.end(await uploadsResponse.text());
@@ -108,7 +108,7 @@ export class ServerStarter implements IServerStarter {
       // Ajouter les headers CORS à la réponse finale
       res.writeHead(finalResponse.status, {
         ...Object.fromEntries(finalResponse.headers.entries()),
-        "Access-Control-Allow-Origin": "http://localhost:3001",
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Methods":
           "GET, POST, PUT, DELETE, PATCH, OPTIONS",

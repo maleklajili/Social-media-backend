@@ -6,4 +6,6 @@ export const UPLOAD_PATHS = {
   communities: "communities",
   posts: "posts",
   messages: "messages",
+  videos: "./uploads/videos",
+  documents: "./uploads/documents",
 };
