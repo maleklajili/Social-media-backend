@@ -1,6 +1,5 @@
-// socket/socket-manager.ts (version améliorée)
+// socket/socket-manager.ts
 import { Server as SocketServer } from "socket.io";
-import { Server as HttpServer } from "http";
 import { verifyToken } from "../utils/j-w-t";
 import jwt from "jsonwebtoken";
 
@@ -11,84 +10,58 @@ interface TokenPayload extends jwt.JwtPayload {
   userId?: string;
   _id?: string;
 }
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const initSocket = (bunServer: any) => {
+  console.log("🔌 [Socket] Initialisation...");
 
-export const initSocket = (server: HttpServer) => {
-  io = new SocketServer(server, {
+  // ✅ Simple et propre - on passe le serveur Bun directement
+  io = new SocketServer(bunServer, {
     cors: {
-      origin: process.env.CLIENT_URL || "http://localhost:3001",
+      origin: process.env.CLIENT_URL || "http://localhost:3000",
       credentials: true,
     },
-    // Ajoutez ces options pour plus de fiabilité
     transports: ["websocket", "polling"],
-    allowEIO3: true,
-    pingTimeout: 60000,
-    pingInterval: 25000,
+    path: "/socket.io/",
   });
 
+  // Middleware d'auth
   io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth.token;
-
-      if (!token) {
-        console.error("Socket auth: Token manquant");
-        return next(new Error("Token manquant"));
-      }
-
-      console.log(
-        "Socket auth: Tentative avec token:",
-        token.substring(0, 20) + "...",
-      );
+      if (!token) return next(new Error("Token manquant"));
 
       const decoded = await verifyToken(token);
-
-      // Vérifier si decoded est une Response (cas d'erreur)
-      if (decoded instanceof Response) {
-        console.error("Socket auth: Token invalide (Response)");
-        return next(new Error("Token invalide"));
-      }
+      if (decoded instanceof Response) return next(new Error("Token invalide"));
 
       const payload = decoded as TokenPayload;
       const userId = payload.id || payload.userId || payload._id;
-
-      if (!userId) {
-        console.error("Socket auth: UserId manquant dans le token", payload);
-        return next(new Error("UserId manquant dans le token"));
-      }
+      if (!userId) return next(new Error("UserId manquant"));
 
       socket.data.userId = userId;
-      console.log(`Socket auth: Utilisateur ${userId} authentifié avec succès`);
       next();
-    } catch (err) {
-      console.error("Socket auth error:", err);
+    } catch {
       next(new Error("Erreur d'authentification"));
     }
   });
 
+  // Gestion des connexions
   io.on("connection", (socket) => {
     const userId = socket.data.userId;
-    console.log(`User ${userId} connected with socket ID: ${socket.id}`);
+    console.log(`✅ User ${userId} connected`);
 
-    // Rejoindre une room personnelle
     socket.join(`user:${userId}`);
-
-    // Émettre un événement de confirmation
     socket.emit("connected", { userId, socketId: socket.id });
 
     socket.on("disconnect", (reason) => {
-      console.log(`User ${userId} disconnected. Reason: ${reason}`);
-    });
-
-    socket.on("error", (error) => {
-      console.error(`Socket error for user ${userId}:`, error);
+      console.log(`❌ User ${userId} disconnected: ${reason}`);
     });
   });
 
+  console.log("✅ [Socket] Prêt !");
   return io;
 };
 
 export const getIo = () => {
-  if (!io) {
-    throw new Error("Socket.IO non initialisé");
-  }
+  if (!io) throw new Error("Socket.IO non initialisé");
   return io;
 };
