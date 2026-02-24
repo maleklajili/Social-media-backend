@@ -50,7 +50,18 @@ export class CommunityController extends BaseController<
       return ResponseHelper.serverError(String(err));
     }
   }
-
+  @Get("/id/:id", [authMiddleware])
+  async getCommunityById(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing community id");
+      }
+      return this.service.getCommunityById(new ObjectId(id));
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   @Get("/search", [])
   async searchCommunities(req: ServerRequest): Promise<Response> {
     try {

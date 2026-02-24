@@ -28,7 +28,7 @@ export interface ICommunityService {
   searchCommunities(query: string, limit?: number): Promise<Response>;
 
   getCommunityMembers(communityId: ObjectId): Promise<Response>;
-
+  getCommunityById(communityId: ObjectId): Promise<Response>;
   checkUserMembership(
     userId: ObjectId,
     communityId: ObjectId,

@@ -344,7 +344,31 @@ export class CommunityServices
       return ResponseHelper.serverError(String(err));
     }
   }
+  // In community-services.ts, add this method to the CommunityServices class
+  async getCommunityById(communityId: ObjectId): Promise<Response> {
+    try {
+      const community =
+        await this.communityRepository.getCommunityById(communityId);
+      if (!community) {
+        return ResponseHelper.error("Community not found");
+      }
 
+      // Format the data for the frontend
+      const formattedCommunity = {
+        ...community,
+        banner: community.banner
+          ? `/uploads/${UPLOAD_PATHS.communities}/${community.name}/${community.banner}`
+          : null,
+      };
+
+      return ResponseHelper.success({
+        community: formattedCommunity,
+      });
+    } catch (err) {
+      console.error("❌ Error getting community by ID:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   async getPopularCommunities(limit: number = 10): Promise<Response> {
     try {
       const communities =
