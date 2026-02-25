@@ -260,7 +260,12 @@ export class PostServices extends BaseService<Post> implements IPostService {
       if (!post) {
         return ResponseHelper.error("Post not found");
       }
-
+      // Populate userId with public user fields using generic helper
+      try {
+        await populateReferences([post], this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate user for post:", err);
+      }
       await this.postRepository.incrementViews(postId);
       return ResponseHelper.success(post);
     } catch (err) {
