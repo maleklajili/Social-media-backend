@@ -1,7 +1,8 @@
+// server-starter.ts
 import type { BaseController } from "../controllers/base/base-controller";
-
 import { Registred } from "../routes/registred";
 import { runSeeds } from "../seed/seed-runner";
+import { initSocketServer } from "../socket/socket-manager";
 import { createCorsResponse, handleOptionsRequest } from "../utils/cors";
 import { ConnectionDatabase } from "./connection-database";
 import { EnvLoader } from "./env";
@@ -11,14 +12,14 @@ import { Logger } from "./logger";
 import { handleUploadsRequest } from "./uploads-response";
 
 export class ServerStarter implements IServerStarter {
-  private port = 6000;
+  private port: number;
 
   constructor(
-    /* eslint-disable @typescript-eslint/no-explicit-any */
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     private Controllers: (new () => BaseController<any>)[],
     port?: number,
   ) {
-    if (port) this.port = port;
+    this.port = port || 9000;
   }
 
   async connection(): Promise<void> {
@@ -29,36 +30,60 @@ export class ServerStarter implements IServerStarter {
       return;
     }
   }
+
   async seedRunner(): Promise<void> {
     await runSeeds();
   }
+
   async listen(port: number): Promise<void> {
     this.port = port;
-
     const router = new Registred(this.Controllers);
     await this.seedRunner();
+
+    // ✅ Démarrer le serveur Socket.IO séparé
+    try {
+      initSocketServer();
+      Logger.success(`✅ Serveur Socket.IO démarré sur port 9000`, false);
+    } catch (error) {
+      Logger.error(`❌ Erreur démarrage Socket.IO: ${error}`, false);
+    }
+
+    /* const server = */
     Bun.serve({
       port: this.port,
+      idleTimeout: 60,
       fetch: async (req) => {
+        const url = new URL(req.url);
+
+        // Ne pas traiter les requêtes socket.io ici
+        if (url.pathname.startsWith("/socket.io/")) {
+          return new Response("Socket.IO est sur le port 9000", {
+            status: 404,
+          });
+        }
+
+        // Gestion OPTIONS CORS
         if (req.method === "OPTIONS") {
           return handleOptionsRequest();
         }
-        const url = new URL(req.url);
 
+        // Route de test
         if (url.pathname === "/") {
           return new Response("server is running", { status: 200 });
         }
+
+        // Gestion des uploads
         const uploadsResponse = await handleUploadsRequest(url);
         if (uploadsResponse) return uploadsResponse;
-        else {
-          const enhancedRequest = new ServerRequest(req);
-          const response = await router.router.handleRequest(enhancedRequest);
-          return createCorsResponse(response);
-        }
+
+        // Routes normales
+        const enhancedRequest = new ServerRequest(req);
+        const response = await router.router.handleRequest(enhancedRequest);
+        return createCorsResponse(response);
       },
     });
 
-    Logger.success(`Server running at port: ${this.port}`, false);
+    Logger.success(`✅ Serveur API démarré sur port: ${this.port}`, false);
   }
 
   async start(): Promise<void> {

@@ -8,6 +8,7 @@ export class FileService {
   /**
    * Supprime un fichier physique du système de fichiers
    */
+
   static async deleteFile(filePath: string): Promise<void> {
     try {
       await fs.access(filePath);

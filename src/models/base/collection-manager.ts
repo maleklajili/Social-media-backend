@@ -21,6 +21,7 @@ import type { Job } from "../job";
 import type { Community } from "../community/community";
 import type { CommunityMember } from "../community/community-member";
 import type { Comment } from "../comment";
+import type { Message } from "../messages/message";
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -44,6 +45,7 @@ export class CollectionsManager {
   static communityCollection: Collection<Community>;
   static communityMemberCollection: Collection<CommunityMember>;
   static commentCollection: Collection<Comment>;
+  static messageCollection: Collection<Message>;
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -74,5 +76,6 @@ export class CollectionsManager {
     this.communityMemberCollection =
       db.collection<CommunityMember>("community-members");
     this.commentCollection = db.collection<Comment>("comments");
+    this.messageCollection = db.collection<Message>("messages");
   }
 }

@@ -21,6 +21,13 @@ export const COINS_CONFIG = {
   REMOVE_JOB: 1,
   DELETE_POST: 1,
   DELETE_COMMENT: 1,
+  DELETE_MESSAGE: 1,
+
+  // Messages
+  SEND_MESSAGE: 2,
+  SEND_IMAGE: 3,
+  SEND_VIDEO: 5,
+  SEND_DOCUMENT: 4,
 } as const;
 
 export type CoinAction = keyof typeof COINS_CONFIG;
