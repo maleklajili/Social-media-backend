@@ -43,7 +43,7 @@ export class ServerStarter implements IServerStarter {
     // ✅ Démarrer le serveur Socket.IO séparé
     try {
       initSocketServer();
-      Logger.success(`✅ Serveur Socket.IO démarré sur port 9000`, false);
+      Logger.success(`✅ Serveur Socket.IO démarré sur port 6000`, false);
     } catch (error) {
       Logger.error(`❌ Erreur démarrage Socket.IO: ${error}`, false);
     }
