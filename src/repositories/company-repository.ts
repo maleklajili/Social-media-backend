@@ -27,4 +27,16 @@ export class CompanyRepository implements ICompanyRepository {
   async getCompanyById(id: ObjectId): Promise<Company | null> {
     return this.collection.findOne({ _id: id });
   }
+  async countCompanies(): Promise<number> {
+    return this.collection.countDocuments();
+  }
+  async countDistinctIndustries(): Promise<number> {
+    const industries = await this.collection.distinct("industry");
+    return industries.length;
+  }
+
+  async countDistinctLocations(): Promise<number> {
+    const locations = await this.collection.distinct("location");
+    return locations.length; // retourne bien un number
+  }
 }

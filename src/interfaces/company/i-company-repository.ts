@@ -7,4 +7,7 @@ export interface ICompanyRepository {
   deleteCompany(id: ObjectId, userId: ObjectId): Promise<boolean>;
   getCompaniesByUserId(userId: ObjectId): Promise<Company[]>;
   getCompanyById(id: ObjectId): Promise<Company | null>;
+  countCompanies(): Promise<number>;
+  countDistinctIndustries(): Promise<number>; // <-- new
+  countDistinctLocations(): Promise<number>;
 }

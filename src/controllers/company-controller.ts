@@ -13,6 +13,7 @@ import { CompanyRepository } from "../repositories/company-repository";
 import { userRepository } from "../repositories/user-repository";
 import { TransactionService } from "../services/transaction-services";
 import { TransactionRepository } from "../repositories/transaction-repository";
+import { JobRepository } from "../repositories/job-repository";
 
 export class CompanyController extends BaseController<
   Company,
@@ -31,6 +32,7 @@ export class CompanyController extends BaseController<
     return new CompanyServices(
       new CompanyRepository(),
       new userRepository(),
+      new JobRepository(),
       new TransactionService(new TransactionRepository(), new userRepository()),
     );
   }
@@ -152,6 +154,17 @@ export class CompanyController extends BaseController<
 
       return this.service.getCompanyById(new ObjectId(id));
     } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/stats", [authMiddleware])
+  async getStats(): Promise<Response> {
+    try {
+      const stats = await this.service.getAggregatedStats();
+      return ResponseHelper.success(stats);
+    } catch (err) {
+      console.error("❌ Error fetching stats:", err);
       return ResponseHelper.serverError(String(err));
     }
   }

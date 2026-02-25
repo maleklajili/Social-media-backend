@@ -14,4 +14,5 @@ export interface IJobRepository {
     experience?: string;
     skills?: string[];
   }): Promise<Job[]>;
+  countJobs(): Promise<number>;
 }

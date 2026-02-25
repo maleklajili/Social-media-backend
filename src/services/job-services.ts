@@ -263,4 +263,14 @@ export class JobServices extends BaseService<Job> implements IJobService {
       return ResponseHelper.serverError(String(err));
     }
   }
+
+  async getTotalJobs(): Promise<Response> {
+    try {
+      const count = await this.jobRepository.countJobs();
+      return ResponseHelper.success({ total: count });
+    } catch (err) {
+      console.error("❌ Error counting jobs:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 }
