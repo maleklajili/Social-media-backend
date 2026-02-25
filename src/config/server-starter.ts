@@ -19,7 +19,7 @@ export class ServerStarter implements IServerStarter {
     private Controllers: (new () => BaseController<any>)[],
     port?: number,
   ) {
-    this.port = port || 9000;
+    this.port = port || 6000;
   }
 
   async connection(): Promise<void> {
@@ -57,7 +57,7 @@ export class ServerStarter implements IServerStarter {
 
         // Ne pas traiter les requêtes socket.io ici
         if (url.pathname.startsWith("/socket.io/")) {
-          return new Response("Socket.IO est sur le port 9000", {
+          return new Response("Socket.IO est sur le port 6000", {
             status: 404,
           });
         }

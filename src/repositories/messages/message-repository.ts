@@ -57,42 +57,35 @@ export class MessageRepository implements IMessageRepository {
   }
 
   async getRecentChats(userId: ObjectId): Promise<Message[]> {
-    const sentMessages = await this.collection
-      .find({ sender: userId, deletedFor: { $ne: userId } })
-      .project({ receiver: 1 })
-      .toArray();
-
-    const receivedMessages = await this.collection
-      .find({ receiver: userId, deletedFor: { $ne: userId } })
-      .project({ sender: 1 })
-      .toArray();
-
-    const contactIds = new Set<ObjectId>();
-    sentMessages.forEach((msg) => contactIds.add(msg.receiver));
-    receivedMessages.forEach((msg) => contactIds.add(msg.sender));
-
-    const recentChats: Message[] = [];
-    for (const contactId of contactIds) {
-      const lastMessage = await this.collection
-        .find({
-          $or: [
-            { sender: userId, receiver: contactId },
-            { sender: contactId, receiver: userId },
-          ],
+    // Une seule requête d'agrégation pour tout récupérer
+    const pipeline = [
+      {
+        $match: {
+          $or: [{ sender: userId }, { receiver: userId }],
           deletedFor: { $ne: userId },
-        })
-        .sort({ createdAt: -1 })
-        .limit(1)
-        .toArray();
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $group: {
+          _id: {
+            $cond: [{ $eq: ["$sender", userId] }, "$receiver", "$sender"],
+          },
+          lastMessage: { $first: "$$ROOT" },
+        },
+      },
+      {
+        $replaceRoot: { newRoot: "$lastMessage" },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+    ];
 
-      if (lastMessage.length > 0) {
-        recentChats.push(lastMessage[0]!);
-      }
-    }
-
-    return recentChats.sort(
-      (a, b) => b.createdAt!.getTime() - a.createdAt!.getTime(),
-    );
+    const recentChats = await this.collection.aggregate(pipeline).toArray();
+    return recentChats as Message[];
   }
 
   async countUnreadMessages(
