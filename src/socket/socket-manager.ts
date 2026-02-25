@@ -17,7 +17,7 @@ export const initSocketServer = () => {
 
   console.log("🔌 [Socket] Initialisation du serveur Socket.IO séparé...");
 
-  const SOCKET_PORT = 9000;
+  const SOCKET_PORT = process.env.SOCKET_PORT || 6000;
 
   const httpServer = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "text/plain" });
