@@ -59,4 +59,7 @@ export class JobRepository implements IJobRepository {
 
     return this.collection.find(query).toArray();
   }
+  async countJobs(): Promise<number> {
+    return this.collection.countDocuments();
+  }
 }

@@ -16,4 +16,10 @@ export interface ICompanyService {
   deleteCompany(userId: ObjectId, companyId: ObjectId): Promise<Response>;
   getCompaniesByUserId(userId: ObjectId): Promise<Response>;
   getCompanyById(companyId: ObjectId): Promise<Response>;
+  getAggregatedStats(): Promise<{
+    totalCompanies: number;
+    totalJobs: number;
+    totalLocations: number;
+    totalIndustries: number;
+  }>;
 }

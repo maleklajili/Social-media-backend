@@ -8,6 +8,7 @@ import { ResponseHelper } from "../utils/response-helper";
 import { handleFileUpload } from "../utils/upload-helper";
 import { UPLOAD_PATHS } from "../config/config";
 import type { IUserRepository } from "../interfaces/user/i-user-repository";
+import type { IJobRepository } from "../interfaces/job/i-job-repository";
 import type { TransactionService } from "./transaction-services";
 import { COINS_CONFIG } from "../utils/coins-config";
 import { FileService } from "../utils/file-service";
@@ -19,6 +20,7 @@ export class CompanyServices
   constructor(
     private companyRepository: ICompanyRepository,
     private userRepository: IUserRepository,
+    private jobRepository: IJobRepository,
     private transactionService: TransactionService,
   ) {
     super(CollectionsManager.companyCollection);
@@ -401,5 +403,25 @@ export class CompanyServices
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
+  }
+
+  /**
+   * Récupère les statistiques agrégées
+   */
+  async getAggregatedStats(): Promise<{
+    totalCompanies: number;
+    totalJobs: number;
+    totalLocations: number;
+    totalIndustries: number;
+  }> {
+    const [totalCompanies, totalJobs, totalLocations, totalIndustries] =
+      await Promise.all([
+        this.companyRepository.countCompanies(),
+        this.jobRepository.countJobs(),
+        this.companyRepository.countDistinctLocations(),
+        this.companyRepository.countDistinctIndustries(),
+      ]);
+
+    return { totalCompanies, totalJobs, totalLocations, totalIndustries };
   }
 }

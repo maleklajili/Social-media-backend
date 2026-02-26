@@ -10,4 +10,5 @@ export interface IJobService {
   getJobById(jobId: ObjectId): Promise<Response>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getActiveJobs(filters?: Record<string, any>): Promise<Response>;
+  getTotalJobs(): Promise<Response>;
 }
