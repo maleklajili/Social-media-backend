@@ -72,7 +72,10 @@ export class JobServices extends BaseService<Job> implements IJobService {
 
       // Save job
       await this.jobRepository.addJob(job);
-
+      // Add job reference to company
+      if (job._id) {
+        await this.companyRepository.addJobToCompany(job.companyId, job._id);
+      }
       // Add coins for posting a job
       try {
         await this.userRepository.addCoins(userId, COINS_CONFIG.ADD_JOB);
@@ -161,7 +164,11 @@ export class JobServices extends BaseService<Job> implements IJobService {
       if (!existingJob) {
         return ResponseHelper.error("Job not found or access denied");
       }
-
+      // Remove job reference from company first
+      await this.companyRepository.removeJobFromCompany(
+        existingJob.companyId,
+        jobId,
+      );
       // Remove coins for deleting a job
       try {
         await this.userRepository.removeCoins(userId, COINS_CONFIG.REMOVE_JOB);

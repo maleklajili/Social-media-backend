@@ -39,4 +39,34 @@ export class CompanyRepository implements ICompanyRepository {
     const locations = await this.collection.distinct("location");
     return locations.length; // retourne bien un number
   }
+  async addJobToCompany(companyId: ObjectId, jobId: ObjectId): Promise<void> {
+    await this.collection.updateOne(
+      { _id: companyId },
+      {
+        $addToSet: { jobs: jobId }, // Use $addToSet to avoid duplicates
+        $inc: { "stats.jobApplications": 1 }, // Optionally increment job count
+      },
+    );
+  }
+
+  async removeJobFromCompany(
+    companyId: ObjectId,
+    jobId: ObjectId,
+  ): Promise<void> {
+    await this.collection.updateOne(
+      { _id: companyId },
+      {
+        $pull: { jobs: jobId },
+        $inc: { "stats.jobApplications": -1 }, // Decrement job count
+      },
+    );
+  }
+
+  async getCompanyJobs(companyId: ObjectId): Promise<ObjectId[]> {
+    const company = await this.collection.findOne(
+      { _id: companyId },
+      { projection: { jobs: 1 } },
+    );
+    return company?.jobs || [];
+  }
 }

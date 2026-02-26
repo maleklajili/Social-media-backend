@@ -10,4 +10,7 @@ export interface ICompanyRepository {
   countCompanies(): Promise<number>;
   countDistinctIndustries(): Promise<number>; // <-- new
   countDistinctLocations(): Promise<number>;
+  addJobToCompany(companyId: ObjectId, jobId: ObjectId): Promise<void>;
+  removeJobFromCompany(companyId: ObjectId, jobId: ObjectId): Promise<void>;
+  getCompanyJobs(companyId: ObjectId): Promise<ObjectId[]>;
 }
