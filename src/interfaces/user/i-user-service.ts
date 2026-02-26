@@ -14,4 +14,21 @@ export interface IUserService {
     user: User,
     formData: FormData,
   ): Promise<Response>;
+  followUser(currentUserId: ObjectId, targetUserId: string): Promise<Response>;
+  unfollowUser(
+    currentUserId: ObjectId,
+    targetUserId: string,
+  ): Promise<Response>;
+  getFollowers(userId: string, currentUserId?: ObjectId): Promise<Response>;
+  getFollowing(userId: string, currentUserId?: ObjectId): Promise<Response>;
+  getFollowStatus(
+    currentUserId: ObjectId,
+    targetUserId: string,
+  ): Promise<Response>;
+  getFriends(currentUserId: ObjectId): Promise<Response>;
+  getFriendSuggestions(
+    currentUserId: ObjectId,
+    limit?: number,
+  ): Promise<Response>;
+  searchFriends(currentUserId: ObjectId, query: string): Promise<Response>;
 }

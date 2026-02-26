@@ -144,4 +144,418 @@ export class UserService extends BaseService<User> implements IUserService {
     const updatedUser = await this.userRepository.updateProfile(userId, user);
     return ResponseHelper.success(updatedUser);
   }
+
+  async followUser(
+    currentUserId: ObjectId,
+    targetUserId: string,
+  ): Promise<Response> {
+    try {
+      if (!ObjectId.isValid(targetUserId)) {
+        return ResponseHelper.error("Invalid user ID format", 400);
+      }
+
+      const targetId = new ObjectId(targetUserId);
+
+      // Can't follow yourself
+      if (currentUserId.toString() === targetId.toString()) {
+        return ResponseHelper.error("You cannot follow yourself", 400);
+      }
+
+      // Check if target user exists
+      const targetUser = await this.userRepository.findById(targetId, 0);
+      if (!targetUser) {
+        return ResponseHelper.error("User not found", 404);
+      }
+
+      // Check if already following
+      const isAlreadyFollowing = await this.userRepository.isFollowing(
+        currentUserId,
+        targetId,
+      );
+      if (isAlreadyFollowing) {
+        return ResponseHelper.error("You are already following this user", 400);
+      }
+
+      // Perform follow
+      await this.userRepository.followUser(currentUserId, targetId);
+
+      // Get updated counts
+      const counts = await this.userRepository.getFollowCounts(targetId);
+
+      return ResponseHelper.success({
+        message: "User followed successfully",
+        following: true,
+        followerCount: counts.followers,
+        followingCount: counts.following,
+      });
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async unfollowUser(
+    currentUserId: ObjectId,
+    targetUserId: string,
+  ): Promise<Response> {
+    try {
+      if (!ObjectId.isValid(targetUserId)) {
+        return ResponseHelper.error("Invalid user ID format", 400);
+      }
+
+      const targetId = new ObjectId(targetUserId);
+
+      // Check if target user exists
+      const targetUser = await this.userRepository.findById(targetId, 0);
+      if (!targetUser) {
+        return ResponseHelper.error("User not found", 404);
+      }
+
+      // Check if actually following
+      const isFollowing = await this.userRepository.isFollowing(
+        currentUserId,
+        targetId,
+      );
+      if (!isFollowing) {
+        return ResponseHelper.error("You are not following this user", 400);
+      }
+
+      // Perform unfollow
+      await this.userRepository.unfollowUser(currentUserId, targetId);
+
+      // Get updated counts
+      const counts = await this.userRepository.getFollowCounts(targetId);
+
+      return ResponseHelper.success({
+        message: "User unfollowed successfully",
+        following: false,
+        followerCount: counts.followers,
+        followingCount: counts.following,
+      });
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getFollowers(
+    userId: string,
+    currentUserId?: ObjectId,
+  ): Promise<Response> {
+    try {
+      if (!ObjectId.isValid(userId)) {
+        return ResponseHelper.error("Invalid user ID format", 400);
+      }
+
+      const targetId = new ObjectId(userId);
+
+      // Get followers
+      const followers = await this.userRepository.getFollowers(targetId);
+
+      // If current user is provided, check follow status for each follower
+      if (currentUserId) {
+        const followersWithStatus = await Promise.all(
+          followers.map(async (follower) => {
+            const isFollowing = await this.userRepository.isFollowing(
+              currentUserId,
+              follower._id as ObjectId,
+            );
+            return {
+              ...follower,
+              isFollowedByCurrentUser: isFollowing,
+            };
+          }),
+        );
+
+        return ResponseHelper.success(followersWithStatus);
+      }
+
+      return ResponseHelper.success(followers);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getFollowing(
+    userId: string,
+    currentUserId?: ObjectId,
+  ): Promise<Response> {
+    try {
+      if (!ObjectId.isValid(userId)) {
+        return ResponseHelper.error("Invalid user ID format", 400);
+      }
+
+      const targetId = new ObjectId(userId);
+
+      // Get following
+      const following = await this.userRepository.getFollowing(targetId);
+
+      // If current user is provided, check follow status for each followed user
+      if (currentUserId) {
+        const followingWithStatus = await Promise.all(
+          following.map(async (followed) => {
+            const isFollowing = await this.userRepository.isFollowing(
+              currentUserId,
+              followed._id as ObjectId,
+            );
+            return {
+              ...followed,
+              isFollowedByCurrentUser: isFollowing,
+            };
+          }),
+        );
+
+        return ResponseHelper.success(followingWithStatus);
+      }
+
+      return ResponseHelper.success(following);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getFollowStatus(
+    currentUserId: ObjectId,
+    targetUserId: string,
+  ): Promise<Response> {
+    try {
+      if (!ObjectId.isValid(targetUserId)) {
+        return ResponseHelper.error("Invalid user ID format", 400);
+      }
+
+      const targetId = new ObjectId(targetUserId);
+
+      const isFollowing = await this.userRepository.isFollowing(
+        currentUserId,
+        targetId,
+      );
+      const counts = await this.userRepository.getFollowCounts(targetId);
+
+      return ResponseHelper.success({
+        isFollowing,
+        followerCount: counts.followers,
+        followingCount: counts.following,
+      });
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  async getFriends(currentUserId: ObjectId): Promise<Response> {
+    try {
+      // Get mutual friends (users who follow each other)
+      const mutualFriends =
+        await this.userRepository.getMutualFriends(currentUserId);
+
+      // Enhance with follow status and additional info
+      const enhancedFriends = await Promise.all(
+        mutualFriends.map(async (friend) => {
+          // Check if current user is following this friend (should be true for mutual)
+          const isFollowing = await this.userRepository.isFollowing(
+            currentUserId,
+            friend._id as ObjectId,
+          );
+
+          // Check if friend is following current user (should be true for mutual)
+          const isFollowedBy = await this.userRepository.isFollowing(
+            friend._id as ObjectId,
+            currentUserId,
+          );
+
+          // Get mutual friends count
+          const mutualCount = await this.getMutualFriendsCount(
+            currentUserId,
+            friend._id as ObjectId,
+          );
+
+          return {
+            ...friend,
+            isFollowing,
+            isFollowedBy,
+            isMutual: true,
+            mutualFriendsCount: mutualCount,
+            //friendshipDate: friend.friendSince || new Date().toISOString()
+          };
+        }),
+      );
+
+      // Sort by name or friendship date
+      enhancedFriends.sort((a, b) =>
+        (a.firstName || "").localeCompare(b.firstName || ""),
+      );
+
+      return ResponseHelper.success({
+        total: enhancedFriends.length,
+        friends: enhancedFriends,
+      });
+    } catch (err) {
+      console.error("Error in getFriends:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getFriendSuggestions(
+    currentUserId: ObjectId,
+    limit: number = 10,
+  ): Promise<Response> {
+    try {
+      // Get suggestions based on mutual connections
+      const suggestions = await this.userRepository.getFriendSuggestions(
+        currentUserId,
+        limit,
+      );
+
+      // Enhance with additional info
+      const enhancedSuggestions = await Promise.all(
+        suggestions.map(async (suggestion) => {
+          // Check if current user is following this suggestion
+          const isFollowing = await this.userRepository.isFollowing(
+            currentUserId,
+            suggestion._id as ObjectId,
+          );
+
+          // Count mutual friends
+          const mutualFriendsCount = await this.getMutualFriendsCount(
+            currentUserId,
+            suggestion._id as ObjectId,
+          );
+
+          return {
+            ...suggestion,
+            isFollowing,
+            isFollowedBy: false, // Will be checked if needed
+            mutualFriendsCount,
+            suggestionReason:
+              mutualFriendsCount > 0
+                ? `${mutualFriendsCount} mutual friend${mutualFriendsCount > 1 ? "s" : ""}`
+                : "Based on your network",
+          };
+        }),
+      );
+
+      return ResponseHelper.success({
+        total: enhancedSuggestions.length,
+        suggestions: enhancedSuggestions,
+      });
+    } catch (err) {
+      console.error("Error in getFriendSuggestions:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async searchFriends(
+    currentUserId: ObjectId,
+    query: string,
+  ): Promise<Response> {
+    try {
+      if (!query || query.trim().length < 2) {
+        return ResponseHelper.error(
+          "Search query must be at least 2 characters",
+          400,
+        );
+      }
+
+      // Search for users matching the query
+      const searchResults = await this.userRepository.searchUsers(
+        query,
+        currentUserId,
+        20,
+      );
+
+      // Get mutual friends for each result
+      const enhancedResults = await Promise.all(
+        searchResults.map(async (user) => {
+          const isFollowing = await this.userRepository.isFollowing(
+            currentUserId,
+            user._id as ObjectId,
+          );
+
+          const isFollowedBy = await this.userRepository.isFollowing(
+            user._id as ObjectId,
+            currentUserId,
+          );
+
+          const mutualFriendsCount = await this.getMutualFriendsCount(
+            currentUserId,
+            user._id as ObjectId,
+          );
+
+          return {
+            ...user,
+            isFollowing,
+            isFollowedBy,
+            isMutual: isFollowing && isFollowedBy,
+            mutualFriendsCount,
+            matchScore: this.calculateMatchScore(user, query),
+          };
+        }),
+      );
+
+      // Sort by match score and mutual friends
+      enhancedResults.sort((a, b) => {
+        if (a.isMutual && !b.isMutual) return -1;
+        if (!a.isMutual && b.isMutual) return 1;
+        return (b.mutualFriendsCount || 0) - (a.mutualFriendsCount || 0);
+      });
+
+      return ResponseHelper.success({
+        query,
+        total: enhancedResults.length,
+        results: enhancedResults,
+      });
+    } catch (err) {
+      console.error("Error in searchFriends:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  // Helper method to count mutual friends between two users
+  private async getMutualFriendsCount(
+    userId1: ObjectId,
+    userId2: ObjectId,
+  ): Promise<number> {
+    const [user1, user2] = await Promise.all([
+      this.userRepository.findById(userId1, 0),
+      this.userRepository.findById(userId2, 0),
+    ]);
+
+    if (!user1 || !user2) return 0;
+
+    const following1 = new Set(
+      (user1.following || []).map((id) => id.toString()),
+    );
+    const following2 = new Set(
+      (user2.following || []).map((id) => id.toString()),
+    );
+
+    // Count mutual following
+    let mutualCount = 0;
+    for (const id of following1) {
+      if (
+        following2.has(id) &&
+        id !== userId1.toString() &&
+        id !== userId2.toString()
+      ) {
+        mutualCount++;
+      }
+    }
+
+    return mutualCount;
+  }
+
+  // Helper to calculate search relevance score
+  private calculateMatchScore(user: User, query: string): number {
+    const lowerQuery = query.toLowerCase();
+    let score = 0;
+
+    if (user.firstName?.toLowerCase().includes(lowerQuery)) score += 10;
+    if (user.lastName?.toLowerCase().includes(lowerQuery)) score += 10;
+    if (user.userName?.toLowerCase().includes(lowerQuery)) score += 8;
+    if (user.professionalTitle?.toLowerCase().includes(lowerQuery)) score += 5;
+    if (user.location?.toLowerCase().includes(lowerQuery)) score += 3;
+
+    // Exact matches get bonus
+    if (user.firstName?.toLowerCase() === lowerQuery) score += 5;
+    if (user.lastName?.toLowerCase() === lowerQuery) score += 5;
+    if (user.userName?.toLowerCase() === lowerQuery) score += 5;
+
+    return score;
+  }
 }

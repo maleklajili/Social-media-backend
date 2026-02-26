@@ -21,4 +21,8 @@ export interface BaseUser extends BaseModel {
   fullName: string;
   coins: number;
   skills?: [ObjectId];
+  followers?: ObjectId[];
+  following?: ObjectId[];
+  followerCount?: number;
+  followingCount?: number;
 }

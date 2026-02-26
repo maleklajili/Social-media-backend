@@ -1,7 +1,7 @@
 import { authMiddleware } from "../middleware/aut-middleware";
 import { paginationMiddleware } from "../middleware/pagination-middleware";
 import { CollectionsManager } from "../models/base/collection-manager";
-import { Get, Put } from "../routes/router-manager";
+import { Get, Put, Post, Delete } from "../routes/router-manager";
 
 import type { ServerRequest } from "../config/interfaces/i-request";
 import type { User } from "../models/user";
@@ -71,6 +71,152 @@ class UserController extends BaseController<User, UserService> {
       const body = await this.parseFormData<User>(formData);
       return this.service.updateProfile(req, body, formData);
     } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Post("/follow/:userId", [authMiddleware])
+  async followUser(req: ServerRequest): Promise<Response> {
+    try {
+      const targetUserId = req.params?.userId;
+      const currentUserId = req.user?._id;
+
+      if (!currentUserId) {
+        return ResponseHelper.error("User not authenticated", 401);
+      }
+
+      return this.service.followUser(currentUserId, targetUserId!);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Delete("/unfollow/:userId", [authMiddleware])
+  async unfollowUser(req: ServerRequest): Promise<Response> {
+    try {
+      const targetUserId = req.params?.userId;
+      const currentUserId = req.user?._id;
+
+      if (!currentUserId) {
+        return ResponseHelper.error("User not authenticated", 401);
+      }
+
+      return this.service.unfollowUser(currentUserId, targetUserId!);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/followers/:userId?", [authMiddleware])
+  async getFollowers(req: ServerRequest): Promise<Response> {
+    try {
+      // If userId is provided, get followers of that user, otherwise get followers of current user
+      const targetUserId = req.params?.userId || req.user?._id?.toString();
+      const currentUserId = req.user?._id;
+
+      if (!targetUserId) {
+        return ResponseHelper.error("User ID is required", 400);
+      }
+
+      return this.service.getFollowers(targetUserId, currentUserId);
+    } catch (err) {
+      console.error("❌ Error in getFollowers:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/following/:userId?", [authMiddleware])
+  async getFollowing(req: ServerRequest): Promise<Response> {
+    try {
+      // If userId is provided, get following of that user, otherwise get following of current user
+      const targetUserId = req.params?.userId || req.user?._id?.toString();
+      const currentUserId = req.user?._id;
+
+      if (!targetUserId) {
+        return ResponseHelper.error("User ID is required", 400);
+      }
+
+      return this.service.getFollowing(targetUserId, currentUserId);
+    } catch (err) {
+      console.error("❌ Error in getFollowing:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/follow-status/:userId", [authMiddleware])
+  async getFollowStatus(req: ServerRequest): Promise<Response> {
+    try {
+      const targetUserId = req.params?.userId;
+      const currentUserId = req.user?._id;
+
+      if (!currentUserId) {
+        return ResponseHelper.error("User not authenticated", 401);
+      }
+
+      if (!targetUserId) {
+        return ResponseHelper.error("Target user ID is required", 400);
+      }
+
+      return this.service.getFollowStatus(currentUserId, targetUserId);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Get("/friends", [authMiddleware])
+  async getFriends(req: ServerRequest): Promise<Response> {
+    try {
+      const currentUserId = req.user?._id;
+
+      if (!currentUserId) {
+        return ResponseHelper.error("User not authenticated", 401);
+      }
+
+      return this.service.getFriends(currentUserId);
+    } catch (err) {
+      console.error("❌ Error in getFriends:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/friends/suggestions", [authMiddleware])
+  async getFriendSuggestions(req: ServerRequest): Promise<Response> {
+    try {
+      const currentUserId = req.user?._id;
+
+      if (!currentUserId) {
+        return ResponseHelper.error("User not authenticated", 401);
+      }
+
+      // Get limit from query params, default to 10
+      const url = new URL(req.url);
+      const limit = parseInt(url.searchParams.get("limit") || "10");
+
+      return this.service.getFriendSuggestions(currentUserId, limit);
+    } catch (err) {
+      console.error("❌ Error in getFriendSuggestions:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/friends/search", [authMiddleware])
+  async searchFriends(req: ServerRequest): Promise<Response> {
+    try {
+      const currentUserId = req.user?._id;
+
+      if (!currentUserId) {
+        return ResponseHelper.error("User not authenticated", 401);
+      }
+
+      // Get search query from URL params
+      const url = new URL(req.url);
+      const query = url.searchParams.get("q");
+
+      if (!query) {
+        return ResponseHelper.error("Search query is required", 400);
+      }
+
+      return this.service.searchFriends(currentUserId, query);
+    } catch (err) {
+      console.error("❌ Error in searchFriends:", err);
       return ResponseHelper.serverError(String(err));
     }
   }

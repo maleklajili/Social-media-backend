@@ -23,4 +23,19 @@ export interface IUserRepository {
   ): Promise<User | null>;
   addCoins(userId: ObjectId, amount: number): Promise<void>;
   removeCoins(userId: ObjectId, amount: number): Promise<void>;
+  followUser(followerId: ObjectId, followingId: ObjectId): Promise<void>;
+  unfollowUser(followerId: ObjectId, followingId: ObjectId): Promise<void>;
+  getFollowers(userId: ObjectId): Promise<User[]>;
+  getFollowing(userId: ObjectId): Promise<User[]>;
+  isFollowing(followerId: ObjectId, followingId: ObjectId): Promise<boolean>;
+  getFollowCounts(
+    userId: ObjectId,
+  ): Promise<{ followers: number; following: number }>;
+  getMutualFriends(userId: ObjectId): Promise<User[]>; // Users who follow each other
+  getFriendSuggestions(userId: ObjectId, limit?: number): Promise<User[]>; // Suggested friends based on mutual connections
+  searchUsers(
+    query: string,
+    currentUserId: ObjectId,
+    limit?: number,
+  ): Promise<User[]>;
 }
