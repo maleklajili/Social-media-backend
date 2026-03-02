@@ -218,83 +218,27 @@ export class userRepository implements IUserRepository {
       .toArray();
   }
 
-  async getFriendSuggestions(
+  async countFriendSuggestions(
     userId: ObjectId,
-    limit: number = 10,
-  ): Promise<User[]> {
-    // Get the user's following and followers
-    const user = await this.collection.findOne(
-      { _id: userId },
-      { projection: { following: 1, followers: 1 } },
-    );
+    search: string,
+  ): Promise<number> {
+    const following = (await this.findById(userId, 0))?.following || [];
+    const followingIds = following.map((id) => id.toString());
 
-    if (!user) return [];
-
-    const following = user.following || [];
-    const followers = user.followers || [];
-
-    // Combine all connected users (following + followers)
-    const connectedUsers = new Set([
-      ...following.map((id) => id.toString()),
-      ...followers.map((id) => id.toString()),
-    ]);
-
-    // Get users that the current user is following (to find friends-of-friends)
-    const followingUsers = await this.collection
-      .find({ _id: { $in: following } }, { projection: { following: 1 } })
-      .toArray();
-
-    // Collect potential suggestions (friends of friends)
-    const suggestionScores = new Map<string, number>();
-
-    for (const followedUser of followingUsers) {
-      if (followedUser.following) {
-        for (const potentialFriendId of followedUser.following) {
-          const idStr = potentialFriendId.toString();
-
-          // Skip if it's the current user or already connected
-          if (idStr === userId.toString() || connectedUsers.has(idStr)) {
-            continue;
-          }
-
-          // Increment score based on mutual connections
-          suggestionScores.set(idStr, (suggestionScores.get(idStr) || 0) + 1);
-        }
-      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const filter: any = {
+      _id: { $ne: userId, $nin: followingIds.map((id) => new ObjectId(id)) },
+    };
+    if (search) {
+      const regex = new RegExp(search, "i");
+      filter.$or = [
+        { firstName: regex },
+        { lastName: regex },
+        { userName: regex },
+      ];
     }
-
-    // Sort by score and get top suggestions
-    const sortedSuggestions = Array.from(suggestionScores.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, limit)
-      .map(([id]) => new ObjectId(id));
-
-    if (sortedSuggestions.length === 0) {
-      // If no suggestions from mutual friends, return random users
-      return this.collection
-        .find(
-          {
-            _id: {
-              $ne: userId,
-              $nin: Array.from(connectedUsers).map((id) => new ObjectId(id)),
-            },
-          },
-          {
-            projection: { password: 0 },
-            limit: limit,
-          },
-        )
-        .toArray();
-    }
-
-    return this.collection
-      .find(
-        { _id: { $in: sortedSuggestions } },
-        { projection: { password: 0 } },
-      )
-      .toArray();
+    return this.collection.countDocuments(filter);
   }
-
   async searchUsers(
     query: string,
     currentUserId: ObjectId,
@@ -323,5 +267,60 @@ export class userRepository implements IUserRepository {
       .toArray();
 
     return users as User[]; // Type assertion
+  }
+
+  async getMutualFriendsList(
+    userId1: ObjectId,
+    userId2: ObjectId,
+  ): Promise<User[]> {
+    const [user1, user2] = await Promise.all([
+      this.findById(userId1, 0),
+      this.findById(userId2, 0),
+    ]);
+    if (!user1 || !user2) return [];
+
+    const following1 = user1.following || [];
+    const following2 = user2.following || [];
+
+    const set1 = new Set(following1.map((id) => id.toString()));
+    const set2 = new Set(following2.map((id) => id.toString()));
+
+    const mutualIds = [...set1]
+      .filter((id) => set2.has(id))
+      .map((id) => new ObjectId(id))
+      .filter((id) => !id.equals(userId1) && !id.equals(userId2));
+
+    if (mutualIds.length === 0) return [];
+    return this.collection
+      .find({ _id: { $in: mutualIds } })
+      .toArray() as Promise<User[]>;
+  }
+
+  async getFriendSuggestions(
+    userId: ObjectId,
+    skip: number,
+    limit: number,
+    search: string,
+  ): Promise<User[]> {
+    const following = (await this.findById(userId, 0))?.following || [];
+    const followingIds = following.map((id) => id.toString());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const filter: any = {
+      _id: { $ne: userId, $nin: followingIds.map((id) => new ObjectId(id)) },
+    };
+    if (search) {
+      const regex = new RegExp(search, "i");
+      filter.$or = [
+        { firstName: regex },
+        { lastName: regex },
+        { userName: regex },
+      ];
+    }
+    return this.collection
+      .find(filter)
+      .skip(skip)
+      .limit(limit)
+      .project({ password: 0 })
+      .toArray() as Promise<User[]>;
   }
 }

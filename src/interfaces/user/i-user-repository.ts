@@ -32,10 +32,17 @@ export interface IUserRepository {
     userId: ObjectId,
   ): Promise<{ followers: number; following: number }>;
   getMutualFriends(userId: ObjectId): Promise<User[]>; // Users who follow each other
-  getFriendSuggestions(userId: ObjectId, limit?: number): Promise<User[]>; // Suggested friends based on mutual connections
   searchUsers(
     query: string,
     currentUserId: ObjectId,
     limit?: number,
+  ): Promise<User[]>;
+  getMutualFriendsList(userId1: ObjectId, userId2: ObjectId): Promise<User[]>;
+  countFriendSuggestions(userId: ObjectId, search: string): Promise<number>;
+  getFriendSuggestions(
+    userId: ObjectId,
+    skip: number,
+    limit: number,
+    search: string,
   ): Promise<User[]>;
 }
