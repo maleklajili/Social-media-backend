@@ -536,6 +536,12 @@ export class PostServices extends BaseService<Post> implements IPostService {
         limit,
         sort,
       );
+      // Populate userId with public user fields using generic helper
+      try {
+        await populateReferences(comments, this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate users for posts:", err);
+      }
 
       const total = await this.commentRepository.getCommentsCount(postId);
 
