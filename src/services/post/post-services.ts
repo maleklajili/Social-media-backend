@@ -569,6 +569,12 @@ export class PostServices extends BaseService<Post> implements IPostService {
         page,
         limit,
       );
+      // Populate userId with public user fields using generic helper
+      try {
+        await populateReferences(replies, this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate users for posts:", err);
+      }
 
       return ResponseHelper.success({
         replies,
