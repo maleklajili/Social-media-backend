@@ -26,9 +26,17 @@ export interface IUserService {
     targetUserId: string,
   ): Promise<Response>;
   getFriends(currentUserId: ObjectId): Promise<Response>;
+
+  searchFriends(currentUserId: ObjectId, query: string): Promise<Response>;
+  getMutualFriendsList(
+    currentUserId: ObjectId,
+    targetUserId: ObjectId,
+  ): Promise<Response>;
+
   getFriendSuggestions(
     currentUserId: ObjectId,
+    skip?: number,
     limit?: number,
-  ): Promise<Response>;
-  searchFriends(currentUserId: ObjectId, query: string): Promise<Response>;
+    search?: string,
+  ): Promise<{ data: User[]; total: number }>;
 }

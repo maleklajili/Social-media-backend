@@ -7,6 +7,7 @@ import type { IUserService } from "../interfaces/user/i-user-service";
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { User } from "../models/user";
 import { ResponseHelper } from "../utils/response-helper";
+
 import {
   deleteFiles,
   handleFileUpload,
@@ -393,49 +394,67 @@ export class UserService extends BaseService<User> implements IUserService {
 
   async getFriendSuggestions(
     currentUserId: ObjectId,
+    skip: number = 0,
     limit: number = 10,
-  ): Promise<Response> {
+    search: string = "",
+  ): Promise<{ data: User[]; total: number }> {
     try {
-      // Get suggestions based on mutual connections
+      // Récupérer les suggestions paginées
       const suggestions = await this.userRepository.getFriendSuggestions(
         currentUserId,
+        skip,
         limit,
+        search,
       );
 
-      // Enhance with additional info
-      const enhancedSuggestions = await Promise.all(
+      // Obtenir le nombre total (sans pagination)
+      const total = await this.userRepository.countFriendSuggestions(
+        currentUserId,
+        search,
+      );
+
+      // Enrichir avec les infos supplémentaires
+      const enhanced = await Promise.all(
         suggestions.map(async (suggestion) => {
-          // Check if current user is following this suggestion
           const isFollowing = await this.userRepository.isFollowing(
             currentUserId,
             suggestion._id as ObjectId,
           );
-
-          // Count mutual friends
           const mutualFriendsCount = await this.getMutualFriendsCount(
             currentUserId,
             suggestion._id as ObjectId,
           );
-
           return {
             ...suggestion,
             isFollowing,
-            isFollowedBy: false, // Will be checked if needed
+            isFollowedBy: false,
             mutualFriendsCount,
             suggestionReason:
               mutualFriendsCount > 0
-                ? `${mutualFriendsCount} mutual friend${mutualFriendsCount > 1 ? "s" : ""}`
-                : "Based on your network",
+                ? `${mutualFriendsCount} ami${mutualFriendsCount > 1 ? "s" : ""} en commun`
+                : "Basé sur votre réseau",
           };
         }),
       );
 
-      return ResponseHelper.success({
-        total: enhancedSuggestions.length,
-        suggestions: enhancedSuggestions,
-      });
+      return { data: enhanced, total };
     } catch (err) {
       console.error("Error in getFriendSuggestions:", err);
+      throw err;
+    }
+  }
+  async getMutualFriendsList(
+    currentUserId: ObjectId,
+    targetUserId: ObjectId,
+  ): Promise<Response> {
+    try {
+      const mutualFriends = await this.userRepository.getMutualFriendsList(
+        currentUserId,
+        targetUserId,
+      );
+      return ResponseHelper.success(mutualFriends);
+    } catch (err) {
+      console.error("Error in getMutualFriendsList:", err);
       return ResponseHelper.serverError(String(err));
     }
   }

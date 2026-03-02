@@ -5,6 +5,7 @@ import { Get, Put, Post, Delete } from "../routes/router-manager";
 
 import type { ServerRequest } from "../config/interfaces/i-request";
 import type { User } from "../models/user";
+import { ObjectId } from "mongodb";
 
 import type { RequestWithPagination } from "../config/interfaces/i-pagination";
 import type { ChangePasswordPayload } from "../interfaces/base/i-crud-controller";
@@ -177,22 +178,53 @@ class UserController extends BaseController<User, UserService> {
     }
   }
 
-  @Get("/friends/suggestions", [authMiddleware])
-  async getFriendSuggestions(req: ServerRequest): Promise<Response> {
+  @Get("/friends/suggestions", [authMiddleware, paginationMiddleware])
+  async getFriendSuggestions(req: RequestWithPagination): Promise<Response> {
     try {
       const currentUserId = req.user?._id;
-
       if (!currentUserId) {
         return ResponseHelper.error("User not authenticated", 401);
       }
 
-      // Get limit from query params, default to 10
+      const pagination = req.pagination; // { skip, take }
       const url = new URL(req.url);
-      const limit = parseInt(url.searchParams.get("limit") || "10");
+      const search = url.searchParams.get("search") || ""; // si besoin plus tard
 
-      return this.service.getFriendSuggestions(currentUserId, limit);
+      const result = await this.service.getFriendSuggestions(
+        currentUserId,
+        pagination?.skip,
+        pagination?.take,
+        search,
+      );
+
+      return ResponseHelper.success({
+        suggestions: result.data,
+        total: result.total,
+        currentPage:
+          Math.floor((pagination?.skip || 0) / (pagination?.take || 10)) + 1,
+        totalPages: Math.ceil(result.total / (pagination?.take || 10)),
+      });
     } catch (err) {
       console.error("❌ Error in getFriendSuggestions:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Get("/mutual-friends/:userId", [authMiddleware])
+  async getMutualFriends(req: ServerRequest): Promise<Response> {
+    try {
+      const currentUserId = req.user?._id;
+      const targetUserId = req.params?.userId;
+      if (!currentUserId || !targetUserId) {
+        return ResponseHelper.error("Missing user id", 400);
+      }
+      if (!ObjectId.isValid(targetUserId)) {
+        return ResponseHelper.error("Invalid user ID format", 400);
+      }
+      return this.service.getMutualFriendsList(
+        currentUserId,
+        new ObjectId(targetUserId),
+      );
+    } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
   }
