@@ -202,7 +202,7 @@ export class PostRepository implements IPostRepository {
     const sharePost: Post = {
       ...originalPost,
       _id: new ObjectId(),
-      userId,
+      userId: originalPost.userId,
       originalPostId,
       content: content || originalPost.content,
       type: originalPost.type,

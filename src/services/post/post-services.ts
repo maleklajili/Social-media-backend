@@ -306,7 +306,19 @@ export class PostServices extends BaseService<Post> implements IPostService {
       } catch (err) {
         console.error("Failed to populate users for posts:", err);
       }
-
+      // Populate sharedBy array with public user fields
+      try {
+        await populateReferences(
+          posts,
+          this.userRepository,
+          "sharedBy",
+          "sharedBy",
+          ["_id", "firstName", "lastName", "image"],
+          true, // This tells the function to handle it as an array
+        );
+      } catch (err) {
+        console.error("Failed to populate sharedBy users for posts:", err);
+      }
       return ResponseHelper.success({
         posts,
         page,
