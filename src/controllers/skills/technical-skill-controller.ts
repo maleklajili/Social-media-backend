@@ -91,7 +91,6 @@ export class TechnicalSkillController extends BaseController<
     }
     return this.service.getTechnicalSkillById(new ObjectId(id));
   }
-  // Dans technical-skill-controller.ts
   @Get("/grouped-by-category", [authMiddleware])
   async getGroupedByCategory(req: ServerRequest) {
     try {
@@ -101,6 +100,24 @@ export class TechnicalSkillController extends BaseController<
       return await this.service.getTechnicalSkillsGroupedByCategory(
         req.user._id,
       );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/user/:userId", [authMiddleware]) // protect if needed
+  async getTechnicalSkillsByUser(req: ServerRequest): Promise<Response> {
+    try {
+      const { userId } = req.params;
+      if (!userId) {
+        return ResponseHelper.error("User ID is required");
+      }
+      if (!ObjectId.isValid(userId)) {
+        return ResponseHelper.error("Invalid user ID format");
+      }
+
+      // The service method already returns a Response object
+      return this.service.getTechnicalSkillsByUser(new ObjectId(userId));
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

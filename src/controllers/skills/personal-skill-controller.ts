@@ -103,4 +103,23 @@ export class PersonalSkillController extends BaseController<
       return ResponseHelper.serverError(String(err));
     }
   }
+  // PersonalSkillController.ts
+
+  @Get("/user/:userId", [authMiddleware]) // protect with auth if needed
+  async getPersonalSkillsByUser(req: ServerRequest): Promise<Response> {
+    try {
+      const { userId } = req.params;
+      if (!userId) {
+        return ResponseHelper.error("User ID is required");
+      }
+      if (!ObjectId.isValid(userId)) {
+        return ResponseHelper.error("Invalid user ID format");
+      }
+
+      // Directly return the Response from the service
+      return this.service.getPersonalSkillsByUser(new ObjectId(userId));
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 }

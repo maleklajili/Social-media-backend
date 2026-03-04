@@ -332,4 +332,7 @@ export class SkillService extends BaseService<Skill> implements ISkillService {
 
     return ResponseHelper.success(updatedSkills);
   }
+  async getSkillsByUserId(userId: ObjectId): Promise<Skill[]> {
+    return await this.skillRepository.findByUserId(userId);
+  }
 }

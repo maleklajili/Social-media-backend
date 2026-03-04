@@ -7,4 +7,5 @@ export interface ISkillRepository {
   findById(skillId: ObjectId | undefined): Promise<Skill | null>;
   findByName(skillName: string): Promise<Skill | null>;
   updateMany(userId: ObjectId, skills: Skill[]): Promise<void>;
+  findByUserId(userId: ObjectId): Promise<Skill[]>;
 }

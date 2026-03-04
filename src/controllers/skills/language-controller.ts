@@ -106,4 +106,16 @@ export class LanguageController extends BaseController<
       return ResponseHelper.serverError(String(err));
     }
   }
+  @Get("/user/:userId", [authMiddleware])
+  async getLanguagesByUser(req: ServerRequest): Promise<Response> {
+    try {
+      const { userId } = req.params;
+      if (!userId || !ObjectId.isValid(userId)) {
+        return ResponseHelper.error("ID utilisateur invalide");
+      }
+      return this.service.getLanguagesByUser(new ObjectId(userId));
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 }

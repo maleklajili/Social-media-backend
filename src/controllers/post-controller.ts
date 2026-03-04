@@ -30,7 +30,7 @@ export class PostController extends BaseController<Post, PostServices> {
       new PostRepository(),
       new userRepository(),
       new TransactionService(new TransactionRepository(), new userRepository()),
-      new CommentRepository(), // ✅ Ajout du repository de commentaires
+      new CommentRepository(),
     );
   }
 
@@ -366,6 +366,18 @@ export class PostController extends BaseController<Post, PostServices> {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
       return this.service.getTrendingPosts(limit);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Get("/user/:userId", [authMiddleware])
+  async getPostsByUser(req: ServerRequest): Promise<Response> {
+    try {
+      const { userId } = req.params;
+      if (!userId || !ObjectId.isValid(userId)) {
+        return ResponseHelper.error("ID utilisateur invalide");
+      }
+      return this.service.getPostsByUserId(new ObjectId(userId));
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

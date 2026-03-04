@@ -10,7 +10,7 @@ export interface IExperienceService {
 
   updateExperience(
     userId: ObjectId,
-    experienceId: ObjectId, // Ajoutez ce paramètre
+    experienceId: ObjectId,
     experience: Experience,
     formData: FormData,
   ): Promise<Response>;
@@ -18,4 +18,5 @@ export interface IExperienceService {
     userId: ObjectId,
     experienceId: ObjectId,
   ): Promise<Response>;
+  getExperiencesByUserId(userId: ObjectId): Promise<Experience[]>;
 }

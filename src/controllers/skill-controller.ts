@@ -186,4 +186,26 @@ export class SkillController extends BaseController<Skill, SkillService> {
       );
     }
   }
+
+  @Get("/user/:userId", [authMiddleware]) // you can remove authMiddleware if public
+  async getSkillsByUser(req: ServerRequest): Promise<Response> {
+    try {
+      // Safely access params
+      const params = req.params as { userId?: string };
+      const userId = params?.userId;
+
+      if (!userId) {
+        return ResponseHelper.error("User ID is required");
+      }
+
+      if (!ObjectId.isValid(userId)) {
+        return ResponseHelper.error("Invalid user ID format");
+      }
+
+      const skills = await this.service.getSkillsByUserId(new ObjectId(userId));
+      return ResponseHelper.success(skills);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 }

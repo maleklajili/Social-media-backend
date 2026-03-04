@@ -8,7 +8,7 @@ export interface ICompanyRepository {
   getCompaniesByUserId(userId: ObjectId): Promise<Company[]>;
   getCompanyById(id: ObjectId): Promise<Company | null>;
   countCompanies(): Promise<number>;
-  countDistinctIndustries(): Promise<number>; // <-- new
+  countDistinctIndustries(): Promise<number>;
   countDistinctLocations(): Promise<number>;
   addJobToCompany(companyId: ObjectId, jobId: ObjectId): Promise<void>;
   removeJobFromCompany(companyId: ObjectId, jobId: ObjectId): Promise<void>;

@@ -125,4 +125,23 @@ export class ExperienceController extends BaseController<
       return ResponseHelper.serverError(String(err));
     }
   }
+  @Get("/user/:userId", [authMiddleware])
+  async getExperiencesByUser(req: ServerRequest): Promise<Response> {
+    try {
+      const { userId } = req.params;
+      if (!userId) {
+        return ResponseHelper.error("User ID is required");
+      }
+      if (!ObjectId.isValid(userId)) {
+        return ResponseHelper.error("Invalid user ID format");
+      }
+
+      const experiences = await this.service.getExperiencesByUserId(
+        new ObjectId(userId),
+      );
+      return ResponseHelper.success(experiences);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 }
