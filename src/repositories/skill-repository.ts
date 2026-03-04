@@ -59,4 +59,8 @@ export class skillRepository implements ISkillRepository {
 
     await this.collection.bulkWrite(operations);
   }
+
+  async findByUserId(userId: ObjectId): Promise<Skill[]> {
+    return await this.collection.find({ userId }).toArray();
+  }
 }

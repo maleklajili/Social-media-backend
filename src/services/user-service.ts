@@ -23,7 +23,6 @@ export class UserService extends BaseService<User> implements IUserService {
     if (!userId || !ObjectId.isValid(userId)) {
       return ResponseHelper.error("Invalid user ID format", 400);
     }
-
     const user = await this.userRepository.findById(userId, 0);
     return ResponseHelper.success(user);
   }

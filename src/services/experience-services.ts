@@ -314,4 +314,20 @@ export class ExperienceServices
       return ResponseHelper.serverError(String(err));
     }
   }
+  /*eslint-disable @typescript-eslint/no-explicit-any */
+  async getExperiencesByUserId(userId: ObjectId): Promise<any[]> {
+    return await this.collection
+      .aggregate([
+        { $match: { userId } },
+        {
+          $lookup: {
+            from: "certifications",
+            localField: "certificates",
+            foreignField: "_id",
+            as: "certificates",
+          },
+        },
+      ])
+      .toArray();
+  }
 }

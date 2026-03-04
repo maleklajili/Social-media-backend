@@ -273,7 +273,16 @@ export class PostServices extends BaseService<Post> implements IPostService {
       return ResponseHelper.serverError(String(err));
     }
   }
-
+  async getPostsByUserId(userId: ObjectId): Promise<Response> {
+    try {
+      const posts = await this.postRepository.getPostsByUserId(userId);
+      await populateReferences(posts, this.userRepository, "userId");
+      return ResponseHelper.success(posts);
+    } catch (err) {
+      console.error("Error getting posts by user:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   async getFeed(
     userId: ObjectId,
     page: number = 1,

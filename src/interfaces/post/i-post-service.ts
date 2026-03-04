@@ -15,6 +15,8 @@ export interface IPostService {
   ): Promise<Response>;
   deletePost(userId: ObjectId, postId: ObjectId): Promise<Response>;
   getPostById(postId: ObjectId): Promise<Response>;
+  getPostsByUserId(userId: ObjectId): Promise<Response>;
+
   getPostsByCommunity(
     communityId: ObjectId,
     page?: number,

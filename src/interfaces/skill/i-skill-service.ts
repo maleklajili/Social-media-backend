@@ -1,3 +1,4 @@
+import type { ObjectId } from "mongodb";
 import type { Skill } from "../../models/skill";
 
 export interface ISkillService {
@@ -12,4 +13,5 @@ export interface ISkillService {
     formData: FormData,
     certifNamesList: string[][],
   ): Promise<Response>;
+  getSkillsByUserId(userId: ObjectId): Promise<Skill[]>;
 }

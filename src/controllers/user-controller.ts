@@ -49,7 +49,12 @@ class UserController extends BaseController<User, UserService> {
   @Get("/by-id/:id", [authMiddleware])
   async getUserById(req: ServerRequest): Promise<Response> {
     try {
-      return this.service.findUserById(req.user?._id);
+      const userId = req.params?.id;
+      if (!userId || !ObjectId.isValid(userId)) {
+        return ResponseHelper.error("Invalid user ID format", 400);
+      }
+      // Appeler le service avec l'ID de l'URL
+      return this.service.findUserById(new ObjectId(userId));
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
