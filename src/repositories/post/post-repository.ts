@@ -40,7 +40,10 @@ export class PostRepository implements IPostRepository {
 
   async getPostsByCommunity(communityId: ObjectId): Promise<Post[]> {
     return this.collection
-      .find({ community: communityId })
+      .find({
+        community: communityId,
+        originalPostId: { $exists: false },
+      })
       .sort({ createdAt: -1 })
       .toArray();
   }
