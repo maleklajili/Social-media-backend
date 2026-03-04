@@ -192,7 +192,7 @@ export class PostRepository implements IPostRepository {
   async createSharePost(
     originalPostId: ObjectId,
     userId: ObjectId,
-    content?: string,
+    avis?: string,
   ): Promise<Post> {
     const originalPost = await this.getPostById(originalPostId);
     if (!originalPost) {
@@ -204,7 +204,8 @@ export class PostRepository implements IPostRepository {
       _id: new ObjectId(),
       userId: originalPost.userId,
       originalPostId,
-      content: content || originalPost.content,
+      content: originalPost.content,
+      avis: avis || "",
       type: originalPost.type,
       shares: 0,
       commentsCount: 0,

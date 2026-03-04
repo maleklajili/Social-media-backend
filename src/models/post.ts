@@ -35,6 +35,7 @@ export interface Post extends BaseModel {
   userId: ObjectId | User;
   title: string;
   content: string;
+  avis?: string;
   type: PostType;
   community: string | ObjectId;
   communityIcon?: string;

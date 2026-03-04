@@ -868,7 +868,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
   async sharePost(
     userId: ObjectId,
     postId: ObjectId,
-    content?: string,
+    avis?: string,
   ): Promise<Response> {
     try {
       const originalPost = await this.postRepository.getPostById(postId);
@@ -886,7 +886,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
       const sharedPost = await this.postRepository.createSharePost(
         postId,
         userId,
-        content,
+        avis,
       );
 
       // Populate user info for response

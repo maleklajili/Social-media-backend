@@ -396,24 +396,24 @@ export class PostController extends BaseController<Post, PostServices> {
       }
 
       // Check if there's a request body
-      let content: string | undefined;
+      let avis: string | undefined;
 
       try {
         // Try to parse JSON body if it exists
         const text = await req.text();
         if (text && text.trim()) {
           const body = JSON.parse(text);
-          content = body.content;
+          avis = body.avis;
         }
       } catch (parseErr) {
         // If body is empty or invalid, just proceed with undefined content
         console.log(
-          "No valid JSON body, proceeding with share without content",
+          "No valid JSON body, proceeding with share without avis",
           parseErr,
         );
       }
 
-      return this.service.sharePost(req.user._id, new ObjectId(id), content);
+      return this.service.sharePost(req.user._id, new ObjectId(id), avis);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
