@@ -315,7 +315,19 @@ export class PostServices extends BaseService<Post> implements IPostService {
       } catch (err) {
         console.error("Failed to populate users for posts:", err);
       }
-
+      // Populate sharedBy array with public user fields
+      try {
+        await populateReferences(
+          posts,
+          this.userRepository,
+          "sharedBy",
+          "sharedBy",
+          ["_id", "firstName", "lastName", "image"],
+          true, // This tells the function to handle it as an array
+        );
+      } catch (err) {
+        console.error("Failed to populate sharedBy users for posts:", err);
+      }
       return ResponseHelper.success({
         posts,
         page,
@@ -545,6 +557,12 @@ export class PostServices extends BaseService<Post> implements IPostService {
         limit,
         sort,
       );
+      // Populate userId with public user fields using generic helper
+      try {
+        await populateReferences(comments, this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate users for posts:", err);
+      }
 
       const total = await this.commentRepository.getCommentsCount(postId);
 
@@ -572,6 +590,12 @@ export class PostServices extends BaseService<Post> implements IPostService {
         page,
         limit,
       );
+      // Populate userId with public user fields using generic helper
+      try {
+        await populateReferences(replies, this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate users for posts:", err);
+      }
 
       return ResponseHelper.success({
         replies,
@@ -840,5 +864,121 @@ export class PostServices extends BaseService<Post> implements IPostService {
     score *= decayFactor;
 
     return Math.round(score * 100) / 100;
+  }
+  async sharePost(
+    userId: ObjectId,
+    postId: ObjectId,
+    content?: string,
+  ): Promise<Response> {
+    try {
+      const originalPost = await this.postRepository.getPostById(postId);
+
+      if (!originalPost) {
+        return ResponseHelper.error("Post not found");
+      }
+
+      // Check if user already shared this post
+      if (originalPost.sharedBy?.some((id) => id.equals(userId))) {
+        return ResponseHelper.error("You have already shared this post");
+      }
+
+      // Create share post
+      const sharedPost = await this.postRepository.createSharePost(
+        postId,
+        userId,
+        content,
+      );
+
+      // Populate user info for response
+      try {
+        await populateReferences([sharedPost], this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate user for shared post:", err);
+      }
+
+      return ResponseHelper.success({
+        message: "Post shared successfully",
+        post: sharedPost,
+      });
+    } catch (err) {
+      console.error("Error sharing post:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getSharedPosts(
+    userId: ObjectId,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<Response> {
+    try {
+      const posts = await this.postRepository.getSharedPosts(userId);
+
+      // Apply pagination
+      const skip = (page - 1) * limit;
+      const paginatedPosts = posts.slice(skip, skip + limit);
+
+      // Populate user information
+      try {
+        await populateReferences(paginatedPosts, this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate users for shared posts:", err);
+      }
+
+      return ResponseHelper.success({
+        posts: paginatedPosts,
+        page,
+        limit,
+        total: posts.length,
+        hasMore: skip + limit < posts.length,
+      });
+    } catch (err) {
+      console.error("Error getting shared posts:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getPostShares(
+    postId: ObjectId,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<Response> {
+    try {
+      const post = await this.postRepository.getPostById(postId);
+
+      if (!post) {
+        return ResponseHelper.error("Post not found");
+      }
+
+      // Get all share posts referencing this original post
+      const shares = await this.collection
+        .find({ originalPostId: postId })
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .toArray();
+
+      // Populate user information
+      try {
+        await populateReferences(shares, this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate users for shares:", err);
+      }
+
+      const total = await this.collection.countDocuments({
+        originalPostId: postId,
+      });
+
+      return ResponseHelper.success({
+        shares,
+        page,
+        limit,
+        total,
+        hasMore: page * limit < total,
+      });
+    } catch (err) {
+      console.error("Error getting post shares:", err);
+      return ResponseHelper.serverError(String(err));
+    }
   }
 }

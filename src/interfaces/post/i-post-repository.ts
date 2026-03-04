@@ -21,4 +21,14 @@ export interface IPostRepository {
     postId: ObjectId,
     lastComment: Post["lastComment"],
   ): Promise<void>;
+  // Share methods
+  incrementShares(postId: ObjectId, increment: number): Promise<void>;
+  addToSharedBy(userId: ObjectId, postId: ObjectId): Promise<void>;
+  removeFromSharedBy(userId: ObjectId, postId: ObjectId): Promise<void>;
+  getSharedPosts(userId: ObjectId): Promise<Post[]>;
+  createSharePost(
+    originalPostId: ObjectId,
+    userId: ObjectId,
+    content?: string,
+  ): Promise<Post>;
 }

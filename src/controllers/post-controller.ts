@@ -378,6 +378,74 @@ export class PostController extends BaseController<Post, PostServices> {
         return ResponseHelper.error("ID utilisateur invalide");
       }
       return this.service.getPostsByUserId(new ObjectId(userId));
+
+  @PostMethod("/:id/share", [authMiddleware])
+  async sharePost(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing post ID");
+      }
+
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+
+      // Check if there's a request body
+      let content: string | undefined;
+
+      try {
+        // Try to parse JSON body if it exists
+        const text = await req.text();
+        if (text && text.trim()) {
+          const body = JSON.parse(text);
+          content = body.content;
+        }
+      } catch (parseErr) {
+        // If body is empty or invalid, just proceed with undefined content
+        console.log(
+          "No valid JSON body, proceeding with share without content",
+          parseErr,
+        );
+      }
+
+      return this.service.sharePost(req.user._id, new ObjectId(id), content);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/shared", [authMiddleware, paginationMiddleware])
+  async getSharedPosts(req: RequestWithPagination): Promise<Response> {
+    try {
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      return this.service.getSharedPosts(req.user._id, page, limit);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/:id/shares", [authMiddleware])
+  async getPostShares(req: RequestWithPagination): Promise<Response> {
+    try {
+      const { id } = req.params;
+
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing post ID");
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      return this.service.getPostShares(new ObjectId(id), page, limit);
+
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

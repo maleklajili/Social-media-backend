@@ -3,14 +3,14 @@ import { ObjectId } from "mongodb";
 export type RepoWithFindByIds<T> = {
   findByIds(ids: ObjectId[]): Promise<T[]>;
 };
-
 /**
  * Generic reference population utility.
- * - items: array of docs that contain an id field
+ * - items: array of docs that contain an id field or array of ids
  * - repo: repository with findByIds(ObjectId[])
- * - idField: the field on each item that contains the id to populate (default: 'userId')
- * - replaceField: where to store the populated object (defaults to idField)
+ * - idField: the field on each item that contains the id(s) to populate (default: 'userId')
+ * - replaceField: where to store the populated object(s) (defaults to idField)
  * - fields: list of fields to keep from the populated object (defaults to common public fields)
+ * - isArray: whether the field is an array of references (default: false)
  * - idToDbId: optional mapper to convert raw id to an ObjectId for querying
  */
 export async function populateReferences<
@@ -24,6 +24,7 @@ export async function populateReferences<
   idField = "userId",
   replaceField?: string,
   fields: string[] = ["_id", "firstName", "lastName", "image"],
+  isArray: boolean = false, // New parameter to handle array fields
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   idToDbId?: (raw: any) => ObjectId | undefined,
 ): Promise<Doc[]> {
@@ -36,22 +37,43 @@ export async function populateReferences<
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
     const raw = (it as any)[idField];
     if (!raw) return;
-    try {
-      let dbId: ObjectId | undefined;
-      if (idToDbId) {
-        dbId = idToDbId(raw);
-      } else if (typeof raw === "object" && raw && raw.toString) {
-        dbId = raw as ObjectId;
-      } else if (typeof raw === "string") {
-        try {
-          dbId = new ObjectId(raw);
-        } catch (e) {
-          console.log(e);
-          dbId = undefined;
-        }
-      }
 
-      if (dbId) idMap[dbId.toString()] = dbId;
+    try {
+      if (isArray && Array.isArray(raw)) {
+        // Handle array of ids
+        raw.forEach((id) => {
+          let dbId: ObjectId | undefined;
+          if (idToDbId) {
+            dbId = idToDbId(id);
+          } else if (typeof id === "object" && id && id.toString) {
+            dbId = id as ObjectId;
+          } else if (typeof id === "string") {
+            try {
+              dbId = new ObjectId(id);
+            } catch (e) {
+              console.log(e);
+              dbId = undefined;
+            }
+          }
+          if (dbId) idMap[dbId.toString()] = dbId;
+        });
+      } else {
+        // Handle single id
+        let dbId: ObjectId | undefined;
+        if (idToDbId) {
+          dbId = idToDbId(raw);
+        } else if (typeof raw === "object" && raw && raw.toString) {
+          dbId = raw as ObjectId;
+        } else if (typeof raw === "string") {
+          try {
+            dbId = new ObjectId(raw);
+          } catch (e) {
+            console.log(e);
+            dbId = undefined;
+          }
+        }
+        if (dbId) idMap[dbId.toString()] = dbId;
+      }
     } catch (e) {
       console.log(e);
       // ignore
@@ -83,10 +105,29 @@ export async function populateReferences<
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
     const raw = (it as any)[idField];
     if (!raw) return;
-    const key = raw && raw.toString ? raw.toString() : String(raw);
-    if (refMap[key]) {
+
+    if (isArray && Array.isArray(raw)) {
+      // Handle array of references
       //eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (it as any)[fieldToReplace] = refMap[key];
+      const populatedArray: any[] = [];
+      raw.forEach((id) => {
+        const key = id && id.toString ? id.toString() : String(id);
+        if (refMap[key]) {
+          populatedArray.push(refMap[key]);
+        } else {
+          // Keep original if not found
+          populatedArray.push(id);
+        }
+      });
+      //eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (it as any)[fieldToReplace] = populatedArray;
+    } else {
+      // Handle single reference
+      const key = raw && raw.toString ? raw.toString() : String(raw);
+      if (refMap[key]) {
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (it as any)[fieldToReplace] = refMap[key];
+      }
     }
   });
 
