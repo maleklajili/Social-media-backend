@@ -378,7 +378,10 @@ export class PostController extends BaseController<Post, PostServices> {
         return ResponseHelper.error("ID utilisateur invalide");
       }
       return this.service.getPostsByUserId(new ObjectId(userId));
-
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   @PostMethod("/:id/share", [authMiddleware])
   async sharePost(req: ServerRequest): Promise<Response> {
     try {
@@ -445,7 +448,6 @@ export class PostController extends BaseController<Post, PostServices> {
       const limit = parseInt(req.query.limit as string) || 10;
 
       return this.service.getPostShares(new ObjectId(id), page, limit);
-
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
