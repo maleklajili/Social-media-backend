@@ -57,6 +57,9 @@ export interface Post extends BaseModel {
   shares: number;
   saves: number;
 
+  sharedBy?: ObjectId[];
+  originalPostId?: ObjectId;
+  shareCount?: number;
   // Preview du dernier commentaire (optionnel)
   lastComment?: {
     id: ObjectId;

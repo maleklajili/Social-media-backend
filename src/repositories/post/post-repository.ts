@@ -155,4 +155,76 @@ export class PostRepository implements IPostRepository {
     // TODO: Récupérer les communautés de l'utilisateur
     return [];
   }
+  async incrementShares(postId: ObjectId, increment: number): Promise<void> {
+    await this.collection.updateOne(
+      { _id: postId },
+      { $inc: { shares: increment } },
+    );
+  }
+
+  async addToSharedBy(userId: ObjectId, postId: ObjectId): Promise<void> {
+    await this.collection.updateOne(
+      { _id: postId },
+      {
+        $addToSet: { sharedBy: userId },
+        $inc: { shares: 1 },
+      },
+    );
+  }
+
+  async removeFromSharedBy(userId: ObjectId, postId: ObjectId): Promise<void> {
+    await this.collection.updateOne(
+      { _id: postId },
+      {
+        $pull: { sharedBy: userId },
+        $inc: { shares: -1 },
+      },
+    );
+  }
+
+  async getSharedPosts(userId: ObjectId): Promise<Post[]> {
+    return this.collection
+      .find({ sharedBy: userId })
+      .sort({ createdAt: -1 })
+      .toArray();
+  }
+
+  async createSharePost(
+    originalPostId: ObjectId,
+    userId: ObjectId,
+    content?: string,
+  ): Promise<Post> {
+    const originalPost = await this.getPostById(originalPostId);
+    if (!originalPost) {
+      throw new Error("Original post not found");
+    }
+
+    const sharePost: Post = {
+      ...originalPost,
+      _id: new ObjectId(),
+      userId,
+      originalPostId,
+      content: content || originalPost.content,
+      type: originalPost.type,
+      shares: 0,
+      commentsCount: 0,
+      votes: 0,
+      views: 0,
+      saves: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastActivityAt: new Date(),
+      sharedBy: [userId],
+      // Clear user-specific data
+      userVotes: [],
+      savedBy: [],
+    };
+
+    await this.collection.insertOne(sharePost);
+
+    // Increment share count on original post
+    await this.incrementShares(originalPostId, 1);
+
+    return sharePost;
+  }
 }
