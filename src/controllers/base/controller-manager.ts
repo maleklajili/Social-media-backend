@@ -4,6 +4,7 @@ import { CompanyController } from "../company-controller";
 import { EducationController } from "../education-controller";
 import { ExperienceController } from "../experience-controller";
 import { JobController } from "../job-controller";
+import { JobApplicationController } from "../job-application-controller";
 import { MessageController } from "../message/message-controller";
 import { PostController } from "../post-controller";
 import { ProfileController } from "../profile-controller";
@@ -33,6 +34,7 @@ export class ControllerManager {
       TransactionController,
       CompanyController,
       JobController,
+      JobApplicationController,
       CommunityController,
       MessageController,
     ];
