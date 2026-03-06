@@ -218,40 +218,4 @@ export class JobApplicationController extends BaseController<
       return ResponseHelper.serverError(String(err));
     }
   }
-
-  /**
-   * Rate application
-   * PUT /job-applications/:id/rate
-   */
-  @Put("/:id/rate", [authMiddleware])
-  async rate(req: ServerRequest): Promise<Response> {
-    try {
-      if (!req.user?._id) {
-        return ResponseHelper.error("User not authenticated");
-      }
-
-      const id = new ObjectId(req.params.id);
-      const body = (await req.json()) as {
-        ratings?: {
-          experience?: number;
-          skills?: number;
-          qualifications?: number;
-        };
-      };
-      const { ratings } = body;
-
-      if (!ratings) {
-        return ResponseHelper.error("Ratings are required");
-      }
-
-      // TODO: Get company ID from user's companies
-      const companyIdStr =
-        (req.query as { companyId?: string })?.companyId || "";
-      const companyId = new ObjectId(companyIdStr);
-
-      return this.service.rateApplication(id, ratings, companyId);
-    } catch (err) {
-      return ResponseHelper.serverError(String(err));
-    }
-  }
 }

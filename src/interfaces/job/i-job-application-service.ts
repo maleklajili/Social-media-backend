@@ -26,13 +26,4 @@ export interface IJobApplicationService {
     response: string,
     companyId: ObjectId,
   ): Promise<Response>;
-  rateApplication(
-    applicationId: ObjectId,
-    ratings: {
-      experience?: number;
-      skills?: number;
-      qualifications?: number;
-    },
-    companyId: ObjectId,
-  ): Promise<Response>;
 }
