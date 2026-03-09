@@ -1,9 +1,11 @@
 import { Collection, ObjectId } from "mongodb";
-import type { RequestWithPagination } from "../config/interfaces/i-pagination";
+import type { Filter } from "mongodb";
 import type { ServerRequest } from "../config/interfaces/i-request";
+import type { RequestWithPagination } from "../config/interfaces/i-pagination";
 import { authMiddleware } from "../middleware/aut-middleware";
 import { paginationMiddleware } from "../middleware/pagination-middleware";
 import { CollectionsManager } from "../models/base/collection-manager";
+import { autoPaginateResponse } from "../middleware/pagination-middleware";
 import type { Company } from "../models/company";
 import { Delete, Get, Post, Put } from "../routes/router-manager";
 import { CompanyServices } from "../services/company-services";
@@ -43,27 +45,131 @@ export class CompanyController extends BaseController<
       if (!req.user?._id) {
         return ResponseHelper.error("Utilisateur non authentifié");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const filter: Record<string, any> = {};
+
+      const andConditions: Filter<Company>[] = [];
 
       if (req.query?.status) {
-        filter.status = req.query.status;
-      }
-      if (req.query?.userId) {
-        // Convertir en ObjectId pour MongoDB
-        filter.userId = new ObjectId(req.query.userId as string);
-      }
-      if (req.query?.verified !== undefined) {
-        const verifiedValue = req.query.verified === "true";
-        filter.verified = verifiedValue;
+        const status = req.query.status as string;
+        if (
+          status === "active" ||
+          status === "draft" ||
+          status === "archived"
+        ) {
+          andConditions.push({ status });
+        }
       }
 
-      return super.getAll(req, [], filter);
+      if (req.query?.userId) {
+        andConditions.push({
+          userId: new ObjectId(req.query.userId as string),
+        });
+      }
+
+      if (req.query?.verified !== undefined) {
+        andConditions.push({ verified: req.query.verified === "true" });
+      }
+
+      // Filtre par industrie =
+      if (req.query?.industry) {
+        const industries = Array.isArray(req.query.industry)
+          ? req.query.industry
+          : [req.query.industry];
+        andConditions.push({ industry: { $in: industries as string[] } });
+      }
+
+      //  Filtre par taille
+      if (req.query?.size) {
+        const sizes = Array.isArray(req.query.size)
+          ? req.query.size
+          : [req.query.size];
+        andConditions.push({ size: { $in: sizes as string[] } });
+      }
+
+      // Filtre par caractéristiques
+      if (req.query?.feature) {
+        const features = Array.isArray(req.query.feature)
+          ? req.query.feature
+          : [req.query.feature];
+
+        for (const feat of features as string[]) {
+          switch (feat) {
+            case "verified":
+              andConditions.push({ verified: true });
+              break;
+            case "trending":
+              andConditions.push({ "stats.followers": { $gt: 50 } });
+              break;
+            case "hasJobOffers":
+              andConditions.push({
+                jobs: { $exists: true, $not: { $size: 0 } },
+              });
+              break;
+          }
+        }
+      }
+
+      // Recherche textuelle
+      const searchOrConditions: Filter<Company>[] = [];
+      if (req.query?.search) {
+        const searchRegex = new RegExp(req.query.search as string, "i");
+        searchOrConditions.push(
+          { name: searchRegex },
+          { description: searchRegex },
+          { shortDescription: searchRegex },
+          { industry: searchRegex },
+          { location: searchRegex },
+          { address: searchRegex },
+          { keywords: searchRegex },
+        );
+      }
+
+      //  Filtre localisation
+      const locationOrConditions: Filter<Company>[] = [];
+      if (req.query?.location) {
+        const locationRegex = new RegExp(req.query.location as string, "i");
+        locationOrConditions.push(
+          { location: locationRegex },
+          { address: locationRegex },
+        );
+      }
+
+      const textAndConditions: Filter<Company>[] = [];
+      if (searchOrConditions.length > 0) {
+        textAndConditions.push({ $or: searchOrConditions });
+      }
+      if (locationOrConditions.length > 0) {
+        textAndConditions.push({ $or: locationOrConditions });
+      }
+
+      if (textAndConditions.length === 1) {
+        andConditions.push(textAndConditions[0]!);
+      } else if (textAndConditions.length === 2) {
+        andConditions.push({ $and: textAndConditions });
+      }
+
+      const filter: Filter<Company> =
+        andConditions.length > 0 ? { $and: andConditions } : {};
+
+      const pagination = req.pagination;
+      if (!pagination) {
+        return ResponseHelper.error("Pagination manquante");
+      }
+
+      const result = await this.service.getAllCompaniesWithFollowStatus(
+        req.user._id,
+        filter,
+        { skip: pagination.skip, limit: pagination.take },
+      );
+
+      return autoPaginateResponse(
+        req,
+        Promise.resolve(result.data),
+        Promise.resolve(result.total),
+      );
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
   }
-
   @Post("/add-company", [authMiddleware])
   async addCompany(req: ServerRequest): Promise<Response> {
     try {
@@ -143,21 +249,6 @@ export class CompanyController extends BaseController<
     }
   }
 
-  @Get("/:id", [authMiddleware])
-  async getCompanyById(req: ServerRequest): Promise<Response> {
-    try {
-      const { id } = req.params;
-
-      if (!id || !ObjectId.isValid(id)) {
-        return ResponseHelper.error("Invalid or missing company id");
-      }
-
-      return this.service.getCompanyById(new ObjectId(id));
-    } catch (err) {
-      return ResponseHelper.serverError(String(err));
-    }
-  }
-
   @Get("/stats", [authMiddleware])
   async getStats(): Promise<Response> {
     try {
@@ -165,6 +256,87 @@ export class CompanyController extends BaseController<
       return ResponseHelper.success(stats);
     } catch (err) {
       console.error("❌ Error fetching stats:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Post("/follow/:id", [authMiddleware])
+  async followCompany(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing company id");
+      }
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+      return this.service.followCompany(req.user._id, id);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Post("/unfollow/:id", [authMiddleware])
+  async unfollowCompany(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing company id");
+      }
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+      return this.service.unfollowCompany(req.user._id, id);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/followers/:id", [authMiddleware])
+  async getCompanyFollowers(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing company id");
+      }
+      const currentUserId = req.user?._id;
+      return this.service.getCompanyFollowers(id, currentUserId);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/follow-status/:id", [authMiddleware])
+  async getCompanyFollowStatus(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing company id");
+      }
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+      return this.service.getCompanyFollowStatus(req.user._id, id);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/:id", [authMiddleware])
+  async getCompanyById(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing company id");
+      }
+      if (!req.user?._id) {
+        return ResponseHelper.error("Utilisateur non authentifié");
+      }
+      return await this.service.getCompanyByIdWithFollowStatus(
+        new ObjectId(id),
+        req.user._id,
+      );
+    } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
   }

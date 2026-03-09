@@ -22,4 +22,26 @@ export interface ICompanyService {
     totalLocations: number;
     totalIndustries: number;
   }>;
+  followCompany(currentUserId: ObjectId, companyId: string): Promise<Response>;
+  unfollowCompany(
+    currentUserId: ObjectId,
+    companyId: string,
+  ): Promise<Response>;
+  getCompanyFollowers(
+    companyId: string,
+    currentUserId?: ObjectId,
+  ): Promise<Response>;
+  getCompanyFollowStatus(
+    currentUserId: ObjectId,
+    companyId: string,
+  ): Promise<Response>;
+  getCompanyByIdWithFollowStatus(
+    companyId: ObjectId,
+    userId: ObjectId,
+  ): Promise<Response>;
+  getAllCompaniesWithFollowStatus(
+    userId: ObjectId,
+    filter?: Record<string, Company>,
+    pagination?: { skip: number; limit: number },
+  ): Promise<{ data: Company[]; total: number }>;
 }

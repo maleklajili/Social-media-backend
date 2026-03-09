@@ -6,6 +6,8 @@ import { ExperienceController } from "../experience-controller";
 import { JobController } from "../job-controller";
 import { JobApplicationController } from "../job-application-controller";
 import { MessageController } from "../message/message-controller";
+import { ReviewController } from "../review/review-controller";
+
 import { PostController } from "../post-controller";
 import { ProfileController } from "../profile-controller";
 import { ProjectController } from "../project-controller";
@@ -37,6 +39,7 @@ export class ControllerManager {
       JobApplicationController,
       CommunityController,
       MessageController,
+      ReviewController,
     ];
   }
 }

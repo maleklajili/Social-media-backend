@@ -22,7 +22,9 @@ import type { Community } from "../community/community";
 import type { CommunityMember } from "../community/community-member";
 import type { Comment } from "../comment";
 import type { Message } from "../messages/message";
+import type { Review } from "../reviews/review";
 import type { JobApplication } from "../job-application";
+
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -47,7 +49,9 @@ export class CollectionsManager {
   static communityMemberCollection: Collection<CommunityMember>;
   static commentCollection: Collection<Comment>;
   static messageCollection: Collection<Message>;
+  static reviewCollection: Collection<Review>;
   static jobApplicationCollection: Collection<JobApplication>;
+
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -79,7 +83,9 @@ export class CollectionsManager {
       db.collection<CommunityMember>("community-members");
     this.commentCollection = db.collection<Comment>("comments");
     this.messageCollection = db.collection<Message>("messages");
+    this.reviewCollection = db.collection<Review>("reviews");
     this.jobApplicationCollection =
       db.collection<JobApplication>("job-applications");
+
   }
 }
