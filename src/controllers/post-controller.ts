@@ -14,6 +14,7 @@ import { TransactionRepository } from "../repositories/transaction-repository";
 import { PostRepository } from "../repositories/post/post-repository";
 import { PostServices } from "../services/post/post-services";
 import { CommentRepository } from "../repositories/comment/comment-repository";
+import { CommunityRepository } from "../repositories/community-repository";
 
 export class PostController extends BaseController<Post, PostServices> {
   constructor() {
@@ -31,6 +32,7 @@ export class PostController extends BaseController<Post, PostServices> {
       new userRepository(),
       new TransactionService(new TransactionRepository(), new userRepository()),
       new CommentRepository(),
+      new CommunityRepository(),
     );
   }
 

@@ -15,18 +15,21 @@ import { UPLOAD_PATHS } from "../../config/config";
 import { handleFileUpload, type UploadResult } from "../../utils/upload-helper";
 import populateReferences from "../../utils/populate";
 import type { ICommentRepository } from "../../interfaces/comment/i-comment-repository";
-
+import type { ICommunityRepository } from "../../interfaces/community/i-community-repository";
+import { CommunityRepository } from "../../repositories/community-repository";
 export class PostServices extends BaseService<Post> implements IPostService {
   private commentRepository: ICommentRepository;
-
+  private communityRepository: ICommunityRepository;
   constructor(
     private postRepository: IPostRepository,
     private userRepository: IUserRepository,
     private transactionService: TransactionService,
     commentRepository?: ICommentRepository,
+    communityRepository?: ICommunityRepository,
   ) {
     super(CollectionsManager.postCollection);
     this.commentRepository = commentRepository || new CommentRepository();
+    this.communityRepository = communityRepository || new CommunityRepository();
   }
   async getAllPosts(page: number = 1, limit: number = 10): Promise<Post[]> {
     const skip = (page - 1) * limit;
@@ -327,6 +330,19 @@ export class PostServices extends BaseService<Post> implements IPostService {
         );
       } catch (err) {
         console.error("Failed to populate sharedBy users for posts:", err);
+      }
+      // Populate community field
+      try {
+        await populateReferences(
+          posts,
+          this.communityRepository,
+          "community",
+          "community",
+          ["_id", "name", "image", "privacy", "membersCount", "description"],
+          false,
+        );
+      } catch (err) {
+        console.error("Failed to populate community for posts:", err);
       }
       return ResponseHelper.success({
         posts,
