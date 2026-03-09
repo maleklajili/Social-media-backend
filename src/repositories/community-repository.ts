@@ -135,4 +135,11 @@ export class CommunityRepository implements ICommunityRepository {
 
     return this.collection.find({ _id: { $in: communityIds } }).toArray();
   }
+  async findByIds(ids: ObjectId[]): Promise<Community[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    return await this.collection.find({ _id: { $in: ids } }).toArray();
+  }
 }

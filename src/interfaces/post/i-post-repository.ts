@@ -29,6 +29,6 @@ export interface IPostRepository {
   createSharePost(
     originalPostId: ObjectId,
     userId: ObjectId,
-    content?: string,
+    avis?: string,
   ): Promise<Post>;
 }
