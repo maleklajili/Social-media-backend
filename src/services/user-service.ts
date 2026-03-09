@@ -4,6 +4,8 @@ import type { ServerRequest } from "../config/interfaces/i-request";
 import type { ChangePasswordPayload } from "../interfaces/base/i-crud-controller";
 import type { IUserRepository } from "../interfaces/user/i-user-repository";
 import type { IUserService } from "../interfaces/user/i-user-service";
+import type { ICompanyRepository } from "../interfaces/company/i-company-repository";
+
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { User } from "../models/user";
 import { ResponseHelper } from "../utils/response-helper";
@@ -14,9 +16,13 @@ import {
   type UploadResult,
 } from "../utils/upload-helper";
 import { BaseService } from "./base/base-service";
+import type { Company } from "../models/company";
 
 export class UserService extends BaseService<User> implements IUserService {
-  constructor(private userRepository: IUserRepository) {
+  constructor(
+    private userRepository: IUserRepository,
+    private companyRepository: ICompanyRepository,
+  ) {
     super(CollectionsManager.userCollection);
   }
   async findUserById(userId: ObjectId | undefined): Promise<Response> {
@@ -285,28 +291,43 @@ export class UserService extends BaseService<User> implements IUserService {
 
       const targetId = new ObjectId(userId);
 
-      // Get following
-      const following = await this.userRepository.getFollowing(targetId);
+      const followedUsers = await this.userRepository.getFollowing(targetId);
 
-      // If current user is provided, check follow status for each followed user
-      if (currentUserId) {
-        const followingWithStatus = await Promise.all(
-          following.map(async (followed) => {
-            const isFollowing = await this.userRepository.isFollowing(
-              currentUserId,
-              followed._id as ObjectId,
-            );
-            return {
-              ...followed,
-              isFollowedByCurrentUser: isFollowing,
-            };
-          }),
-        );
+      const followedCompanyIds =
+        await this.userRepository.getFollowedCompanies(targetId);
 
-        return ResponseHelper.success(followingWithStatus);
+      let followedCompanies: Company[] = [];
+      if (followedCompanyIds.length > 0) {
+        followedCompanies =
+          await this.companyRepository.findCompaniesByIds(followedCompanyIds);
       }
 
-      return ResponseHelper.success(following);
+      if (currentUserId) {
+        const enhancedUsers = await Promise.all(
+          followedUsers.map(async (user) => ({
+            ...user,
+            isFollowedByCurrentUser: await this.userRepository.isFollowing(
+              currentUserId,
+              user._id as ObjectId,
+            ),
+          })),
+        );
+
+        const enhancedCompanies = followedCompanies.map((company) => ({
+          ...company,
+          isFollowedByCurrentUser: true,
+        }));
+
+        return ResponseHelper.success({
+          users: enhancedUsers,
+          companies: enhancedCompanies,
+        });
+      }
+
+      return ResponseHelper.success({
+        users: followedUsers,
+        companies: followedCompanies,
+      });
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

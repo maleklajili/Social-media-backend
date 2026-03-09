@@ -23,6 +23,7 @@ export interface BaseUser extends BaseModel {
   skills?: [ObjectId];
   followers?: ObjectId[];
   following?: ObjectId[];
+  followingCompanies?: ObjectId[];
   followerCount?: number;
   followingCount?: number;
 }

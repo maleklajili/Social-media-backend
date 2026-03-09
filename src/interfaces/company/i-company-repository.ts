@@ -13,4 +13,14 @@ export interface ICompanyRepository {
   addJobToCompany(companyId: ObjectId, jobId: ObjectId): Promise<void>;
   removeJobFromCompany(companyId: ObjectId, jobId: ObjectId): Promise<void>;
   getCompanyJobs(companyId: ObjectId): Promise<ObjectId[]>;
+  followCompany(userId: ObjectId, companyId: ObjectId): Promise<void>;
+  unfollowCompany(userId: ObjectId, companyId: ObjectId): Promise<void>;
+  isFollowing(userId: ObjectId, companyId: ObjectId): Promise<boolean>;
+  getFollowers(companyId: ObjectId): Promise<ObjectId[]>;
+  getFollowCount(companyId: ObjectId): Promise<number>;
+  findCompaniesByIds(ids: ObjectId[]): Promise<Company[]>;
+  updateCompanyStats(
+    companyId: ObjectId,
+    stats: { averageRating: number; reviewCount: number },
+  ): Promise<void>;
 }

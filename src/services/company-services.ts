@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import type { Filter } from "mongodb";
 import { BaseService } from "./base/base-service";
 import type { Company } from "../models/company";
 import { CollectionsManager } from "../models/base/collection-manager";
@@ -26,9 +27,6 @@ export class CompanyServices
     super(CollectionsManager.companyCollection);
   }
 
-  /**
-   * Add a new company
-   */
   async addCompany(
     userId: ObjectId,
     company: Company,
@@ -143,9 +141,6 @@ export class CompanyServices
     return ResponseHelper.success(company);
   }
 
-  /**
-   * Update existing company
-   */
   async updateCompany(
     userId: ObjectId,
     companyId: ObjectId,
@@ -194,10 +189,8 @@ export class CompanyServices
         company.logo = existingCompany.logo;
       }
 
-      // Handle cover image update
       const coverStorePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.companies}/cover`;
       if (formData.has("coverImage")) {
-        // Delete old cover if exists
         if (existingCompany.coverImage) {
           await FileService.deleteFile(existingCompany.coverImage);
         }
@@ -222,14 +215,12 @@ export class CompanyServices
         company.coverImage = existingCompany.coverImage;
       }
 
-      // Handle verification documents update
       if (
         formData.has("verificationDocuments") &&
         formData.get("requestVerification") === "true"
       ) {
         const docsStorePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.companies}/verification`;
 
-        // Delete old verification documents if they exist
         if (
           existingCompany.verificationDocuments &&
           existingCompany.verificationDocuments.length > 0
@@ -264,7 +255,6 @@ export class CompanyServices
         company.verificationStatus = existingCompany.verificationStatus;
       }
 
-      // Handle documents to delete
       if (formData.has("documentsToDelete")) {
         const docsToDeleteRaw = formData.get("documentsToDelete") as string;
         const docsToDelete: string[] = JSON.parse(docsToDeleteRaw);
@@ -405,9 +395,29 @@ export class CompanyServices
     }
   }
 
-  /**
-   * Récupère les statistiques agrégées
-   */
+  async getCompanyByIdWithFollowStatus(
+    companyId: ObjectId,
+    userId: ObjectId,
+  ): Promise<Response> {
+    try {
+      const company = await this.companyRepository.getCompanyById(companyId);
+      if (!company) {
+        return ResponseHelper.error("Company not found");
+      }
+      const isFollowing = await this.companyRepository.isFollowing(
+        userId,
+        companyId,
+      );
+      const companyWithFollow = {
+        ...company,
+        following: isFollowing,
+      };
+      return ResponseHelper.success(companyWithFollow);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
   async getAggregatedStats(): Promise<{
     totalCompanies: number;
     totalJobs: number;
@@ -423,5 +433,190 @@ export class CompanyServices
       ]);
 
     return { totalCompanies, totalJobs, totalLocations, totalIndustries };
+  }
+
+  async followCompany(
+    currentUserId: ObjectId,
+    companyId: string,
+  ): Promise<Response> {
+    try {
+      if (!ObjectId.isValid(companyId)) {
+        return ResponseHelper.error("Invalid company ID format", 400);
+      }
+
+      const targetId = new ObjectId(companyId);
+
+      const company = await this.companyRepository.getCompanyById(targetId);
+      if (!company) {
+        return ResponseHelper.error("Company not found", 404);
+      }
+
+      const isAlreadyFollowing = await this.companyRepository.isFollowing(
+        currentUserId,
+        targetId,
+      );
+      if (isAlreadyFollowing) {
+        return ResponseHelper.error(
+          "You are already following this company",
+          400,
+        );
+      }
+
+      // Follow côté entreprise
+      await this.companyRepository.followCompany(currentUserId, targetId);
+      // Follow côté utilisateur
+      await this.userRepository.followCompany(currentUserId, targetId);
+
+      const followerCount =
+        await this.companyRepository.getFollowCount(targetId);
+
+      return ResponseHelper.success({
+        message: "Company followed successfully",
+        following: true,
+        followerCount,
+      });
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async unfollowCompany(
+    currentUserId: ObjectId,
+    companyId: string,
+  ): Promise<Response> {
+    try {
+      if (!ObjectId.isValid(companyId)) {
+        return ResponseHelper.error("Invalid company ID format", 400);
+      }
+
+      const targetId = new ObjectId(companyId);
+
+      const company = await this.companyRepository.getCompanyById(targetId);
+      if (!company) {
+        return ResponseHelper.error("Company not found", 404);
+      }
+
+      const isFollowing = await this.companyRepository.isFollowing(
+        currentUserId,
+        targetId,
+      );
+      if (!isFollowing) {
+        return ResponseHelper.error("You are not following this company", 400);
+      }
+
+      // Unfollow côté entreprise
+      await this.companyRepository.unfollowCompany(currentUserId, targetId);
+      // Unfollow côté utilisateur
+      await this.userRepository.unfollowCompany(currentUserId, targetId);
+
+      const followerCount =
+        await this.companyRepository.getFollowCount(targetId);
+
+      return ResponseHelper.success({
+        message: "Company unfollowed successfully",
+        following: false,
+        followerCount,
+      });
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getAllCompaniesWithFollowStatus(
+    userId: ObjectId,
+    filter: Filter<Company>, // ← plus de any, utilisation du type MongoDB
+    pagination: { skip: number; limit: number },
+  ): Promise<{ data: Company[]; total: number }> {
+    const companies = await this.collection
+      .find(filter)
+      .skip(pagination.skip)
+      .limit(pagination.limit)
+      .toArray();
+
+    const total = await this.collection.countDocuments(filter);
+
+    const companiesWithFollow = await Promise.all(
+      companies.map(async (company) => {
+        const isFollowing = await this.companyRepository.isFollowing(
+          userId,
+          company._id!,
+        );
+        return {
+          ...company,
+          following: isFollowing,
+        };
+      }),
+    );
+
+    return { data: companiesWithFollow, total };
+  }
+
+  async getCompanyFollowers(
+    companyId: string,
+    currentUserId?: ObjectId,
+  ): Promise<Response> {
+    try {
+      if (!ObjectId.isValid(companyId)) {
+        return ResponseHelper.error("Invalid company ID format", 400);
+      }
+
+      const targetId = new ObjectId(companyId);
+
+      // Récupérer les IDs des abonnés
+      const followerIds = await this.companyRepository.getFollowers(targetId);
+
+      if (followerIds.length === 0) {
+        return ResponseHelper.success([]);
+      }
+
+      const followers = await this.userRepository.findByIds(followerIds);
+
+      if (currentUserId) {
+        const followersWithStatus = await Promise.all(
+          followers.map(async (follower) => {
+            const isFollowing = await this.userRepository.isFollowing(
+              currentUserId,
+              follower._id as ObjectId,
+            );
+            return {
+              ...follower,
+              isFollowedByCurrentUser: isFollowing,
+            };
+          }),
+        );
+        return ResponseHelper.success(followersWithStatus);
+      }
+
+      return ResponseHelper.success(followers);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getCompanyFollowStatus(
+    currentUserId: ObjectId,
+    companyId: string,
+  ): Promise<Response> {
+    try {
+      if (!ObjectId.isValid(companyId)) {
+        return ResponseHelper.error("Invalid company ID format", 400);
+      }
+
+      const targetId = new ObjectId(companyId);
+
+      const isFollowing = await this.companyRepository.isFollowing(
+        currentUserId,
+        targetId,
+      );
+      const followerCount =
+        await this.companyRepository.getFollowCount(targetId);
+
+      return ResponseHelper.success({
+        isFollowing,
+        followerCount,
+      });
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
   }
 }

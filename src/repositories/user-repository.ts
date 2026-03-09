@@ -82,7 +82,6 @@ export class userRepository implements IUserRepository {
     );
   }
   async followUser(followerId: ObjectId, followingId: ObjectId): Promise<void> {
-    // Add to following array of follower
     await this.collection.updateOne(
       { _id: followerId },
       {
@@ -322,5 +321,44 @@ export class userRepository implements IUserRepository {
       .limit(limit)
       .project({ password: 0 })
       .toArray() as Promise<User[]>;
+  }
+
+  async followCompany(userId: ObjectId, companyId: ObjectId): Promise<void> {
+    await this.collection.updateOne(
+      { _id: userId },
+      {
+        $addToSet: { followingCompanies: companyId },
+        $inc: { followingCount: 1 },
+      },
+    );
+  }
+
+  async unfollowCompany(userId: ObjectId, companyId: ObjectId): Promise<void> {
+    await this.collection.updateOne(
+      { _id: userId },
+      {
+        $pull: { followingCompanies: companyId },
+        $inc: { followingCount: -1 },
+      },
+    );
+  }
+
+  async getFollowedCompanies(userId: ObjectId): Promise<ObjectId[]> {
+    const user = await this.collection.findOne(
+      { _id: userId },
+      { projection: { followingCompanies: 1 } },
+    );
+    return user?.followingCompanies || [];
+  }
+
+  async isFollowingCompany(
+    userId: ObjectId,
+    companyId: ObjectId,
+  ): Promise<boolean> {
+    const user = await this.collection.findOne(
+      { _id: userId, followingCompanies: companyId },
+      { projection: { _id: 1 } },
+    );
+    return !!user;
   }
 }

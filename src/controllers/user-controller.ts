@@ -9,7 +9,7 @@ import { ObjectId } from "mongodb";
 
 import type { RequestWithPagination } from "../config/interfaces/i-pagination";
 import type { ChangePasswordPayload } from "../interfaces/base/i-crud-controller";
-
+import { CompanyRepository } from "../repositories/company-repository";
 import type { Collection } from "mongodb";
 import { userRepository } from "../repositories/user-repository";
 import { UserService } from "../services/user-service";
@@ -18,7 +18,7 @@ import { BaseController } from "./base/base-controller";
 
 class UserController extends BaseController<User, UserService> {
   protected createService(): UserService {
-    return new UserService(new userRepository());
+    return new UserService(new userRepository(), new CompanyRepository());
   }
 
   constructor() {

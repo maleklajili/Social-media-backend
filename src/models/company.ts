@@ -17,6 +17,10 @@ export interface Company extends BaseModel {
   logo: string;
   coverImage: string;
   jobs?: ObjectId[];
+  followersId?: ObjectId[];
+  averageRating?: number;
+  reviewCount?: number;
+  reviewIds?: ObjectId[];
   socialMedia: {
     linkedin: string;
     twitter: string;

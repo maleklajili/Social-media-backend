@@ -45,4 +45,8 @@ export interface IUserRepository {
     limit: number,
     search: string,
   ): Promise<User[]>;
+  followCompany(userId: ObjectId, companyId: ObjectId): Promise<void>;
+  unfollowCompany(userId: ObjectId, companyId: ObjectId): Promise<void>;
+  getFollowedCompanies(userId: ObjectId): Promise<ObjectId[]>;
+  isFollowingCompany(userId: ObjectId, companyId: ObjectId): Promise<boolean>;
 }

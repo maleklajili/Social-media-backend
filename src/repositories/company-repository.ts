@@ -27,9 +27,11 @@ export class CompanyRepository implements ICompanyRepository {
   async getCompanyById(id: ObjectId): Promise<Company | null> {
     return this.collection.findOne({ _id: id });
   }
+
   async countCompanies(): Promise<number> {
     return this.collection.countDocuments();
   }
+
   async countDistinctIndustries(): Promise<number> {
     const industries = await this.collection.distinct("industry");
     return industries.length;
@@ -37,14 +39,15 @@ export class CompanyRepository implements ICompanyRepository {
 
   async countDistinctLocations(): Promise<number> {
     const locations = await this.collection.distinct("location");
-    return locations.length; // retourne bien un number
+    return locations.length;
   }
+
   async addJobToCompany(companyId: ObjectId, jobId: ObjectId): Promise<void> {
     await this.collection.updateOne(
       { _id: companyId },
       {
-        $addToSet: { jobs: jobId }, // Use $addToSet to avoid duplicates
-        $inc: { "stats.jobApplications": 1 }, // Optionally increment job count
+        $addToSet: { jobs: jobId },
+        $inc: { "stats.jobApplications": 1 },
       },
     );
   }
@@ -57,7 +60,7 @@ export class CompanyRepository implements ICompanyRepository {
       { _id: companyId },
       {
         $pull: { jobs: jobId },
-        $inc: { "stats.jobApplications": -1 }, // Decrement job count
+        $inc: { "stats.jobApplications": -1 },
       },
     );
   }
@@ -68,5 +71,69 @@ export class CompanyRepository implements ICompanyRepository {
       { projection: { jobs: 1 } },
     );
     return company?.jobs || [];
+  }
+
+  async followCompany(userId: ObjectId, companyId: ObjectId): Promise<void> {
+    await this.collection.updateOne(
+      { _id: companyId },
+      {
+        $addToSet: { followersId: userId },
+        $inc: { "stats.followers": 1 },
+      },
+    );
+  }
+
+  async unfollowCompany(userId: ObjectId, companyId: ObjectId): Promise<void> {
+    await this.collection.updateOne(
+      { _id: companyId },
+      {
+        $pull: { followersId: userId },
+        $inc: { "stats.followers": -1 },
+      },
+    );
+  }
+
+  async isFollowing(userId: ObjectId, companyId: ObjectId): Promise<boolean> {
+    const company = await this.collection.findOne(
+      { _id: companyId, followersId: userId },
+      { projection: { _id: 1 } },
+    );
+    return !!company;
+  }
+
+  async getFollowers(companyId: ObjectId): Promise<ObjectId[]> {
+    const company = await this.collection.findOne(
+      { _id: companyId },
+      { projection: { followersId: 1 } },
+    );
+    return company?.followersId || [];
+  }
+
+  async getFollowCount(companyId: ObjectId): Promise<number> {
+    const company = await this.collection.findOne(
+      { _id: companyId },
+      { projection: { "stats.followers": 1 } },
+    );
+    return company?.stats?.followers || 0;
+  }
+
+  async findCompaniesByIds(ids: ObjectId[]): Promise<Company[]> {
+    if (!ids || ids.length === 0) return [];
+    return this.collection.find({ _id: { $in: ids } }).toArray();
+  }
+
+  async updateCompanyStats(
+    companyId: ObjectId,
+    stats: { averageRating: number; reviewCount: number },
+  ): Promise<void> {
+    await this.collection.updateOne(
+      { _id: companyId },
+      {
+        $set: {
+          averageRating: stats.averageRating,
+          reviewCount: stats.reviewCount,
+        },
+      },
+    );
   }
 }
