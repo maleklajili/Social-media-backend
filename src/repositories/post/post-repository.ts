@@ -35,7 +35,15 @@ export class PostRepository implements IPostRepository {
   }
 
   async getPostsByUserId(userId: ObjectId): Promise<Post[]> {
-    return this.collection.find({ userId }).sort({ createdAt: -1 }).toArray();
+    return this.collection
+      .find({
+        $or: [
+          { userId }, // mes posts
+          { sharedBy: userId }, // posts que j'ai partagés
+        ],
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
   }
 
   async getPostsByCommunity(communityId: ObjectId): Promise<Post[]> {
