@@ -25,7 +25,6 @@ import type { Message } from "../messages/message";
 import type { Review } from "../reviews/review";
 import type { JobApplication } from "../job-application";
 
-
 export class CollectionsManager {
   static userCollection: Collection<User>;
   static postCollection: Collection<Post>;
@@ -51,7 +50,6 @@ export class CollectionsManager {
   static messageCollection: Collection<Message>;
   static reviewCollection: Collection<Review>;
   static jobApplicationCollection: Collection<JobApplication>;
-
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -86,6 +84,5 @@ export class CollectionsManager {
     this.reviewCollection = db.collection<Review>("reviews");
     this.jobApplicationCollection =
       db.collection<JobApplication>("job-applications");
-
   }
 }

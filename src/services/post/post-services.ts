@@ -269,6 +269,19 @@ export class PostServices extends BaseService<Post> implements IPostService {
       } catch (err) {
         console.error("Failed to populate user for post:", err);
       }
+      // Populate community field
+      try {
+        await populateReferences(
+          [post],
+          this.communityRepository,
+          "community",
+          "community",
+          ["_id", "name", "banner", "privacy", "membersCount", "description"],
+          false,
+        );
+      } catch (err) {
+        console.error("Failed to populate community for posts:", err);
+      }
       await this.postRepository.incrementViews(postId);
       return ResponseHelper.success(post);
     } catch (err) {
@@ -338,7 +351,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
           this.communityRepository,
           "community",
           "community",
-          ["_id", "name", "image", "privacy", "membersCount", "description"],
+          ["_id", "name", "banner", "privacy", "membersCount", "description"],
           false,
         );
       } catch (err) {
