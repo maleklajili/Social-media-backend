@@ -38,8 +38,13 @@ export class PostRepository implements IPostRepository {
     return this.collection
       .find({
         $or: [
-          { userId }, // mes posts
-          { sharedBy: userId }, // posts que j'ai partagés
+          // Mes posts **NON partagés par d'autres**
+          {
+            userId,
+            $or: [{ sharedBy: { $exists: false } }, { sharedBy: { $size: 0 } }],
+          },
+          // Mes reposts (posts que j'ai partagés)
+          { sharedBy: userId },
         ],
       })
       .sort({ createdAt: -1 })
