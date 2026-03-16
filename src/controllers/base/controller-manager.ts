@@ -17,6 +17,7 @@ import { PersonalSkillController } from "../skills/personal-skill-controller";
 import { TechnicalSkillController } from "../skills/technical-skill-controller";
 import { TransactionController } from "../transaction-controller";
 import UserController from "../user-controller";
+import { FriendGroupController } from "../friend-group-controller";
 
 export class ControllerManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,6 +41,7 @@ export class ControllerManager {
       CommunityController,
       MessageController,
       ReviewController,
+      FriendGroupController,
     ];
   }
 }

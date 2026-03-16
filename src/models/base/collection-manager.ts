@@ -24,6 +24,7 @@ import type { Comment } from "../comment";
 import type { Message } from "../messages/message";
 import type { Review } from "../reviews/review";
 import type { JobApplication } from "../job-application";
+import type { FriendGroup } from "../friend-group";
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -50,6 +51,7 @@ export class CollectionsManager {
   static messageCollection: Collection<Message>;
   static reviewCollection: Collection<Review>;
   static jobApplicationCollection: Collection<JobApplication>;
+  static friendGroupCollection: Collection<FriendGroup>;
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -84,5 +86,6 @@ export class CollectionsManager {
     this.reviewCollection = db.collection<Review>("reviews");
     this.jobApplicationCollection =
       db.collection<JobApplication>("job-applications");
+    this.friendGroupCollection = db.collection<FriendGroup>("friend-groups");
   }
 }
