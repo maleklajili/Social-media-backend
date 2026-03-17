@@ -3,6 +3,7 @@ import { Server as SocketServer } from "socket.io";
 import http from "http";
 import { verifyToken } from "../utils/j-w-t";
 import jwt from "jsonwebtoken";
+import { NotificationController } from "../controllers/notification-controller";
 
 let io: SocketServer;
 
@@ -133,6 +134,10 @@ export const initSocketServer = () => {
         viewedAt: new Date(),
       });
     });
+
+    // Initialize notification handlers
+    const notificationController = new NotificationController();
+    notificationController.registerSocketHandlers(socket);
   });
 
   httpServer.listen(SOCKET_PORT, () => {

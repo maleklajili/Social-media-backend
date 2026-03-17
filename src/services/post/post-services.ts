@@ -17,9 +17,11 @@ import populateReferences from "../../utils/populate";
 import type { ICommentRepository } from "../../interfaces/comment/i-comment-repository";
 import type { ICommunityRepository } from "../../interfaces/community/i-community-repository";
 import { CommunityRepository } from "../../repositories/community-repository";
+import { NotificationEventHandler } from "../notification-event-handler";
 export class PostServices extends BaseService<Post> implements IPostService {
   private commentRepository: ICommentRepository;
   private communityRepository: ICommunityRepository;
+  private notificationHandler: NotificationEventHandler;
   constructor(
     private postRepository: IPostRepository,
     private userRepository: IUserRepository,
@@ -30,6 +32,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
     super(CollectionsManager.postCollection);
     this.commentRepository = commentRepository || new CommentRepository();
     this.communityRepository = communityRepository || new CommunityRepository();
+    this.notificationHandler = new NotificationEventHandler();
   }
   async getAllPosts(page: number = 1, limit: number = 10): Promise<Post[]> {
     const skip = (page - 1) * limit;
@@ -434,7 +437,6 @@ export class PostServices extends BaseService<Post> implements IPostService {
       // Handle vote removal (when vote is null)
       if (vote === null) {
         if (existingVote) {
-          // Just remove the vote from userVotes, don't adjust votes count
           await this.collection.updateOne(
             { _id: postId },
             { $pull: { userVotes: { userId: userId } } },
@@ -455,14 +457,11 @@ export class PostServices extends BaseService<Post> implements IPostService {
 
       // Handle voting (up or down)
       if (existingVote) {
-        // User is changing their vote (up → down or down → up)
-        // Just update the vote type, don't change the votes count
         await this.collection.updateOne(
           { _id: postId, "userVotes.userId": userId },
           { $set: { "userVotes.$.vote": vote } },
         );
       } else {
-        // New vote - increment the votes counter
         await this.collection.updateOne(
           { _id: postId },
           {
@@ -473,9 +472,28 @@ export class PostServices extends BaseService<Post> implements IPostService {
                 createdAt: new Date(),
               },
             },
-            $inc: { votes: 1 }, // Only increment for new votes
+            $inc: { votes: 1 },
           },
         );
+        const targetUserId =
+          post.userId instanceof ObjectId ? post.userId : post.userId._id;
+
+        if (!targetUserId) {
+          throw new Error("Invalid post.userId: missing _id");
+        }
+        // 🔔 NOTIFIER LE PROPRIÉTAIRE DU POST DU LIKE (seulement pour les nouveaux votes up)
+        if (vote === "up" && !userId.equals(targetUserId)) {
+          try {
+            await this.notificationHandler.handleNewLike(
+              userId, // Celui qui like
+              postId, // Le post liké
+              targetUserId, // Le propriétaire du post
+              "post", // Type de contenu
+            );
+          } catch (err) {
+            console.error("Error sending like notification:", err);
+          }
+        }
       }
 
       const updatedPost = await this.postRepository.getPostById(postId);
@@ -562,7 +580,31 @@ export class PostServices extends BaseService<Post> implements IPostService {
       } catch (err) {
         console.error("Error adding coins for comment:", err);
       }
+      const targetUserId =
+        post.userId instanceof ObjectId ? post.userId : post.userId._id;
 
+      if (!targetUserId) {
+        throw new Error("Invalid post.userId: missing _id");
+      }
+      // 🔔 NOTIFIER LE PROPRIÉTAIRE DU POST DU COMMENTAIRE
+      if (!userId.equals(targetUserId)) {
+        try {
+          const commentPreview =
+            content.length > 100 ? content.substring(0, 100) + "..." : content;
+
+          await this.notificationHandler.handleNewComment(
+            userId, // Celui qui commente
+            postId, // Le post commenté
+            targetUserId, // Le propriétaire du post
+            savedComment._id!, // L'ID du commentaire
+            commentPreview, // Aperçu du commentaire
+          );
+        } catch (err) {
+          console.error("Error sending comment notification:", err);
+        }
+      }
+
+      // 🔔 NOTIFIER SI C'EST UNE RÉPONSE À UN COMMENTAIRE
       return ResponseHelper.success({
         message: "Comment added",
         comment: savedComment,

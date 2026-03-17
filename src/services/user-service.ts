@@ -17,13 +17,17 @@ import {
 } from "../utils/upload-helper";
 import { BaseService } from "./base/base-service";
 import type { Company } from "../models/company";
+import { NotificationEventHandler } from "./notification-event-handler";
 
 export class UserService extends BaseService<User> implements IUserService {
+  private notificationHandler: NotificationEventHandler;
+
   constructor(
     private userRepository: IUserRepository,
     private companyRepository: ICompanyRepository,
   ) {
     super(CollectionsManager.userCollection);
+    this.notificationHandler = new NotificationEventHandler();
   }
   async findUserById(userId: ObjectId | undefined): Promise<Response> {
     if (!userId || !ObjectId.isValid(userId)) {
@@ -151,6 +155,7 @@ export class UserService extends BaseService<User> implements IUserService {
     return ResponseHelper.success(updatedUser);
   }
 
+  // Modifier la méthode followUser pour ajouter la notification
   async followUser(
     currentUserId: ObjectId,
     targetUserId: string,
@@ -184,6 +189,12 @@ export class UserService extends BaseService<User> implements IUserService {
 
       // Perform follow
       await this.userRepository.followUser(currentUserId, targetId);
+
+      // 🔔 ENVOYER LA NOTIFICATION DE FOLLOW
+      await this.notificationHandler.handleNewFollow(
+        currentUserId, // Le follower
+        targetId, // L'utilisateur suivi
+      );
 
       // Get updated counts
       const counts = await this.userRepository.getFollowCounts(targetId);
