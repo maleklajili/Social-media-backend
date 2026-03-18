@@ -13,11 +13,13 @@ import type { IJobRepository } from "../interfaces/job/i-job-repository";
 import type { TransactionService } from "./transaction-services";
 import { COINS_CONFIG } from "../utils/coins-config";
 import { FileService } from "../utils/file-service";
+import { NotificationEventHandler } from "./notification-event-handler";
 
 export class CompanyServices
   extends BaseService<Company>
   implements ICompanyService
 {
+  private notificationHandler: NotificationEventHandler;
   constructor(
     private companyRepository: ICompanyRepository,
     private userRepository: IUserRepository,
@@ -25,6 +27,7 @@ export class CompanyServices
     private transactionService: TransactionService,
   ) {
     super(CollectionsManager.companyCollection);
+    this.notificationHandler = new NotificationEventHandler();
   }
 
   async addCompany(
@@ -467,6 +470,22 @@ export class CompanyServices
       // Follow côté utilisateur
       await this.userRepository.followCompany(currentUserId, targetId);
 
+      // 🔔 NOTIFICATION AU PROPRIÉTAIRE DE L'ENTREPRISE
+      try {
+        const follower = await this.userRepository.findById(currentUserId, 0);
+        const followerName =
+          follower?.userName || follower?.firstName || "Quelqu'un";
+
+        await this.notificationHandler.handleCompanyFollow(
+          currentUserId, // Le follower
+          company.userId, // Le propriétaire de l'entreprise
+          targetId, // L'ID de l'entreprise
+          company.name, // Nom de l'entreprise
+          followerName, // Nom du follower
+        );
+      } catch (err) {
+        console.error("Error sending company follow notification:", err);
+      }
       const followerCount =
         await this.companyRepository.getFollowCount(targetId);
 

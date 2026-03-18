@@ -9,13 +9,16 @@ import { handleFileUpload, type UploadResult } from "../utils/upload-helper";
 import { UPLOAD_PATHS } from "../config/config";
 import { FileService } from "../utils/file-service";
 import type { CommunityMember } from "../models/community/community-member";
+import { NotificationEventHandler } from "./notification-event-handler";
 
 export class CommunityServices
   extends BaseService<Community>
   implements ICommunityService
 {
+  private notificationHandler: NotificationEventHandler;
   constructor(private communityRepository: ICommunityRepository) {
     super(CollectionsManager.communityCollection);
+    this.notificationHandler = new NotificationEventHandler();
   }
 
   async createCommunity(
@@ -264,6 +267,35 @@ export class CommunityServices
       await this.communityRepository.addMember(member);
       await this.communityRepository.incrementMembers(communityId, 1);
 
+      // 🔔 NOTIFICATION AUX ADMINS DE LA COMMUNAUTÉ
+      try {
+        // Récupérer les admins de la communauté
+        const admins =
+          await this.communityRepository.getCommunityAdmins(communityId);
+
+        // Récupérer les infos du nouveau membre
+        const newMember = await CollectionsManager.userCollection.findOne({
+          _id: userId,
+        });
+        const memberName =
+          newMember?.userName || newMember?.firstName || "Quelqu'un";
+
+        // Notifier chaque admin
+        for (const admin of admins) {
+          // Ne pas notifier si l'admin est le nouveau membre
+          if (admin.userId.equals(userId)) continue;
+
+          await this.notificationHandler.handleCommunityJoin(
+            userId, // Le nouveau membre
+            admin.userId, // L'admin à notifier
+            communityId, // La communauté
+            community.name, // Nom de la communauté
+            memberName, // Nom du nouveau membre
+          );
+        }
+      } catch (err) {
+        console.error("Error sending join notifications to admins:", err);
+      }
       return ResponseHelper.success({
         message: "Joined community successfully",
         isMember: true,

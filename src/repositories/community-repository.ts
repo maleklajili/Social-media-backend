@@ -142,4 +142,20 @@ export class CommunityRepository implements ICommunityRepository {
 
     return await this.collection.find({ _id: { $in: ids } }).toArray();
   }
+  async getCommunityAdmins(communityId: ObjectId): Promise<CommunityMember[]> {
+    try {
+      const admins = await this.memberCollection
+        .find({
+          communityId: communityId,
+          role: "admin",
+          isBanned: { $ne: true }, // Exclure les membres bannis
+        })
+        .toArray();
+
+      return admins as CommunityMember[];
+    } catch (error) {
+      console.error("Error getting community admins:", error);
+      return [];
+    }
+  }
 }

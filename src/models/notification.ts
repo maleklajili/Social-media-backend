@@ -9,6 +9,8 @@ export type NotificationType =
   | "comment"
   | "mention"
   | "community_post"
+  | "community_join"
+  | "company_follow"
   | "job_application";
 
 export type NotificationContentType =

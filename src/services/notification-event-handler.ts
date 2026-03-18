@@ -364,4 +364,87 @@ export class NotificationEventHandler {
       console.error("Error handling community post notification:", error);
     }
   }
+
+  /**
+   * Notifier les admins quand un nouveau membre rejoint
+   */
+  async handleCommunityJoin(
+    newMemberId: ObjectId,
+    adminId: ObjectId,
+    communityId: ObjectId,
+    communityName: string,
+    memberName: string,
+  ): Promise<void> {
+    try {
+      const options: CreateNotificationOptions = {
+        userId: adminId,
+        type: "community_join",
+        fromUser: newMemberId,
+        title: `Nouveau membre dans r/${communityName}`,
+        description: `${memberName} a rejoint la communauté`,
+        relatedContent: communityId,
+        contentType: "community",
+        action: "Voir les membres",
+        actionUrl: `/community/${communityId}`,
+        metadata: {
+          communityName,
+          memberName,
+        },
+      };
+
+      const notification =
+        await this.notificationService.createNotification(options);
+      await this.notificationService.sendNotificationViaSocket(
+        adminId,
+        notification,
+      );
+
+      console.log(`📬 Community join notification sent to admin ${adminId}`);
+    } catch (error) {
+      console.error("Error handling community join notification:", error);
+    }
+  }
+  /**
+   * Notifier le propriétaire d'une entreprise quand quelqu'un la suit
+   */
+  async handleCompanyFollow(
+    followerId: ObjectId,
+    companyOwnerId: ObjectId,
+    companyId: ObjectId,
+    companyName: string,
+    followerName: string,
+  ): Promise<void> {
+    try {
+      // Ne pas notifier si c'est le propriétaire qui suit sa propre entreprise
+      if (followerId.equals(companyOwnerId)) return;
+
+      const options: CreateNotificationOptions = {
+        userId: companyOwnerId,
+        type: "company_follow",
+        fromUser: followerId,
+        title: `Nouveau follower pour votre entreprise`,
+        description: `${followerName} suit maintenant ${companyName}`,
+        relatedContent: companyId,
+        contentType: "company",
+        action: "Voir l'entreprise",
+        actionUrl: `/companies/${companyId}`,
+        metadata: {
+          companyName,
+          followerName,
+          companyId: companyId.toString(),
+        },
+      };
+
+      const notification =
+        await this.notificationService.createNotification(options);
+      await this.notificationService.sendNotificationViaSocket(
+        companyOwnerId,
+        notification,
+      );
+
+      console.log(`📬 Company follow notification sent to ${companyOwnerId}`);
+    } catch (error) {
+      console.error("Error handling company follow notification:", error);
+    }
+  }
 }

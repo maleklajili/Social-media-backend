@@ -29,4 +29,5 @@ export interface ICommunityRepository {
   getCommunityMembersCount(communityId: ObjectId): Promise<number>;
   getUserCommunities(userId: ObjectId): Promise<Community[]>;
   findByIds(ids: ObjectId[]): Promise<Community[]>;
+  getCommunityAdmins(communityId: ObjectId): Promise<CommunityMember[]>;
 }
