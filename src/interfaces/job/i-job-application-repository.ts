@@ -7,7 +7,10 @@ export interface IJobApplicationRepository {
   deleteApplication(id: ObjectId): Promise<boolean>;
   getApplicationById(id: ObjectId): Promise<JobApplication | null>;
   getApplicationsByJobId(jobId: ObjectId): Promise<JobApplication[]>;
-  getApplicationsByUserId(userId: ObjectId): Promise<JobApplication[]>;
+  getApplicationsByUserId(
+    userId: ObjectId,
+    pagination?: { skip: number; limit: number },
+  ): Promise<{ data: JobApplication[]; total: number }>;
   getApplicationsByCompanyId(companyId: ObjectId): Promise<JobApplication[]>;
   getApplicationsByStatus(
     status: string,

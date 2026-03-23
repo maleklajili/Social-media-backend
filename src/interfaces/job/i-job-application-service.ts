@@ -15,7 +15,10 @@ export interface IJobApplicationService {
   ): Promise<Response>;
   getApplicationById(applicationId: ObjectId): Promise<Response>;
   getApplicationsForJob(jobId: ObjectId): Promise<Response>;
-  getApplicationsForUser(userId: ObjectId): Promise<Response>;
+  getApplicationsForUser(
+    userId: ObjectId,
+    pagination: { skip: number; limit: number },
+  ): Promise<{ data: JobApplication[]; total: number }>;
   getApplicationsForCompany(companyId: ObjectId): Promise<Response>;
   withdrawApplication(
     applicationId: ObjectId,

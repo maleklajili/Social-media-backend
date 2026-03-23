@@ -21,15 +21,94 @@ export class JobApplicationRepository implements IJobApplicationRepository {
   }
 
   async getApplicationById(id: ObjectId): Promise<JobApplication | null> {
-    return this.collection.findOne({ _id: id });
+    return this.collection.findOne({
+      _id: id,
+    }) as Promise<JobApplication | null>;
   }
 
   async getApplicationsByJobId(jobId: ObjectId): Promise<JobApplication[]> {
-    return this.collection.find({ jobId }).sort({ appliedAt: -1 }).toArray();
+    return this.collection
+      .find({ jobId })
+      .sort({ appliedAt: -1 })
+      .toArray() as Promise<JobApplication[]>;
   }
 
-  async getApplicationsByUserId(userId: ObjectId): Promise<JobApplication[]> {
-    return this.collection.find({ userId }).sort({ appliedAt: -1 }).toArray();
+  async getApplicationsByUserId(
+    userId: ObjectId,
+    pagination?: { skip: number; limit: number },
+  ): Promise<{ data: JobApplication[]; total: number }> {
+    try {
+      const filter = { userId };
+
+      const total = await this.collection.countDocuments(filter);
+
+      // Utiliser aggregate avec $lookup pour joindre les données des jobs et des entreprises
+      const aggregation = this.collection.aggregate([
+        { $match: filter },
+        { $sort: { createdAt: -1 } },
+        // Joindre les détails du job
+        {
+          $lookup: {
+            from: "jobs",
+            localField: "jobId",
+            foreignField: "_id",
+            as: "jobDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$jobDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        // Joindre les détails de l'entreprise
+        {
+          $lookup: {
+            from: "companies",
+            localField: "companyId",
+            foreignField: "_id",
+            as: "companyDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$companyDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        // Ajouter les champs enrichis
+        {
+          $addFields: {
+            jobTitle: { $ifNull: ["$jobDetails.title", "Offre d'emploi"] },
+            location: { $ifNull: ["$jobDetails.location", "Non spécifié"] },
+            contractType: {
+              $ifNull: ["$jobDetails.contractType", "Non spécifié"],
+            },
+            companyName: { $ifNull: ["$companyDetails.name", "Entreprise"] },
+            companyLogo: { $ifNull: ["$companyDetails.logo", ""] },
+            companyUserId: "$companyDetails.userId",
+          },
+        },
+        // Supprimer les champs temporaires
+        {
+          $project: {
+            jobDetails: 0,
+            companyDetails: 0,
+          },
+        },
+      ]);
+
+      if (pagination) {
+        aggregation.skip(pagination.skip).limit(pagination.limit);
+      }
+
+      const data = (await aggregation.toArray()) as JobApplication[];
+
+      return { data, total };
+    } catch (err) {
+      console.error("❌ Error getting applications by user ID:", err);
+      throw err;
+    }
   }
 
   async getApplicationsByCompanyId(
@@ -38,7 +117,7 @@ export class JobApplicationRepository implements IJobApplicationRepository {
     return this.collection
       .find({ companyId })
       .sort({ appliedAt: -1 })
-      .toArray();
+      .toArray() as Promise<JobApplication[]>;
   }
 
   async getApplicationsByStatus(
@@ -52,7 +131,10 @@ export class JobApplicationRepository implements IJobApplicationRepository {
     if (companyId) {
       filter.companyId = companyId;
     }
-    return this.collection.find(filter).sort({ appliedAt: -1 }).toArray();
+    return this.collection
+      .find(filter)
+      .sort({ appliedAt: -1 })
+      .toArray() as Promise<JobApplication[]>;
   }
 
   async hasAlreadyApplied(jobId: ObjectId, userId: ObjectId): Promise<boolean> {
@@ -83,6 +165,6 @@ export class JobApplicationRepository implements IJobApplicationRepository {
     return this.collection
       .find({ jobId, status })
       .sort({ appliedAt: -1 })
-      .toArray();
+      .toArray() as Promise<JobApplication[]>;
   }
 }
