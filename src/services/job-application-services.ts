@@ -229,15 +229,18 @@ export class JobApplicationService
   /**
    * Get applications submitted by a user
    */
-  async getApplicationsForUser(userId: ObjectId): Promise<Response> {
+  async getApplicationsForUser(
+    userId: ObjectId,
+    pagination: { skip: number; limit: number },
+  ): Promise<{ data: JobApplication[]; total: number }> {
     try {
-      const applications =
-        await this.applicationRepository.getApplicationsByUserId(userId);
-
-      return ResponseHelper.success(applications);
+      return await this.applicationRepository.getApplicationsByUserId(
+        userId,
+        pagination,
+      );
     } catch (err) {
-      console.error("❌ Error getting user applications:", err);
-      return ResponseHelper.serverError(String(err));
+      console.error("❌ Error getting applications for user:", err);
+      throw err;
     }
   }
 

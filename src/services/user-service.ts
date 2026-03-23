@@ -8,6 +8,7 @@ import type { ICompanyRepository } from "../interfaces/company/i-company-reposit
 
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { User } from "../models/user";
+import type { ProfessionalUser } from "../models/user/professional-user";
 import { ResponseHelper } from "../utils/response-helper";
 
 import {
@@ -25,6 +26,7 @@ export class UserService extends BaseService<User> implements IUserService {
   ) {
     super(CollectionsManager.userCollection);
   }
+
   async findUserById(userId: ObjectId | undefined): Promise<Response> {
     if (!userId || !ObjectId.isValid(userId)) {
       return ResponseHelper.error("Invalid user ID format", 400);
@@ -76,7 +78,8 @@ export class UserService extends BaseService<User> implements IUserService {
     formData: FormData,
   ): Promise<Response> {
     const userId = req.user?._id;
-    const storePath = `${UPLOAD_PATHS.images}-${userId}`;
+    const imageStorePath = `${UPLOAD_PATHS.images}-${userId}`;
+    const docStorePath = `${UPLOAD_PATHS.documents}-${userId}`; // path for CV
 
     if (user.userName) {
       const existingUser = await this.userRepository.findByUsername(
@@ -102,7 +105,7 @@ export class UserService extends BaseService<User> implements IUserService {
     if (formData.has("image")) {
       const result = (await handleFileUpload(formData, {
         fieldName: "image",
-        storePath,
+        storePath: imageStorePath,
         fileName: new Date().getTime().toString(),
         multiple: false,
         writeToDisk: true,
@@ -111,14 +114,13 @@ export class UserService extends BaseService<User> implements IUserService {
 
       if (result?.fileName) {
         if (currentUser.image) {
-          deleteFiles(currentUser.image, storePath, currentUser._id);
+          deleteFiles(currentUser.image, imageStorePath, currentUser._id);
         }
         user.image = result.fileName;
       } else {
         if (currentUser.image) {
-          deleteFiles(currentUser.image, storePath, currentUser._id);
+          deleteFiles(currentUser.image, imageStorePath, currentUser._id);
         }
-
         user.image = "";
       }
     }
@@ -127,7 +129,7 @@ export class UserService extends BaseService<User> implements IUserService {
     if (formData.has("cover")) {
       const result = (await handleFileUpload(formData, {
         fieldName: "cover",
-        storePath,
+        storePath: imageStorePath,
         fileName: new Date().getTime().toString() + "_cover",
         multiple: false,
         writeToDisk: true,
@@ -136,17 +138,67 @@ export class UserService extends BaseService<User> implements IUserService {
 
       if (result?.fileName) {
         if (currentUser.cover) {
-          deleteFiles(currentUser.cover, storePath, currentUser._id);
+          deleteFiles(currentUser.cover, imageStorePath, currentUser._id);
         }
         user.cover = result.fileName;
       } else {
         if (currentUser.cover) {
-          deleteFiles(currentUser.cover, storePath, currentUser._id);
+          deleteFiles(currentUser.cover, imageStorePath, currentUser._id);
         }
         user.cover = "";
       }
     }
 
+    if (formData.has("cv")) {
+      const cvFile = formData.get("cv") as File;
+      if (cvFile && cvFile instanceof File) {
+        const allowedTypes = [
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ];
+        if (!allowedTypes.includes(cvFile.type)) {
+          return ResponseHelper.error(
+            "Type de fichier non autorisé. Seuls PDF, DOC et DOCX sont acceptés.",
+            400,
+          );
+        }
+        // Limite de taille : 5 Mo
+        if (cvFile.size > 5 * 1024 * 1024) {
+          return ResponseHelper.error(
+            "Le fichier ne doit pas dépasser 5 Mo.",
+            400,
+          );
+        }
+      }
+
+      const result = (await handleFileUpload(formData, {
+        fieldName: "cv",
+        storePath: docStorePath,
+        fileName: `cv_${new Date().getTime()}`,
+        multiple: false,
+        writeToDisk: true,
+        userId: userId,
+      })) as UploadResult;
+
+      // On caste currentUser et user en ProfessionalUser pour accéder à cv
+      const professionalCurrent = currentUser as ProfessionalUser;
+      const professionalUser = user as ProfessionalUser;
+
+      if (result?.fileName) {
+        if (professionalCurrent.cv) {
+          deleteFiles(professionalCurrent.cv, docStorePath, currentUser._id);
+        }
+        professionalUser.cv = result.fileName;
+      } else {
+        if (professionalCurrent.cv) {
+          deleteFiles(professionalCurrent.cv, docStorePath, currentUser._id);
+        }
+        professionalUser.cv = "";
+      }
+    }
+
+    // Mise à jour du profil en base
     const updatedUser = await this.userRepository.updateProfile(userId, user);
     return ResponseHelper.success(updatedUser);
   }
@@ -359,6 +411,7 @@ export class UserService extends BaseService<User> implements IUserService {
       return ResponseHelper.serverError(String(err));
     }
   }
+
   async getFriends(currentUserId: ObjectId): Promise<Response> {
     try {
       // Get mutual friends (users who follow each other)
@@ -463,6 +516,7 @@ export class UserService extends BaseService<User> implements IUserService {
       throw err;
     }
   }
+
   async getMutualFriendsList(
     currentUserId: ObjectId,
     targetUserId: ObjectId,

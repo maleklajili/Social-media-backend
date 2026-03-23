@@ -2,10 +2,13 @@ import { authMiddleware } from "../middleware/aut-middleware";
 import { paginationMiddleware } from "../middleware/pagination-middleware";
 import { CollectionsManager } from "../models/base/collection-manager";
 import { Get, Put, Post, Delete } from "../routes/router-manager";
-
+import path from "path";
+import { promises as fs } from "fs";
+import { UPLOAD_PATHS } from "../config/config";
 import type { ServerRequest } from "../config/interfaces/i-request";
 import type { User } from "../models/user";
 import { ObjectId } from "mongodb";
+import type { ProfessionalUser } from "../models/user/professional-user";
 
 import type { RequestWithPagination } from "../config/interfaces/i-pagination";
 import type { ChangePasswordPayload } from "../interfaces/base/i-crud-controller";
@@ -191,9 +194,9 @@ class UserController extends BaseController<User, UserService> {
         return ResponseHelper.error("User not authenticated", 401);
       }
 
-      const pagination = req.pagination; // { skip, take }
+      const pagination = req.pagination;
       const url = new URL(req.url);
-      const search = url.searchParams.get("search") || ""; // si besoin plus tard
+      const search = url.searchParams.get("search") || "";
 
       const result = await this.service.getFriendSuggestions(
         currentUserId,
@@ -254,6 +257,74 @@ class UserController extends BaseController<User, UserService> {
       return this.service.searchFriends(currentUserId, query);
     } catch (err) {
       console.error("❌ Error in searchFriends:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/cv/:userId?", [authMiddleware])
+  async getCV(req: ServerRequest): Promise<Response> {
+    try {
+      // Si un userId est fourni dans l'URL, on l'utilise, sinon on prend l'utilisateur connecté
+      const targetUserId = req.params?.userId || req.user?._id;
+      if (!targetUserId) {
+        return ResponseHelper.error("Identifiant utilisateur requis", 400);
+      }
+
+      // Convertir en ObjectId
+      let targetId: ObjectId;
+      try {
+        targetId = new ObjectId(targetUserId);
+      } catch {
+        return ResponseHelper.error("Format d'ID invalide", 400);
+      }
+
+      // Récupérer l'utilisateur cible
+      const user = await this.service["userRepository"].findById(targetId, 0);
+      if (!user) {
+        return ResponseHelper.error("Utilisateur non trouvé", 404);
+      }
+
+      // Vérifier que l'utilisateur a un CV (en le castant en ProfessionalUser)
+      const professionalUser = user as ProfessionalUser;
+      if (!professionalUser.cv) {
+        return ResponseHelper.error("CV non trouvé pour cet utilisateur", 404);
+      }
+
+      // Construire le chemin du fichier (identique à l'upload)
+      const docStorePath = `${UPLOAD_PATHS.documents}-${targetId.toString()}`;
+      const filePath = path.join(
+        process.cwd(),
+        docStorePath,
+        professionalUser.cv,
+      );
+
+      // Vérifier que le fichier existe
+      try {
+        await fs.access(filePath);
+      } catch {
+        return ResponseHelper.error("Fichier introuvable sur le disque", 404);
+      }
+
+      const fileBuffer = await fs.readFile(filePath);
+      const fileName = professionalUser.cv;
+
+      const ext = path.extname(fileName).toLowerCase();
+      const mimeTypes: Record<string, string> = {
+        ".pdf": "application/pdf",
+        ".doc": "application/msword",
+        ".docx":
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      };
+      const contentType = mimeTypes[ext] || "application/octet-stream";
+
+      return new Response(fileBuffer, {
+        headers: {
+          "Content-Type": contentType,
+          "Content-Disposition": `attachment; filename="${fileName}"`,
+        },
+      });
+    } catch (err) {
+      console.error("Erreur lors de la récupération du CV :", err);
       return ResponseHelper.serverError(String(err));
     }
   }

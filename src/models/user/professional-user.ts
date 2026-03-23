@@ -5,6 +5,5 @@ export interface ProfessionalUser extends BaseUser {
   ProfessionalStatus: string; // enum
   categorie: string; // enum
   availability: string; //enum
-  Keywords: string;
   cv: string;
 }

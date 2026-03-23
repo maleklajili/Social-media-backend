@@ -2,6 +2,7 @@ import { Collection, ObjectId } from "mongodb";
 import type { ServerRequest } from "../config/interfaces/i-request";
 import { authMiddleware } from "../middleware/aut-middleware";
 import { cvUploadMiddleware } from "../middleware/cv-upload-middleware";
+
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { JobApplication } from "../models/job-application";
 import { Get, Post, Put } from "../routes/router-manager";
@@ -14,6 +15,7 @@ import { userRepository } from "../repositories/user-repository";
 import { CompanyRepository } from "../repositories/company-repository";
 import { TransactionService } from "../services/transaction-services";
 import { TransactionRepository } from "../repositories/transaction-repository";
+import type { RequestWithPagination } from "../config/interfaces/i-pagination";
 
 export class JobApplicationController extends BaseController<
   JobApplication,
@@ -84,15 +86,27 @@ export class JobApplicationController extends BaseController<
    * Get my applications (user submitted)
    * GET /job-applications/my-applications
    */
+
   @Get("/my-applications", [authMiddleware])
-  async getMyApplications(req: ServerRequest): Promise<Response> {
+  async getMyApplications(req: RequestWithPagination): Promise<Response> {
     try {
       if (!req.user?._id) {
         return ResponseHelper.error("User not authenticated");
       }
 
-      return this.service.getApplicationsForUser(req.user._id);
+      const page = parseInt(req.query?.page as string) || 1;
+      const limit = parseInt(req.query?.limit as string) || 10;
+
+      const skip = (page - 1) * limit;
+
+      const result = await this.service.getApplicationsForUser(req.user._id, {
+        skip,
+        limit,
+      });
+
+      return ResponseHelper.paginated(result.data, page, limit, result.total);
     } catch (err) {
+      console.error("❌ Error getting my applications:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
