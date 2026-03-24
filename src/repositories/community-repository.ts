@@ -9,6 +9,10 @@ export class CommunityRepository implements ICommunityRepository {
   private memberCollection = CollectionsManager.communityMemberCollection;
 
   async createCommunity(community: Community): Promise<void> {
+    // Ensure memberIds is initialized with the creator
+    if (!community.memberIds) {
+      community.memberIds = [community.createdBy];
+    }
     await this.collection.insertOne(community);
   }
 
@@ -72,24 +76,42 @@ export class CommunityRepository implements ICommunityRepository {
 
   async incrementMembers(
     communityId: ObjectId,
+    userId?: ObjectId,
     amount: number = 1,
   ): Promise<void> {
-    await this.collection.updateOne(
-      { _id: communityId },
-      { $inc: { members: amount } },
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const update: any = { $inc: { members: amount } };
+
+    // If userId is provided, add it to memberIds array
+    if (userId && amount === 1) {
+      update.$addToSet = { memberIds: userId };
+    }
+
+    await this.collection.updateOne({ _id: communityId }, update);
   }
 
   async decrementMembers(
     communityId: ObjectId,
+    userId?: ObjectId,
     amount: number = 1,
   ): Promise<void> {
-    await this.collection.updateOne(
-      { _id: communityId },
-      { $inc: { members: -amount } },
-    );
-  }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const update: any = { $inc: { members: -amount } };
 
+    // If userId is provided, remove it from memberIds array
+    if (userId && amount === 1) {
+      update.$pull = { memberIds: userId };
+    }
+
+    await this.collection.updateOne({ _id: communityId }, update);
+  }
+  async isMember(communityId: ObjectId, userId: ObjectId): Promise<boolean> {
+    const community = await this.collection.findOne(
+      { _id: communityId, memberIds: userId },
+      { projection: { _id: 1 } },
+    );
+    return !!community;
+  }
   // Méthodes pour les membres
   async addMember(member: CommunityMember): Promise<void> {
     await this.memberCollection.insertOne(member);

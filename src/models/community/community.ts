@@ -8,6 +8,7 @@ export interface Community extends BaseModel {
   icon: string; // Emoji
   banner?: string; // URL de la bannière
   members: number; // Nombre de membres
+  memberIds: ObjectId[];
   online: number; // Nombre en ligne
   createdBy: ObjectId; // ID du créateur
   isPublic: boolean;

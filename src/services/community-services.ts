@@ -49,6 +49,7 @@ export class CommunityServices
         description: communityData.description || "",
         icon: communityData.icon || "📱",
         members: 1, // Le créateur est le premier membre
+        memberIds: [userId],
         online: 0,
         createdBy: userId,
         isPublic: String(communityData.isPublic).toLowerCase() === "true",
@@ -242,11 +243,13 @@ export class CommunityServices
         return ResponseHelper.error("Community not found");
       }
 
-      const existingMember = await this.communityRepository.getMember(
+      // Check if user is already a member using the memberIds array
+      const isMember = await this.communityRepository.isMember(
         communityId,
         userId,
       );
-      if (existingMember) {
+
+      if (isMember) {
         return ResponseHelper.success({
           message: "You are already a member of this community",
           isMember: true,
@@ -265,37 +268,34 @@ export class CommunityServices
       };
 
       await this.communityRepository.addMember(member);
-      await this.communityRepository.incrementMembers(communityId, 1);
+      // Pass userId to incrementMembers to add to memberIds array
+      await this.communityRepository.incrementMembers(communityId, userId, 1);
 
       // 🔔 NOTIFICATION AUX ADMINS DE LA COMMUNAUTÉ
       try {
-        // Récupérer les admins de la communauté
         const admins =
           await this.communityRepository.getCommunityAdmins(communityId);
-
-        // Récupérer les infos du nouveau membre
         const newMember = await CollectionsManager.userCollection.findOne({
           _id: userId,
         });
         const memberName =
           newMember?.userName || newMember?.firstName || "Quelqu'un";
 
-        // Notifier chaque admin
         for (const admin of admins) {
-          // Ne pas notifier si l'admin est le nouveau membre
           if (admin.userId.equals(userId)) continue;
 
           await this.notificationHandler.handleCommunityJoin(
-            userId, // Le nouveau membre
-            admin.userId, // L'admin à notifier
-            communityId, // La communauté
-            community.name, // Nom de la communauté
-            memberName, // Nom du nouveau membre
+            userId,
+            admin.userId,
+            communityId,
+            community.name,
+            memberName,
           );
         }
       } catch (err) {
         console.error("Error sending join notifications to admins:", err);
       }
+
       return ResponseHelper.success({
         message: "Joined community successfully",
         isMember: true,
@@ -340,7 +340,8 @@ export class CommunityServices
         return ResponseHelper.error("Failed to leave community");
       }
 
-      await this.communityRepository.decrementMembers(communityId, 1);
+      // Pass userId to decrementMembers to remove from memberIds array
+      await this.communityRepository.decrementMembers(communityId, userId, 1);
 
       return ResponseHelper.success({
         message: "Left community successfully",

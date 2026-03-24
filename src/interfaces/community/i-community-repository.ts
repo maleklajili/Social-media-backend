@@ -15,8 +15,17 @@ export interface ICommunityRepository {
   getPopularCommunities(limit: number): Promise<Community[]>;
   searchCommunities(query: string, limit: number): Promise<Community[]>;
   getCommunitiesByCategory(category: string): Promise<Community[]>;
-  incrementMembers(communityId: ObjectId, amount: number): Promise<void>;
-  decrementMembers(communityId: ObjectId, amount: number): Promise<void>;
+  incrementMembers(
+    communityId: ObjectId,
+    userId?: ObjectId,
+    amount?: number,
+  ): Promise<void>;
+  decrementMembers(
+    communityId: ObjectId,
+    userId?: ObjectId,
+    amount?: number,
+  ): Promise<void>;
+  isMember(communityId: ObjectId, userId: ObjectId): Promise<boolean>;
 
   // Méthodes pour les membres
   addMember(member: CommunityMember): Promise<void>;
