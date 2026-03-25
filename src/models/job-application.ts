@@ -10,7 +10,13 @@ export interface JobApplication extends BaseModel {
   applicantPhone?: string;
   cvFileName?: string; // CV file name (stored in uploads/user-{userId}/cv/)
   coverLetter?: string;
-  status: "pending" | "viewed" | "accepted" | "rejected" | "withdrawn";
+  status:
+    | "pending"
+    | "viewed"
+    | "shortlisted"
+    | "accepted"
+    | "rejected"
+    | "withdrawn";
   appliedAt: Date;
   viewedAt?: Date;
   respondedAt?: Date;

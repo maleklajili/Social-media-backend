@@ -179,29 +179,6 @@ export class MessageController extends BaseController<Message, MessageService> {
     }
   }
 
-  @Delete("/conversation/:otherUserId", [authMiddleware])
-  async deleteConversation(req: ServerRequest): Promise<Response> {
-    try {
-      const userId = req.user?._id;
-      if (!userId) {
-        return ResponseHelper.error("Non authentifié", 401);
-      }
-
-      const otherUserId = req.params.otherUserId;
-      if (!otherUserId || !ObjectId.isValid(otherUserId)) {
-        return ResponseHelper.error("ID de l'autre utilisateur invalide", 400);
-      }
-
-      return await this.service.deleteConversation(
-        userId.toString(),
-        otherUserId,
-      );
-    } catch (err) {
-      console.error("Error in deleteConversation:", err);
-      return ResponseHelper.serverError(String(err));
-    }
-  }
-
   @Get("/chats", [authMiddleware])
   async getRecentChats(req: ServerRequest): Promise<Response> {
     try {

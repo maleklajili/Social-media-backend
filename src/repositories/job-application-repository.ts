@@ -1,3 +1,4 @@
+// repositories/job-application-repository.ts
 import type { ObjectId } from "mongodb";
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { JobApplication } from "../models/job-application";
@@ -21,15 +22,71 @@ export class JobApplicationRepository implements IJobApplicationRepository {
   }
 
   async getApplicationById(id: ObjectId): Promise<JobApplication | null> {
-    return this.collection.findOne({
-      _id: id,
-    }) as Promise<JobApplication | null>;
+    // ✅ Ajouter un lookup pour récupérer l'avatar de l'utilisateur
+    const result = await this.collection
+      .aggregate([
+        { $match: { _id: id } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            avatar: { $ifNull: ["$userDetails.image", null] },
+          },
+        },
+        {
+          $project: {
+            userDetails: 0,
+          },
+        },
+      ])
+      .toArray();
+
+    return (result[0] as JobApplication) || null;
   }
 
   async getApplicationsByJobId(jobId: ObjectId): Promise<JobApplication[]> {
+    // ✅ Ajouter un lookup pour récupérer l'avatar des utilisateurs
     return this.collection
-      .find({ jobId })
-      .sort({ appliedAt: -1 })
+      .aggregate([
+        { $match: { jobId } },
+        { $sort: { appliedAt: -1 } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            avatar: { $ifNull: ["$userDetails.image", null] },
+          },
+        },
+        {
+          $project: {
+            userDetails: 0,
+          },
+        },
+      ])
       .toArray() as Promise<JobApplication[]>;
   }
 
@@ -39,10 +96,8 @@ export class JobApplicationRepository implements IJobApplicationRepository {
   ): Promise<{ data: JobApplication[]; total: number }> {
     try {
       const filter = { userId };
-
       const total = await this.collection.countDocuments(filter);
 
-      // Utiliser aggregate avec $lookup pour joindre les données des jobs et des entreprises
       const aggregation = this.collection.aggregate([
         { $match: filter },
         { $sort: { createdAt: -1 } },
@@ -76,6 +131,21 @@ export class JobApplicationRepository implements IJobApplicationRepository {
             preserveNullAndEmptyArrays: true,
           },
         },
+        // ✅ Joindre les détails de l'utilisateur pour l'avatar
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
         // Ajouter les champs enrichis
         {
           $addFields: {
@@ -87,6 +157,21 @@ export class JobApplicationRepository implements IJobApplicationRepository {
             companyName: { $ifNull: ["$companyDetails.name", "Entreprise"] },
             companyLogo: { $ifNull: ["$companyDetails.logo", ""] },
             companyUserId: "$companyDetails.userId",
+            avatar: { $ifNull: ["$userDetails.image", null] }, // ✅ Avatar du candidat
+            // Add CV URL
+            cvUrl: {
+              $cond: [
+                { $ifNull: ["$cvFileName", false] },
+                {
+                  $concat: [
+                    "/api/job-applications/",
+                    { $toString: "$_id" },
+                    "/cv",
+                  ],
+                },
+                null,
+              ],
+            },
           },
         },
         // Supprimer les champs temporaires
@@ -94,6 +179,7 @@ export class JobApplicationRepository implements IJobApplicationRepository {
           $project: {
             jobDetails: 0,
             companyDetails: 0,
+            userDetails: 0,
           },
         },
       ]);
@@ -114,26 +200,77 @@ export class JobApplicationRepository implements IJobApplicationRepository {
   async getApplicationsByCompanyId(
     companyId: ObjectId,
   ): Promise<JobApplication[]> {
+    // ✅ Ajouter un lookup pour récupérer l'avatar des utilisateurs
     return this.collection
-      .find({ companyId })
-      .sort({ appliedAt: -1 })
+      .aggregate([
+        { $match: { companyId } },
+        { $sort: { appliedAt: -1 } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            avatar: { $ifNull: ["$userDetails.image", null] },
+          },
+        },
+        {
+          $project: {
+            userDetails: 0,
+          },
+        },
+      ])
       .toArray() as Promise<JobApplication[]>;
   }
 
   async getApplicationsByStatus(
-    status: "pending" | "viewed" | "accepted" | "rejected" | "withdrawn",
+    status: string,
     companyId?: ObjectId,
   ): Promise<JobApplication[]> {
-    const filter: {
-      status: "pending" | "viewed" | "accepted" | "rejected" | "withdrawn";
-      companyId?: ObjectId;
-    } = { status };
+    const filter: { status: string; companyId?: ObjectId } = { status };
     if (companyId) {
       filter.companyId = companyId;
     }
+    // ✅ Ajouter un lookup pour récupérer l'avatar des utilisateurs
     return this.collection
-      .find(filter)
-      .sort({ appliedAt: -1 })
+      .aggregate([
+        { $match: filter },
+        { $sort: { appliedAt: -1 } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            avatar: { $ifNull: ["$userDetails.image", null] },
+          },
+        },
+        {
+          $project: {
+            userDetails: 0,
+          },
+        },
+      ])
       .toArray() as Promise<JobApplication[]>;
   }
 
@@ -160,11 +297,38 @@ export class JobApplicationRepository implements IJobApplicationRepository {
 
   async getApplicationsByJobAndStatus(
     jobId: ObjectId,
-    status: "pending" | "viewed" | "accepted" | "rejected" | "withdrawn",
+    status: string,
   ): Promise<JobApplication[]> {
+    // ✅ Ajouter un lookup pour récupérer l'avatar des utilisateurs
     return this.collection
-      .find({ jobId, status })
-      .sort({ appliedAt: -1 })
+      .aggregate([
+        { $match: { jobId, status } },
+        { $sort: { appliedAt: -1 } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            avatar: { $ifNull: ["$userDetails.image", null] },
+          },
+        },
+        {
+          $project: {
+            userDetails: 0,
+          },
+        },
+      ])
       .toArray() as Promise<JobApplication[]>;
   }
 }
