@@ -1,3 +1,4 @@
+// services/job-application-services.ts
 import { ObjectId } from "mongodb";
 import { BaseService } from "./base/base-service";
 import type { JobApplication } from "../models/job-application";
@@ -16,8 +17,8 @@ export class JobApplicationService
   implements IJobApplicationService
 {
   constructor(
-    private applicationRepository: IJobApplicationRepository,
-    private jobRepository: IJobRepository,
+    public applicationRepository: IJobApplicationRepository,
+    public jobRepository: IJobRepository,
     private userRepository: IUserRepository,
     private companyRepository: ICompanyRepository,
     private transactionService: TransactionService,
@@ -25,22 +26,17 @@ export class JobApplicationService
     super(CollectionsManager.jobApplicationCollection);
   }
 
-  /**
-   * Apply for a job
-   */
   async applyForJob(
     userId: ObjectId,
     jobId: ObjectId,
     application: Partial<JobApplication>,
   ): Promise<Response> {
     try {
-      // Validate user exists
       const user = await this.userRepository.findById(userId, 0);
       if (!user) {
         return ResponseHelper.error("User not found");
       }
 
-      // Validate job exists and is active
       const job = await this.jobRepository.getJobById(jobId);
       if (!job) {
         return ResponseHelper.error("Job not found");
@@ -50,7 +46,6 @@ export class JobApplicationService
         return ResponseHelper.error("Job is no longer active");
       }
 
-      // Check if user already applied
       const hasApplied = await this.applicationRepository.hasAlreadyApplied(
         jobId,
         userId,
@@ -59,12 +54,10 @@ export class JobApplicationService
         return ResponseHelper.error("You have already applied to this job");
       }
 
-      // Validate required fields
       if (!application.coverLetter || application.coverLetter.trim() === "") {
         return ResponseHelper.error("Cover letter is required");
       }
 
-      // Create application
       const newApplication: JobApplication = {
         _id: new ObjectId(),
         jobId,
@@ -81,14 +74,11 @@ export class JobApplicationService
         updatedAt: new Date(),
       };
 
-      // Save application
       await this.applicationRepository.addApplication(newApplication);
 
-      // Increment job applications count
       const updatedJob = { ...job, applications: (job.applications || 0) + 1 };
       await this.jobRepository.updateJob(updatedJob);
 
-      // Add coins for applying
       try {
         await this.userRepository.addCoins(userId, COINS_CONFIG.APPLY_JOB);
         await this.transactionService.addStandardEarning(
@@ -104,27 +94,37 @@ export class JobApplicationService
           },
         );
       } catch (err) {
-        console.error("❌ Error adding coins:", err);
+        console.error(" Error adding coins:", err);
       }
 
       return ResponseHelper.success(newApplication, 201);
     } catch (err) {
-      console.error("❌ Error applying for job:", err);
+      console.error(" Error applying for job:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
 
-  /**
-   * Update application status
-   */
+  async getJobById(jobId: ObjectId): Promise<Response> {
+    try {
+      const job = await this.jobRepository.getJobById(jobId);
+      if (!job) {
+        return ResponseHelper.error("Job not found", 404);
+      }
+      return ResponseHelper.success(job);
+    } catch (err) {
+      console.error(" Error getting job:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
   async updateApplicationStatus(
     applicationId: ObjectId,
     status: string,
     userId: ObjectId,
     companyId: ObjectId,
+    feedback?: string,
   ): Promise<Response> {
     try {
-      console.log(companyId);
       const application =
         await this.applicationRepository.getApplicationById(applicationId);
 
@@ -132,64 +132,46 @@ export class JobApplicationService
         return ResponseHelper.error("Application not found");
       }
 
-      // Verify user has permission (must be the job owner or company owner)
       const job = await this.jobRepository.getJobById(application.jobId);
-      if (!job || !job.userId.equals(userId)) {
+      if (!job) {
+        return ResponseHelper.error("Job not found");
+      }
+
+      if (!job.userId.equals(userId)) {
         return ResponseHelper.error(
           "You don't have permission to update this application",
         );
       }
 
-      // Validate status
-      const validStatuses = ["pending", "viewed", "accepted", "rejected"];
+      const validStatuses = [
+        "pending",
+        "viewed",
+        "shortlisted",
+        "accepted",
+        "rejected",
+        "withdrawn",
+      ];
       if (!validStatuses.includes(status)) {
-        return ResponseHelper.error("Invalid status");
+        return ResponseHelper.error(`Invalid status: ${status}`);
       }
 
-      // Update application
       const updatedApplication: JobApplication = {
         ...application,
-        status: status as "pending" | "viewed" | "accepted" | "rejected",
+        status: status as JobApplication["status"],
         respondedAt: new Date(),
         updatedAt: new Date(),
+        response: feedback || application.response,
       };
 
       await this.applicationRepository.updateApplication(updatedApplication);
 
-      // Add coins for reviewing applications (if moving from pending)
-      if (application.status === "pending") {
-        try {
-          await this.userRepository.addCoins(
-            userId,
-            COINS_CONFIG.REVIEW_APPLICATION,
-          );
-          await this.transactionService.addStandardEarning(
-            userId,
-            COINS_CONFIG.REVIEW_APPLICATION,
-            "application-review",
-            applicationId,
-            `Examen de candidature pour ${application.applicantName}`,
-            {
-              applicantName: application.applicantName,
-              jobTitle: job.title,
-              status,
-            },
-          );
-        } catch (err) {
-          console.error("❌ Error adding coins:", err);
-        }
-      }
-
       return ResponseHelper.success(updatedApplication, 200);
     } catch (err) {
-      console.error("❌ Error updating application status:", err);
+      console.error(" Error updating application status:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
 
-  /**
-   * Get application by ID
-   */
   async getApplicationById(applicationId: ObjectId): Promise<Response> {
     try {
       const application =
@@ -199,16 +181,20 @@ export class JobApplicationService
         return ResponseHelper.error("Application not found");
       }
 
-      return ResponseHelper.success(application);
+      const applicationWithUrl = {
+        ...application,
+        cvUrl: application.cvFileName
+          ? `/api/job-applications/${applicationId}/cv`
+          : null,
+      };
+
+      return ResponseHelper.success(applicationWithUrl, 200);
     } catch (err) {
-      console.error("❌ Error getting application:", err);
+      console.error(" Error getting application:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
 
-  /**
-   * Get applications for a specific job
-   */
   async getApplicationsForJob(jobId: ObjectId): Promise<Response> {
     try {
       const job = await this.jobRepository.getJobById(jobId);
@@ -218,17 +204,13 @@ export class JobApplicationService
 
       const applications =
         await this.applicationRepository.getApplicationsByJobId(jobId);
-
       return ResponseHelper.success(applications, 200);
     } catch (err) {
-      console.error("❌ Error getting job applications:", err);
+      console.error(" Error getting job applications:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
 
-  /**
-   * Get applications submitted by a user
-   */
   async getApplicationsForUser(
     userId: ObjectId,
     pagination: { skip: number; limit: number },
@@ -239,29 +221,22 @@ export class JobApplicationService
         pagination,
       );
     } catch (err) {
-      console.error("❌ Error getting applications for user:", err);
+      console.error(" Error getting applications for user:", err);
       throw err;
     }
   }
 
-  /**
-   * Get applications received by a company
-   */
   async getApplicationsForCompany(companyId: ObjectId): Promise<Response> {
     try {
       const applications =
         await this.applicationRepository.getApplicationsByCompanyId(companyId);
-
       return ResponseHelper.success(applications);
     } catch (err) {
-      console.error("❌ Error getting company applications:", err);
+      console.error(" Error getting company applications:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
 
-  /**
-   * Withdraw application
-   */
   async withdrawApplication(
     applicationId: ObjectId,
     userId: ObjectId,
@@ -274,21 +249,18 @@ export class JobApplicationService
         return ResponseHelper.error("Application not found");
       }
 
-      // Verify user owns the application
       if (!application.userId.equals(userId)) {
         return ResponseHelper.error(
           "You don't have permission to withdraw this application",
         );
       }
 
-      // Can't withdraw if already accepted/rejected
       if (["accepted", "rejected"].includes(application.status)) {
         return ResponseHelper.error(
           "Cannot withdraw an application that has been reviewed",
         );
       }
 
-      // Update application status
       const updatedApplication: JobApplication = {
         ...application,
         status: "withdrawn",
@@ -297,7 +269,6 @@ export class JobApplicationService
 
       await this.applicationRepository.updateApplication(updatedApplication);
 
-      // Decrement job applications count
       const job = await this.jobRepository.getJobById(application.jobId);
       if (job) {
         const updatedJob = {
@@ -309,14 +280,11 @@ export class JobApplicationService
 
       return ResponseHelper.success(updatedApplication);
     } catch (err) {
-      console.error("❌ Error withdrawing application:", err);
+      console.error(" Error withdrawing application:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
 
-  /**
-   * Respond to application with message
-   */
   async respondToApplication(
     applicationId: ObjectId,
     response: string,
@@ -334,14 +302,12 @@ export class JobApplicationService
         return ResponseHelper.error("Application not found");
       }
 
-      // Verify user has permission
       if (!application.companyId.equals(companyId)) {
         return ResponseHelper.error(
           "You don't have permission to respond to this application",
         );
       }
 
-      // Update application
       const updatedApplication: JobApplication = {
         ...application,
         response,
@@ -353,7 +319,7 @@ export class JobApplicationService
 
       return ResponseHelper.success(updatedApplication, 200);
     } catch (err) {
-      console.error("❌ Error responding to application:", err);
+      console.error(" Error responding to application:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
