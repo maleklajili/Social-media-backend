@@ -7,6 +7,8 @@ import { NotificationController } from "../controllers/notification-controller";
 
 let io: SocketServer;
 
+const onlineUsers = new Map<string, string>();
+
 interface TokenPayload extends jwt.JwtPayload {
   id?: string;
   userId?: string;
@@ -14,20 +16,20 @@ interface TokenPayload extends jwt.JwtPayload {
 }
 
 export const initSocketServer = () => {
-  // 🔐 Empêche toute double initialisation
+  console.log(" [Socket] Initialisation du serveur Socket.IO séparé...");
 
-  console.log("🔌 [Socket] Initialisation du serveur Socket.IO séparé...");
-
-  const SOCKET_PORT = process.env.SOCKET_PORT || 6000;
+  const SOCKET_PORT = process.env.SOCKET_PORT || 9001;
 
   const httpServer = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("Socket.IO server running\n");
   });
+
   if (io && httpServer) {
-    console.log("⚠️ [Socket] Socket.IO déjà initialisé");
+    console.log(" [Socket] Socket.IO déjà initialisé");
     return io;
   }
+
   io = new SocketServer(httpServer, {
     cors: {
       origin: [
@@ -56,7 +58,7 @@ export const initSocketServer = () => {
         socket.handshake.headers.authorization?.replace("Bearer ", "");
 
       console.log(
-        "🔐 [Socket] Auth attempt with token:",
+        " [Socket] Auth attempt with token:",
         token ? "présent" : "absent",
       );
 
@@ -77,10 +79,10 @@ export const initSocketServer = () => {
       }
 
       socket.data.userId = userId;
-      console.log(`✅ [Socket] Auth successful for user ${userId}`);
+      console.log(` [Socket] Auth successful for user ${userId}`);
       next();
     } catch (error) {
-      console.error("❌ [Socket] Auth error:", error);
+      console.error(" [Socket] Auth error:", error);
       next(new Error("Erreur d'authentification"));
     }
   });
@@ -88,33 +90,121 @@ export const initSocketServer = () => {
   // Gestion des connexions
   io.on("connection", (socket) => {
     const userId = socket.data.userId;
-    console.log(
-      `✅✅✅ [Socket] User ${userId} connected with ID ${socket.id}`,
-    );
+    console.log(` [Socket] User ${userId} connected with ID ${socket.id}`);
     console.log(`📌 Transport utilisé:`, socket.conn.transport.name);
 
+    // Marquer l'utilisateur comme en ligne
+    const wasAlreadyOnline = onlineUsers.has(userId);
+    onlineUsers.set(userId, socket.id);
+    console.log(` [Socket] User ${userId} is now ONLINE`);
+    console.log(
+      ` [Socket] Current online users: ${Array.from(onlineUsers.keys()).join(", ")}`,
+    );
+
+    // Joindre la room de l'utilisateur
     socket.join(`user:${userId}`);
     console.log(`📌 [Socket] User ${userId} joined room user:${userId}`);
+
+    // Utiliser io.emit au lieu de socket.broadcast pour s'assurer que tout le monde reçoit
+    if (!wasAlreadyOnline) {
+      socket.broadcast.emit("user-status-update", {
+        userId,
+        isOnline: true,
+        lastSeen: new Date(),
+      });
+      console.log(` [Socket] Broadcasted user-status-update for ${userId}`);
+    }
+
+    // Envoyer la liste des utilisateurs en ligne au nouveau client
+    const onlineUsersList = Array.from(onlineUsers.keys());
+    socket.emit("online-users-list", onlineUsersList);
+    console.log(` [Socket] Sent online list to ${userId}:`, onlineUsersList);
 
     socket.emit("connected", {
       userId,
       socketId: socket.id,
       message: "Socket connected successfully",
+      onlineUsers: onlineUsersList,
     });
 
+    // Gérer la demande de statut d'un utilisateur
+    socket.on("get-user-status", (data: { userId: string }) => {
+      const isUserOnline = onlineUsers.has(data.userId);
+      socket.emit("user-status-response", {
+        userId: data.userId,
+        isOnline: isUserOnline,
+        lastSeen: isUserOnline ? new Date() : undefined,
+      });
+    });
+
+    // Gérer la demande de tous les utilisateurs en ligne
+    socket.on("get-online-users", () => {
+      const onlineUsersList = Array.from(onlineUsers.keys());
+      console.log(
+        `[Socket] Sending online list to ${userId}:`,
+        onlineUsersList,
+      );
+      socket.emit("online-users-list", onlineUsersList);
+    });
+
+    // Écouter l'événement user:join du frontend
+    socket.on("user:join", (data: { userId: string }) => {
+      console.log(` [Socket] User ${data.userId} joined via user:join event`);
+      if (!onlineUsers.has(data.userId)) {
+        onlineUsers.set(data.userId, socket.id);
+        socket.broadcast.emit("user:joined", { userId: data.userId });
+        socket.broadcast.emit("user-status-update", {
+          userId: data.userId,
+          isOnline: true,
+          lastSeen: new Date(),
+        });
+      }
+    });
+
+    socket.on(
+      "message-read",
+      (data: { messageId: string; conversationId: string }) => {
+        console.log(
+          ` [Socket] User ${userId} read message ${data.messageId} in conversation ${data.conversationId}`,
+        );
+
+        socket.to(`user:${data.conversationId}`).emit("message-read", {
+          messageId: data.messageId,
+          conversationId: data.conversationId,
+        });
+      },
+    );
+
+    // Gérer la déconnexion
     socket.on("disconnect", (reason) => {
-      console.log(`❌ [Socket] User ${userId} disconnected: ${reason}`);
+      console.log(` [Socket] User ${userId} disconnected: ${reason}`);
+
+      // Marquer l'utilisateur comme hors ligne
+      onlineUsers.delete(userId);
+      console.log(` [Socket] User ${userId} is now OFFLINE`);
+      console.log(
+        ` [Socket] Remaining online users: ${Array.from(onlineUsers.keys()).join(", ")}`,
+      );
+
+      // Notifier tous les autres utilisateurs que cet utilisateur est hors ligne
+      socket.broadcast.emit("user-status-update", {
+        userId,
+        isOnline: false,
+        lastSeen: new Date(),
+      });
+
+      socket.broadcast.emit("user:left", { userId });
     });
 
     socket.on("error", (error) => {
-      console.error(`❌ [Socket] Error for user ${userId}:`, error);
+      console.error(` [Socket] Error for user ${userId}:`, error);
     });
 
     socket.on(
       "typing",
       (data: { conversationId: string; isTyping: boolean }) => {
         console.log(
-          `✏️ [Socket] User ${userId} typing in ${data.conversationId}: ${data.isTyping}`,
+          ` [Socket] User ${userId} typing in ${data.conversationId}: ${data.isTyping}`,
         );
         socket.to(`user:${data.conversationId}`).emit("user_typing", {
           userId,
@@ -126,7 +216,7 @@ export const initSocketServer = () => {
 
     socket.on("view_conversation", (data: { conversationId: string }) => {
       console.log(
-        `👀 [Socket] User ${userId} viewed conversation ${data.conversationId}`,
+        ` [Socket] User ${userId} viewed conversation ${data.conversationId}`,
       );
       socket.to(`user:${data.conversationId}`).emit("conversation_viewed", {
         userId,
@@ -141,11 +231,9 @@ export const initSocketServer = () => {
   });
 
   httpServer.listen(SOCKET_PORT, () => {
+    console.log(`[Socket] Serveur Socket.IO démarré sur port ${SOCKET_PORT}`);
     console.log(
-      `✅✅✅ [Socket] Serveur Socket.IO démarré sur port ${SOCKET_PORT}`,
-    );
-    console.log(
-      `🔌 WebSocket disponible à: ws://localhost:${SOCKET_PORT}/socket.io/`,
+      ` WebSocket disponible à: ws://localhost:${SOCKET_PORT}/socket.io/`,
     );
   });
 
@@ -158,3 +246,5 @@ export const getIo = () => {
   }
   return io;
 };
+
+export const getOnlineUsers = () => onlineUsers;

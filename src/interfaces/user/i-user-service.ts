@@ -39,4 +39,5 @@ export interface IUserService {
     limit?: number,
     search?: string,
   ): Promise<{ data: User[]; total: number }>;
+  getUserStats(userId: ObjectId | undefined): Promise<Response>;
 }

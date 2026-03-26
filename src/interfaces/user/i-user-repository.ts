@@ -49,4 +49,10 @@ export interface IUserRepository {
   unfollowCompany(userId: ObjectId, companyId: ObjectId): Promise<void>;
   getFollowedCompanies(userId: ObjectId): Promise<ObjectId[]>;
   isFollowingCompany(userId: ObjectId, companyId: ObjectId): Promise<boolean>;
+  getUserStats(userId: ObjectId): Promise<{
+    postsCount: number;
+    commentsCount: number;
+    followersCount: number;
+    followingCount: number;
+  }>;
 }
