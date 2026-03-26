@@ -224,13 +224,13 @@ export class PostServices extends BaseService<Post> implements IPostService {
         userId: userId,
       });
 
-      if (!existingPost) {
+      /* if (!existingPost) {
         return ResponseHelper.error("Post not found or access denied");
-      }
+      } */
 
-      if (existingPost.media && existingPost.media.length > 0) {
+      if (existingPost!.media && existingPost!.media.length > 0) {
         await FileService.deleteMultipleFiles(
-          existingPost.media.map((m) => m.url),
+          existingPost!.media.map((m) => m.url),
           userId.toString(),
         );
       }
