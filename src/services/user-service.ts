@@ -662,4 +662,153 @@ export class UserService extends BaseService<User> implements IUserService {
 
     return score;
   }
+
+  async updateProfilePhoto(
+    userId: ObjectId | undefined,
+    formData: FormData,
+  ): Promise<Response> {
+    if (!userId) return ResponseHelper.error("User not authenticated", 401);
+
+    const imageFile = formData.get("image");
+    if (!imageFile || !(imageFile instanceof File)) {
+      return ResponseHelper.error("No image file provided", 400);
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(imageFile.type)) {
+      return ResponseHelper.error(
+        "Type de fichier non autorisé. Seuls JPEG, PNG, WEBP et GIF sont acceptés.",
+        400,
+      );
+    }
+    if (imageFile.size > 5 * 1024 * 1024) {
+      return ResponseHelper.error("L'image ne doit pas dépasser 5 Mo.", 400);
+    }
+
+    const imageStorePath = `${UPLOAD_PATHS.images}-${userId}`;
+    const currentUser = await this.userRepository.findById(userId, 0);
+    if (!currentUser) return ResponseHelper.error("User not found", 404);
+
+    const result = (await handleFileUpload(formData, {
+      fieldName: "image",
+      storePath: imageStorePath,
+      fileName: new Date().getTime().toString(),
+      multiple: false,
+      writeToDisk: true,
+      userId,
+    })) as UploadResult;
+
+    if (!result?.fileName) {
+      return ResponseHelper.error("Échec de l'upload de l'image", 500);
+    }
+
+    if (currentUser.image) {
+      deleteFiles(currentUser.image, imageStorePath, userId);
+    }
+
+    const updatedUser = await this.userRepository.updateProfile(userId, {
+      ...currentUser,
+      image: result.fileName,
+    });
+    return ResponseHelper.success(updatedUser);
+  }
+
+  async deleteProfilePhoto(userId: ObjectId | undefined): Promise<Response> {
+    if (!userId) return ResponseHelper.error("User not authenticated", 401);
+
+    const imageStorePath = `${UPLOAD_PATHS.images}-${userId}`;
+    const currentUser = await this.userRepository.findById(userId, 0);
+    if (!currentUser) return ResponseHelper.error("User not found", 404);
+
+    if (!currentUser.image) {
+      return ResponseHelper.error("Aucune photo de profil à supprimer", 404);
+    }
+
+    deleteFiles(currentUser.image, imageStorePath, userId);
+
+    const updatedUser = await this.userRepository.updateProfile(userId, {
+      ...currentUser,
+      image: "",
+    });
+    return ResponseHelper.success(updatedUser);
+  }
+
+  async updateCoverPhoto(
+    userId: ObjectId | undefined,
+    formData: FormData,
+  ): Promise<Response> {
+    if (!userId) return ResponseHelper.error("User not authenticated", 401);
+
+    const coverFile = formData.get("cover");
+    if (!coverFile || !(coverFile instanceof File)) {
+      return ResponseHelper.error("No cover image file provided", 400);
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(coverFile.type)) {
+      return ResponseHelper.error(
+        "Type de fichier non autorisé. Seuls JPEG, PNG, WEBP et GIF sont acceptés.",
+        400,
+      );
+    }
+    if (coverFile.size > 10 * 1024 * 1024) {
+      return ResponseHelper.error(
+        "L'image de couverture ne doit pas dépasser 10 Mo.",
+        400,
+      );
+    }
+
+    const imageStorePath = `${UPLOAD_PATHS.images}-${userId}`;
+    const currentUser = await this.userRepository.findById(userId, 0);
+    if (!currentUser) return ResponseHelper.error("User not found", 404);
+
+    const result = (await handleFileUpload(formData, {
+      fieldName: "cover",
+      storePath: imageStorePath,
+      fileName: new Date().getTime().toString() + "_cover",
+      multiple: false,
+      writeToDisk: true,
+      userId,
+    })) as UploadResult;
+
+    if (!result?.fileName) {
+      return ResponseHelper.error(
+        "Échec de l'upload de l'image de couverture",
+        500,
+      );
+    }
+
+    if (currentUser.cover) {
+      deleteFiles(currentUser.cover, imageStorePath, userId);
+    }
+
+    const updatedUser = await this.userRepository.updateProfile(userId, {
+      ...currentUser,
+      cover: result.fileName,
+    });
+    return ResponseHelper.success(updatedUser);
+  }
+
+  async deleteCoverPhoto(userId: ObjectId | undefined): Promise<Response> {
+    if (!userId) return ResponseHelper.error("User not authenticated", 401);
+
+    const imageStorePath = `${UPLOAD_PATHS.images}-${userId}`;
+    const currentUser = await this.userRepository.findById(userId, 0);
+    if (!currentUser) return ResponseHelper.error("User not found", 404);
+
+    if (!currentUser.cover) {
+      return ResponseHelper.error(
+        "Aucune photo de couverture à supprimer",
+        404,
+      );
+    }
+
+    deleteFiles(currentUser.cover, imageStorePath, userId);
+
+    const updatedUser = await this.userRepository.updateProfile(userId, {
+      ...currentUser,
+      cover: "",
+    });
+    return ResponseHelper.success(updatedUser);
+  }
 }

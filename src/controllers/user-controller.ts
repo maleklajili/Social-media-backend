@@ -328,6 +328,44 @@ class UserController extends BaseController<User, UserService> {
       return ResponseHelper.serverError(String(err));
     }
   }
+
+  @Put("/image", [authMiddleware])
+  async updateProfilePhoto(req: ServerRequest): Promise<Response> {
+    try {
+      const formData = (await req.formData()) as unknown as FormData;
+      return this.service.updateProfilePhoto(req.user?._id, formData);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Delete("/image", [authMiddleware])
+  async deleteProfilePhoto(req: ServerRequest): Promise<Response> {
+    try {
+      return this.service.deleteProfilePhoto(req.user?._id);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Put("/cover", [authMiddleware])
+  async updateCoverPhoto(req: ServerRequest): Promise<Response> {
+    try {
+      const formData = (await req.formData()) as unknown as FormData;
+      return this.service.updateCoverPhoto(req.user?._id, formData);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Delete("/cover", [authMiddleware])
+  async deleteCoverPhoto(req: ServerRequest): Promise<Response> {
+    try {
+      return this.service.deleteCoverPhoto(req.user?._id);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 }
 
 export default UserController;
