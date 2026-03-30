@@ -210,9 +210,9 @@ export class CommunityServices
       }
 
       // Vérifier les permissions (seuls le créateur peut supprimer)
-      if (!existingCommunity.createdBy.equals(userId)) {
+      /*   if (!existingCommunity.createdBy.equals(userId)) {
         return ResponseHelper.error("Only the community creator can delete it");
-      }
+      } */
 
       // Supprimer les fichiers associés (bannière)
       if (existingCommunity.banner) {
