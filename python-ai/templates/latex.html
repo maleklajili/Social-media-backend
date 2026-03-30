@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      @page {
+        size: A4;
+        margin: 1in 0.75in;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Times New Roman", serif;
+        font-size: 10pt;
+        color: #000;
+        line-height: 1.3;
+      }
+
+      /* Header */
+      .header {
+        text-align: center;
+        margin-bottom: 14pt;
+        border-bottom: 1pt solid #000;
+        padding-bottom: 10pt;
+      }
+      .name {
+        font-size: 14pt;
+        font-weight: bold;
+        letter-spacing: 0.05em;
+        margin-bottom: 4pt;
+      }
+      .contact-info {
+        font-size: 9pt;
+        letter-spacing: 0.02em;
+      }
+      .contact-info span {
+        margin: 0 10pt;
+      }
+      .contact-sep {
+        color: #333;
+        margin: 0 6pt;
+      }
+
+      /* Section */
+      .section-title {
+        font-size: 11pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 10pt;
+        margin-bottom: 6pt;
+        border-bottom: 1pt solid #000;
+        padding-bottom: 3pt;
+      }
+
+      /* Entry */
+      .entry {
+        margin-bottom: 10pt;
+      }
+      .entry-table {
+        width: 100%;
+      }
+      .entry-title {
+        font-weight: bold;
+        font-size: 10pt;
+      }
+      .entry-subtitle {
+        font-style: italic;
+        color: #333;
+        font-size: 10pt;
+      }
+      .entry-date {
+        font-size: 9pt;
+        color: #555;
+        text-align: right;
+      }
+      .entry-description {
+        font-size: 9pt;
+        color: #333;
+        margin-top: 3pt;
+        line-height: 1.3;
+      }
+
+      /* Summary */
+      .summary {
+        font-size: 9pt;
+        color: #333;
+        line-height: 1.3;
+      }
+
+      /* Skills */
+      .skill-table {
+        width: 100%;
+        font-size: 10pt;
+        margin-bottom: 6pt;
+      }
+      .skill-label {
+        font-weight: bold;
+        width: 80pt;
+        vertical-align: top;
+        padding-right: 10pt;
+      }
+      .skill-list {
+        vertical-align: top;
+      }
+
+      /* Items */
+      .item {
+        font-size: 9pt;
+        color: #333;
+        margin-bottom: 2pt;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="header">
+      <div class="name">{{ cv.name }}</div>
+      <div class="contact-info">
+        {% if cv.contact_info.email %}<span>{{ cv.contact_info.email }}</span>{%
+        endif %} {% if cv.contact_info.phone %}<span class="contact-sep">|</span
+        ><span>{{ cv.contact_info.phone }}</span>{% endif %} {% if
+        cv.contact_info.location %}<span class="contact-sep">|</span
+        ><span>{{ cv.contact_info.location }}</span>{% endif %} {% if
+        cv.contact_info.linkedin %}<span class="contact-sep">|</span
+        ><span>{{ cv.contact_info.linkedin }}</span>{% endif %} {% if
+        cv.contact_info.website %}<span class="contact-sep">|</span
+        ><span>{{ cv.contact_info.website }}</span>{% endif %}
+      </div>
+    </div>
+
+    <!-- Résumé Professionnel -->
+    {% if cv.summary %}
+    <div class="section-title">Résumé Professionnel</div>
+    <div class="summary">{{ cv.summary }}</div>
+    {% endif %}
+
+    <!-- Expérience Professionnelle -->
+    {% if cv.experience %}
+    <div class="section-title">Expérience Professionnelle</div>
+    {% for exp in cv.experience %}
+    <div class="entry">
+      <table class="entry-table" cellpadding="0" cellspacing="0">
+        <tr>
+          <td>
+            <div class="entry-title">{{ exp.post }}</div>
+            {% if exp.company %}
+            <div class="entry-subtitle">{{ exp.company }}</div>
+            {% endif %}
+          </td>
+          <td><div class="entry-date">{{ exp.dates }}</div></td>
+        </tr>
+      </table>
+      {% if exp.achievements %}
+      <div class="entry-description">
+        {% for a in exp.achievements %}&bull; {{ a }}<br />{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %} {% endif %}
+
+    <!-- Formation -->
+    {% if cv.education %}
+    <div class="section-title">Formation</div>
+    {% for edu in cv.education %}
+    <div class="entry">
+      <table class="entry-table" cellpadding="0" cellspacing="0">
+        <tr>
+          <td>
+            <div class="entry-title">{{ edu.degree }}</div>
+            {% if edu.school %}
+            <div class="entry-subtitle">{{ edu.school }}</div>
+            {% endif %}
+          </td>
+          <td><div class="entry-date">{{ edu.dates }}</div></td>
+        </tr>
+      </table>
+    </div>
+    {% endfor %} {% endif %}
+
+    <!-- Compétences -->
+    {% if cv.skills %}
+    <div class="section-title">Compétences</div>
+    {% set ns = namespace(current_cat='', items=[]) %} {% for skill in cv.skills
+    %} {% if skill.category and skill.category != ns.current_cat %} {% if
+    ns.current_cat and ns.items %}
+    <table class="skill-table" cellpadding="0" cellspacing="0">
+      <tr>
+        <td class="skill-label">{{ ns.current_cat }} :</td>
+        <td class="skill-list">{{ ns.items|join(', ') }}</td>
+      </tr>
+    </table>
+    {% endif %} {% set ns.current_cat = skill.category %} {% set ns.items =
+    [skill.name] %} {% elif skill.category %} {% set ns.items = ns.items +
+    [skill.name] %} {% else %}
+    <div class="item">
+      &bull; {{ skill.name }}{% if skill.level %} ({{ skill.level }}){% endif %}
+    </div>
+    {% endif %} {% endfor %} {% if ns.current_cat and ns.items %}
+    <table class="skill-table" cellpadding="0" cellspacing="0">
+      <tr>
+        <td class="skill-label">{{ ns.current_cat }} :</td>
+        <td class="skill-list">{{ ns.items|join(', ') }}</td>
+      </tr>
+    </table>
+    {% endif %} {% endif %}
+
+    <!-- Langues -->
+    {% if cv.languages %}
+    <div class="section-title">Langues</div>
+    {% for lang in cv.languages %}
+    <table class="skill-table" cellpadding="0" cellspacing="0">
+      <tr>
+        <td class="skill-label">{{ lang.name }} :</td>
+        <td class="skill-list">{{ lang.level }}</td>
+      </tr>
+    </table>
+    {% endfor %} {% endif %}
+
+    <!-- Certifications -->
+    {% if cv.certifications %}
+    <div class="section-title">Certifications</div>
+    {% for cert in cv.certifications %}
+    <div class="entry">
+      <table class="entry-table" cellpadding="0" cellspacing="0">
+        <tr>
+          <td><div class="entry-title">{{ cert }}</div></td>
+        </tr>
+      </table>
+    </div>
+    {% endfor %} {% endif %}
+
+    <!-- Projets -->
+    {% if cv.projects %}
+    <div class="section-title">Projets</div>
+    {% for p in cv.projects %}
+    <div class="entry">
+      <div class="entry-title">{{ p.title }}</div>
+      {% if p.description %}
+      <div class="entry-description">{{ p.description }}</div>
+      {% endif %}
+    </div>
+    {% endfor %} {% endif %}
+
+    <!-- Intérêts -->
+    {% if cv.interests %}
+    <div class="section-title">Intérêts</div>
+    <div class="item">{{ cv.interests|join(' &bull; ') }}</div>
+    {% endif %}
+  </body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<style>
+  @page { size: A4; margin: 0; }
+  * { margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 9pt; color: #333; line-height: 1.4; }
+
+  /* Layout table */
+  .layout-table { width: 100%; }
+  .sidebar { width: 220pt; background-color: #667eea; color: white; vertical-align: top; padding: 36pt 22pt; }
+  .main { vertical-align: top; padding: 36pt 30pt; }
+
+  /* Sidebar Header */
+  .sidebar-header { text-align: center; margin-bottom: 18pt; padding-bottom: 14pt; }
+  .sidebar-photo { width: 70pt; height: 70pt; border-radius: 50%; border: 3pt solid rgba(255,255,255,0.6); margin-bottom: 10pt; }
+  .sidebar-name { font-size: 16pt; font-weight: 700; margin-bottom: 4pt; letter-spacing: 0.5pt; color: white; }
+  .sidebar-title { font-size: 10pt; color: rgba(255,255,255,0.9); font-weight: 500; text-transform: uppercase; letter-spacing: 1pt; }
+
+  /* Contact block */
+  .contact-block {
+    background-color: rgba(255,255,255,0.1); border-radius: 6pt;
+    padding: 10pt; margin-bottom: 18pt; font-size: 8pt; line-height: 1.5;
+  }
+  .contact-label { font-weight: 600; font-size: 7pt; text-transform: uppercase; color: rgba(255,255,255,0.8); margin-bottom: 1pt; }
+  .contact-value { color: white; margin-bottom: 6pt; word-wrap: break-word; }
+
+  /* Sidebar sections */
+  .sidebar-section { margin-bottom: 16pt; }
+  .sidebar-section-title {
+    font-size: 9pt; font-weight: 700; text-transform: uppercase; color: white; letter-spacing: 1pt;
+    margin-bottom: 8pt; padding-bottom: 4pt; border-bottom: 2pt solid rgba(255,255,255,0.3);
+  }
+  .skill-item { font-size: 8pt; color: #e2e8f0; margin-bottom: 4pt; padding-left: 10pt; }
+  .skill-dot { color: rgba(255,255,255,0.8); margin-right: 4pt; }
+
+  /* Main content */
+  .section { margin-bottom: 18pt; }
+  .section-title {
+    font-size: 11pt; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: 1pt;
+    margin-bottom: 8pt; padding-bottom: 5pt; border-bottom: 2pt solid #667eea;
+  }
+  .summary-text { color: #555; font-size: 9pt; line-height: 1.5; }
+
+  /* Entry */
+  .entry { margin-bottom: 10pt; }
+  .entry-table { width: 100%; }
+  .entry-title { font-weight: 600; color: #333; font-size: 9.5pt; }
+  .entry-subtitle { color: #667eea; font-weight: 500; font-size: 8.5pt; }
+  .entry-date { font-size: 8pt; color: #999; font-style: italic; text-align: right; }
+  .entry-location { font-size: 8pt; color: #666; }
+  .entry-desc { font-size: 8pt; color: #555; margin-top: 3pt; line-height: 1.35; }
+
+  /* Cert/Item */
+  .cert-item { font-size: 9pt; margin-bottom: 3pt; }
+  .item { font-size: 9pt; color: #555; margin-bottom: 2pt; }
+</style>
+</head>
+<body>
+
+<table class="layout-table" cellpadding="0" cellspacing="0">
+<tr>
+  <!-- SIDEBAR -->
+  <td class="sidebar">
+    <div class="sidebar-header">
+      {% if photo_url %}
+      <img src="{{ photo_url }}" class="sidebar-photo" alt="Photo"/>
+      {% endif %}
+      <div class="sidebar-name">{{ cv.name }}</div>
+      {% if cv.title %}<div class="sidebar-title">{{ cv.title }}</div>{% endif %}
+    </div>
+
+    <div class="contact-block">
+      {% if cv.contact_info.email %}
+      <div class="contact-label">Email</div>
+      <div class="contact-value">{{ cv.contact_info.email }}</div>
+      {% endif %}
+      {% if cv.contact_info.phone %}
+      <div class="contact-label">Téléphone</div>
+      <div class="contact-value">{{ cv.contact_info.phone }}</div>
+      {% endif %}
+      {% if cv.contact_info.location %}
+      <div class="contact-label">Localisation</div>
+      <div class="contact-value">{{ cv.contact_info.location }}</div>
+      {% endif %}
+      {% if cv.contact_info.linkedin %}
+      <div class="contact-label">LinkedIn</div>
+      <div class="contact-value">{{ cv.contact_info.linkedin }}</div>
+      {% endif %}
+      {% if cv.contact_info.website %}
+      <div class="contact-label">Portfolio</div>
+      <div class="contact-value">{{ cv.contact_info.website }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Skills in sidebar by category -->
+    {% if cv.skills %}
+    {% set ns = namespace(current_cat='', has_cat=false) %}
+    {% for skill in cv.skills %}
+      {% if skill.category %}{% set ns.has_cat = true %}{% endif %}
+    {% endfor %}
+
+    {% if ns.has_cat %}
+      {% for skill in cv.skills %}
+        {% if skill.category and skill.category != ns.current_cat %}
+          {% if ns.current_cat %}</div>{% endif %}
+          {% set ns.current_cat = skill.category %}
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">{{ skill.category }}</div>
+        {% endif %}
+        <div class="skill-item"><span class="skill-dot">&#9656;</span> {{ skill.name }}</div>
+      {% endfor %}
+      {% if ns.current_cat %}</div>{% endif %}
+    {% else %}
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Compétences</div>
+        {% for skill in cv.skills %}
+        <div class="skill-item"><span class="skill-dot">&#9656;</span> {{ skill.name }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Languages in sidebar -->
+    {% if cv.languages %}
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Langues</div>
+      {% for lang in cv.languages %}
+      <div class="skill-item"><span class="skill-dot">&#9656;</span> {{ lang.name }}{% if lang.level %} — {{ lang.level }}{% endif %}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Interests in sidebar -->
+    {% if cv.interests %}
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Intérêts</div>
+      {% for interest in cv.interests %}
+      <div class="skill-item"><span class="skill-dot">&#9656;</span> {{ interest }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </td>
+
+  <!-- MAIN CONTENT -->
+  <td class="main">
+
+    <!-- À Propos -->
+    {% if cv.summary %}
+    <div class="section">
+      <div class="section-title">À Propos</div>
+      <div class="summary-text">{{ cv.summary }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Expérience -->
+    {% if cv.experience %}
+    <div class="section">
+      <div class="section-title">Expérience</div>
+      {% for exp in cv.experience %}
+      <div class="entry">
+        <table class="entry-table" cellpadding="0" cellspacing="0">
+        <tr>
+          <td>
+            <div class="entry-title">{{ exp.post }}</div>
+            {% if exp.company %}<div class="entry-subtitle">{{ exp.company }}</div>{% endif %}
+          </td>
+          <td><div class="entry-date">{{ exp.dates }}</div></td>
+        </tr>
+        </table>
+        {% if exp.achievements %}
+        <div class="entry-desc">
+          {% for a in exp.achievements %}&bull; {{ a }}<br/>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Formation -->
+    {% if cv.education %}
+    <div class="section">
+      <div class="section-title">Formation</div>
+      {% for edu in cv.education %}
+      <div class="entry">
+        <table class="entry-table" cellpadding="0" cellspacing="0">
+        <tr>
+          <td>
+            <div class="entry-title">{{ edu.degree }}</div>
+            {% if edu.school %}<div class="entry-subtitle">{{ edu.school }}</div>{% endif %}
+          </td>
+          <td><div class="entry-date">{{ edu.dates }}</div></td>
+        </tr>
+        </table>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Certifications -->
+    {% if cv.certifications %}
+    <div class="section">
+      <div class="section-title">Certifications</div>
+      {% for cert in cv.certifications %}
+      <div class="entry">
+        <table class="entry-table" cellpadding="0" cellspacing="0">
+        <tr>
+          <td><div class="entry-title">{{ cert }}</div></td>
+        </tr>
+        </table>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Projects -->
+    {% if cv.projects %}
+    <div class="section">
+      <div class="section-title">Projets</div>
+      {% for p in cv.projects %}
+      <div class="entry">
+        <div class="entry-title">{{ p.title }}</div>
+        {% if p.description %}<div class="entry-desc">{{ p.description }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </td>
+</tr>
+</table>
+
+</body>
+</html>

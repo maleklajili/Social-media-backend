@@ -26,6 +26,8 @@ import type { Review } from "../reviews/review";
 import type { JobApplication } from "../job-application";
 import type { FriendGroup } from "../friend-group";
 import type { Notification } from "../notification";
+import type { AiCv } from "../ai-cv";
+import type { ManualCv } from "../manual-cv";
 
 export class CollectionsManager {
   static userCollection: Collection<User>;
@@ -54,6 +56,8 @@ export class CollectionsManager {
   static jobApplicationCollection: Collection<JobApplication>;
   static friendGroupCollection: Collection<FriendGroup>;
   static notificationCollection: Collection<Notification>;
+  static aiCvCollection: Collection<AiCv>;
+  static manualCvCollection: Collection<ManualCv>;
 
   static initializeCollections(client: MongoClient) {
     const db = client.db(EnvLoader.databaseName);
@@ -90,5 +94,7 @@ export class CollectionsManager {
       db.collection<JobApplication>("job-applications");
     this.friendGroupCollection = db.collection<FriendGroup>("friend-groups");
     this.notificationCollection = db.collection<Notification>("notifications");
+    this.aiCvCollection = db.collection<AiCv>("ai-cvs");
+    this.manualCvCollection = db.collection<ManualCv>("manual-cvs");
   }
 }

@@ -1,0 +1,181 @@
+{
+  "info": {
+    "name": "AI CV API",
+    "description": "Collection Postman pour les endpoints AI CV — génération, reformulation, téléchargement PDF, liste et suppression de CVs générés par IA.\n\nBase URL: `http://localhost:{{PORT}}/ai-cv`\n\nAuthentification: Bearer Token (JWT) dans le header `Authorization`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:6000",
+      "type": "string"
+    },
+    {
+      "key": "TOKEN",
+      "value": "",
+      "type": "string",
+      "description": "JWT token obtenu après login"
+    },
+    {
+      "key": "CV_ID",
+      "value": "",
+      "type": "string",
+      "description": "ObjectId du CV généré"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Générer un CV",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/ai-cv/generate",
+          "host": ["{{BASE_URL}}"],
+          "path": ["ai-cv", "generate"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"language\": \"fr\",\n  \"section\": \"full\",\n  \"format\": \"standard\",\n  \"customPrompt\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Génère un CV complet à partir du profil de l'utilisateur connecté via Ollama (llama3).\n\n**Body Parameters:**\n| Champ | Type | Requis | Défaut | Description |\n|-------|------|--------|--------|-------------|\n| `language` | string | Non | `\"fr\"` | Langue du CV (`\"fr\"`, `\"en\"`, etc.) |\n| `section` | string | Non | `\"full\"` | Section à générer: `\"full\"`, `\"summary\"`, `\"experience\"`, `\"education\"`, `\"skills\"`, `\"projects\"` |\n| `format` | string | Non | `\"standard\"` | Format du CV: `\"standard\"`, `\"canadian\"`, `\"latex\"`, `\"modern\"`, `\"european\"` |\n| `customPrompt` | string | Non | - | Instructions personnalisées pour la génération |\n\n**Réponse succès (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"ObjectId\",\n    \"userId\": \"ObjectId\",\n    \"title\": \"CV Complet - Français\",\n    \"content\": \"# Prénom Nom\\n## Profil\\n...\",\n    \"section\": \"full\",\n    \"format\": \"standard\",\n    \"status\": \"generated\",\n    \"language\": \"fr\",\n    \"promptUsed\": \"\",\n    \"version\": 1,\n    \"createdAt\": \"2025-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2025-01-01T00:00:00.000Z\"\n  }\n}\n```"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.data && jsonData.data._id) {",
+              "        pm.collectionVariables.set('CV_ID', jsonData.data._id);",
+              "        console.log('CV_ID saved:', jsonData.data._id);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Lister mes CVs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{BASE_URL}}/ai-cv/my-cvs",
+          "host": ["{{BASE_URL}}"],
+          "path": ["ai-cv", "my-cvs"]
+        },
+        "description": "Récupère la liste de tous les CVs générés par l'utilisateur connecté.\n\n**Réponse succès (200):**\n```json\n{\n  \"success\": true,\n  \"data\": [\n    {\n      \"_id\": \"ObjectId\",\n      \"userId\": \"ObjectId\",\n      \"title\": \"CV Complet - Français\",\n      \"content\": \"# Prénom Nom\\n...\",\n      \"section\": \"full\",\n      \"format\": \"standard\",\n      \"status\": \"generated\",\n      \"language\": \"fr\",\n      \"version\": 1,\n      \"createdAt\": \"2025-01-01T00:00:00.000Z\",\n      \"updatedAt\": \"2025-01-01T00:00:00.000Z\"\n    }\n  ]\n}\n```"
+      }
+    },
+    {
+      "name": "3. Reformuler un CV",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/ai-cv/reformulate/{{CV_ID}}",
+          "host": ["{{BASE_URL}}"],
+          "path": ["ai-cv", "reformulate", "{{CV_ID}}"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"instructions\": \"Rendre le CV plus concis et mettre en avant les compétences techniques\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Reformule un CV existant avec des instructions optionnelles. Crée une nouvelle version liée au CV parent.\n\n**Path Parameters:**\n| Champ | Type | Requis | Description |\n|-------|------|--------|-------------|\n| `id` | string | Oui | ObjectId du CV à reformuler |\n\n**Body Parameters:**\n| Champ | Type | Requis | Description |\n|-------|------|--------|-------------|\n| `instructions` | string | Non | Instructions pour guider la reformulation |\n\n**Réponse succès (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"ObjectId\",\n    \"userId\": \"ObjectId\",\n    \"title\": \"CV Complet - Français (v2)\",\n    \"content\": \"# Prénom Nom\\n...\",\n    \"section\": \"full\",\n    \"format\": \"standard\",\n    \"status\": \"reformulated\",\n    \"language\": \"fr\",\n    \"promptUsed\": \"Rendre le CV plus concis...\",\n    \"version\": 2,\n    \"parentId\": \"ObjectId du CV parent\",\n    \"createdAt\": \"2025-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2025-01-01T00:00:00.000Z\"\n  }\n}\n```"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.data && jsonData.data._id) {",
+              "        pm.collectionVariables.set('CV_ID', jsonData.data._id);",
+              "        console.log('New CV_ID (reformulated):', jsonData.data._id);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Télécharger PDF",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{BASE_URL}}/ai-cv/download-pdf/{{CV_ID}}",
+          "host": ["{{BASE_URL}}"],
+          "path": ["ai-cv", "download-pdf", "{{CV_ID}}"]
+        },
+        "description": "Génère et télécharge le CV au format PDF. Le PDF est rendu côté serveur via Jinja2 + xhtml2pdf (Python).\n\n**Path Parameters:**\n| Champ | Type | Requis | Description |\n|-------|------|--------|-------------|\n| `id` | string | Oui | ObjectId du CV à télécharger |\n\n**Réponse succès (200):**\n- Content-Type: `application/pdf`\n- Content-Disposition: `attachment; filename=\"Titre du CV.pdf\"`\n- Body: Fichier PDF binaire\n\n**Note:** Dans Postman, cliquez sur \"Save Response\" > \"Save to a file\" pour sauvegarder le PDF."
+      }
+    },
+    {
+      "name": "5. Supprimer un CV",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{BASE_URL}}/ai-cv/delete/{{CV_ID}}",
+          "host": ["{{BASE_URL}}"],
+          "path": ["ai-cv", "delete", "{{CV_ID}}"]
+        },
+        "description": "Supprime un CV généré par l'utilisateur connecté.\n\n**Path Parameters:**\n| Champ | Type | Requis | Description |\n|-------|------|--------|-------------|\n| `id` | string | Oui | ObjectId du CV à supprimer |\n\n**Réponse succès (200):**\n```json\n{\n  \"success\": true,\n  \"data\": \"CV supprimé avec succès\"\n}\n```\n\n**Réponse erreur (404):**\n```json\n{\n  \"success\": false,\n  \"error\": \"CV non trouvé\"\n}\n```"
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [""],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [""],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}

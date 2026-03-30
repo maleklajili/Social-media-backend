@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="fr-FR">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      @page {
+        size: A4;
+        margin: 0.75in;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+        font-size: 10pt;
+        color: #333;
+        line-height: 1.5;
+      }
+
+      /* Header */
+      .header-table {
+        width: 100%;
+        margin-bottom: 12pt;
+        border-bottom: 1pt solid #e2e8f0;
+        padding-bottom: 9pt;
+      }
+      .header-info {
+        vertical-align: top;
+      }
+      .header-photo {
+        width: 100pt;
+        text-align: right;
+        vertical-align: top;
+      }
+      .photo-box {
+        width: 86pt;
+        height: 108pt;
+        border: 2pt solid #0f766e;
+        border-radius: 4pt;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 8pt;
+        color: #6b7280;
+      }
+      .photo-img {
+        width: 86pt;
+        height: 108pt;
+        border: 2pt solid #0f766e;
+        border-radius: 4pt;
+      }
+      .name {
+        font-size: 22pt;
+        font-weight: bold;
+        color: #1f2937;
+        margin-bottom: 3pt;
+      }
+      .title {
+        font-size: 13pt;
+        color: #0f766e;
+        font-weight: 500;
+        margin-bottom: 6pt;
+      }
+      .contact-info {
+        font-size: 10pt;
+        color: #6b7280;
+        line-height: 1.3;
+      }
+
+      /* Section */
+      .section {
+        margin-bottom: 10pt;
+      }
+      .section-title {
+        font-size: 12pt;
+        font-weight: bold;
+        color: #0f766e;
+        border-bottom: 2pt solid #0f766e;
+        padding-bottom: 3pt;
+        margin-bottom: 6pt;
+      }
+
+      /* Summary */
+      .summary {
+        color: #4b5563;
+        font-size: 10pt;
+        line-height: 1.4;
+      }
+
+      /* Entry */
+      .entry {
+        margin-bottom: 6pt;
+        font-size: 10pt;
+      }
+      .entry-table {
+        width: 100%;
+      }
+      .position {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 10pt;
+      }
+      .dates {
+        color: #6b7280;
+        font-size: 9pt;
+        text-align: right;
+      }
+      .company-school {
+        color: #6b7280;
+        font-size: 9.5pt;
+      }
+      .description {
+        color: #4b5563;
+        margin-top: 2pt;
+        font-size: 9.5pt;
+      }
+
+      /* Skills */
+      .skills-list {
+        font-size: 9.5pt;
+        color: #4b5563;
+        line-height: 1.5;
+      }
+      .skill-label {
+        font-weight: bold;
+        color: #1f2937;
+      }
+
+      /* Languages */
+      .lang-item {
+        margin-bottom: 3pt;
+        font-size: 10pt;
+      }
+      .lang-name {
+        font-weight: bold;
+        color: #1f2937;
+      }
+      .lang-level {
+        color: #6b7280;
+        font-size: 9pt;
+      }
+
+      /* Items */
+      .item {
+        font-size: 9.5pt;
+        color: #4b5563;
+        margin-bottom: 2pt;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header with Photo -->
+    <table class="header-table" cellpadding="0" cellspacing="0">
+      <tr>
+        <td class="header-info">
+          <div class="name">{{ cv.name }}</div>
+          {% if cv.title %}
+          <div class="title">{{ cv.title }}</div>
+          {% endif %}
+          <div class="contact-info">
+            {% if cv.contact_info.location %}{{ cv.contact_info.location }}<br />{%
+            endif %} {% if cv.contact_info.phone %}{{ cv.contact_info.phone
+            }}<br />{% endif %} {% if cv.contact_info.email %}{{
+            cv.contact_info.email }}<br />{% endif %} {% if
+            cv.contact_info.linkedin %}{{ cv.contact_info.linkedin }}<br />{%
+            endif %} {% if cv.contact_info.website %}{{ cv.contact_info.website
+            }}{% endif %}
+          </div>
+        </td>
+        <td class="header-photo">
+          {% if photo_url %}
+          <img src="{{ photo_url }}" class="photo-img" alt="Photo" />
+          {% else %}
+          <div class="photo-box">[Photo<br />identité<br />4x5 cm]</div>
+          {% endif %}
+        </td>
+      </tr>
+    </table>
+
+    <!-- Profil Personnel -->
+    {% if cv.summary %}
+    <div class="section">
+      <div class="section-title">PROFIL PERSONNEL</div>
+      <div class="summary">{{ cv.summary }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Expérience Professionnelle -->
+    {% if cv.experience %}
+    <div class="section">
+      <div class="section-title">EXPÉRIENCE PROFESSIONNELLE</div>
+      {% for exp in cv.experience %}
+      <div class="entry">
+        <table class="entry-table" cellpadding="0" cellspacing="0">
+          <tr>
+            <td><span class="position">{{ exp.post }}</span></td>
+            <td><span class="dates">{{ exp.dates }}</span></td>
+          </tr>
+        </table>
+        {% if exp.company %}
+        <div class="company-school">{{ exp.company }}</div>
+        {% endif %} {% if exp.achievements %}
+        <div class="description">
+          {% for a in exp.achievements %}&bull; {{ a }}<br />{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Formation -->
+    {% if cv.education %}
+    <div class="section">
+      <div class="section-title">FORMATION</div>
+      {% for edu in cv.education %}
+      <div class="entry">
+        <table class="entry-table" cellpadding="0" cellspacing="0">
+          <tr>
+            <td><span class="position">{{ edu.degree }}</span></td>
+            <td><span class="dates">{{ edu.dates }}</span></td>
+          </tr>
+        </table>
+        {% if edu.school %}
+        <div class="company-school">{{ edu.school }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Compétences -->
+    {% if cv.skills %}
+    <div class="section">
+      <div class="section-title">COMPÉTENCES</div>
+      <div class="skills-list">
+        {% set ns = namespace(current_cat='', items=[]) %} {% for skill in
+        cv.skills %} {% if skill.category and skill.category != ns.current_cat
+        %} {% if ns.current_cat and ns.items %}
+        <span class="skill-label">{{ ns.current_cat }} :</span> {{
+        ns.items|join(', ') }}<br />
+        {% endif %} {% set ns.current_cat = skill.category %} {% set ns.items =
+        [skill.name] %} {% elif skill.category %} {% set ns.items = ns.items +
+        [skill.name] %} {% else %} &bull; {{ skill.name }}{% if skill.level %}
+        ({{ skill.level }}){% endif %}<br />
+        {% endif %} {% endfor %} {% if ns.current_cat and ns.items %}
+        <span class="skill-label">{{ ns.current_cat }} :</span> {{
+        ns.items|join(', ') }}<br />
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Langues -->
+    {% if cv.languages %}
+    <div class="section">
+      <div class="section-title">LANGUES</div>
+      {% for lang in cv.languages %}
+      <div class="lang-item">
+        <span class="lang-name">{{ lang.name }}</span>
+        {% if lang.level %}<span class="lang-level"> {{ lang.level }}</span>{%
+        endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Projets -->
+    {% if cv.projects %}
+    <div class="section">
+      <div class="section-title">PROJETS</div>
+      {% for p in cv.projects %}
+      <div class="entry">
+        <span class="position">{{ p.title }}</span>
+        {% if p.description %}
+        <div class="description">{{ p.description }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Certifications -->
+    {% if cv.certifications %}
+    <div class="section">
+      <div class="section-title">CERTIFICATIONS</div>
+      {% for cert in cv.certifications %}
+      <div class="item">&bull; {{ cert }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Intérêts -->
+    {% if cv.interests %}
+    <div class="section">
+      <div class="section-title">INTÉRÊTS</div>
+      <div class="item">{{ cv.interests|join(' &bull; ') }}</div>
+    </div>
+    {% endif %}
+  </body>
+</html>

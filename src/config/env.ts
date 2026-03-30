@@ -24,4 +24,9 @@ export class EnvLoader {
     Bun.env.RESET_TOKEN_EXPIRY_MS || "3600000",
     10,
   );
+
+  //OLLAMA AI (free, local)
+  static readonly ollamaModel: string = String(
+    Bun.env.OLLAMA_MODEL || "llama3.2",
+  );
 }
