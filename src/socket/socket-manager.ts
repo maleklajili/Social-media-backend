@@ -15,29 +15,38 @@ interface TokenPayload extends jwt.JwtPayload {
   _id?: string;
 }
 
-export const initSocketServer = () => {
-  console.log(" [Socket] Initialisation du serveur Socket.IO séparé...");
-
-  const SOCKET_PORT = process.env.SOCKET_PORT || 9001;
-
-  const httpServer = http.createServer((req, res) => {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("Socket.IO server running\n");
-  });
-
-  if (io && httpServer) {
-    console.log(" [Socket] Socket.IO déjà initialisé");
+export const initSocketServer = (httpServer?: http.Server) => {
+  // 🔐 Empêche toute double initialisation
+  if (io) {
+    console.log("⚠️ [Socket] Socket.IO déjà initialisé");
     return io;
   }
 
-  io = new SocketServer(httpServer, {
+  console.log("🔌 [Socket] Initialisation du serveur Socket.IO...");
+
+  // Si aucun serveur HTTP n'est fourni, en créer un sur un port séparé
+  let server: http.Server;
+  const useSeparatePort = !httpServer;
+
+  if (useSeparatePort) {
+    const SOCKET_PORT = process.env.SOCKET_PORT || 9001;
+    server = http.createServer((req, res) => {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end("Socket.IO server running\n");
+    });
+    server.listen(SOCKET_PORT, () => {
+      console.log(`[Socket] Serveur Socket.IO démarré sur port ${SOCKET_PORT}`);
+      console.log(
+        ` WebSocket disponible à: ws://localhost:${SOCKET_PORT}/socket.io/`,
+      );
+    });
+  } else {
+    server = httpServer;
+  }
+
+  io = new SocketServer(server, {
     cors: {
-      origin: [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3002",
-        "http://127.0.0.1:3002",
-      ],
+      origin: "*",
       credentials: true,
       methods: ["GET", "POST"],
       allowedHeaders: ["authorization", "content-type"],
@@ -228,13 +237,6 @@ export const initSocketServer = () => {
     // Initialize notification handlers
     const notificationController = new NotificationController();
     notificationController.registerSocketHandlers(socket);
-  });
-
-  httpServer.listen(SOCKET_PORT, () => {
-    console.log(`[Socket] Serveur Socket.IO démarré sur port ${SOCKET_PORT}`);
-    console.log(
-      ` WebSocket disponible à: ws://localhost:${SOCKET_PORT}/socket.io/`,
-    );
   });
 
   return io;
