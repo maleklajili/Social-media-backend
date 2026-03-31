@@ -152,7 +152,7 @@ export class NotificationEventHandler {
         notification,
       );
 
-      console.log(`📬 Comment notification sent to user ${postOwnerId}`);
+      console.log(` Comment notification sent to user ${postOwnerId}`);
     } catch (error) {
       console.error("Error handling new comment notification:", error);
     }
@@ -211,7 +211,183 @@ export class NotificationEventHandler {
       console.error("Error handling new like notification:", error);
     }
   }
+  // Add this method to your NotificationEventHandler class
 
+  /**
+   * Notifier le propriétaire d'une entreprise quand sa demande de vérification est traitée
+   */
+  async handleCompanyVerification(
+    companyOwnerId: ObjectId,
+    companyId: ObjectId,
+    companyName: string,
+    status: "verified" | "rejected",
+    notes?: string,
+  ): Promise<void> {
+    try {
+      const isVerified = status === "verified";
+
+      const options: CreateNotificationOptions = {
+        userId: companyOwnerId,
+        type: "company_verification",
+        fromUser: companyOwnerId,
+        title: isVerified
+          ? "Votre entreprise a été vérifiée !"
+          : "Demande de vérification refusée",
+        description: isVerified
+          ? `Félicitations ! Votre entreprise "${companyName}" a été vérifiée avec succès. Vous bénéficiez désormais du badge de confiance et de tous les avantages réservés aux entreprises vérifiées.`
+          : `Nous sommes au regret de vous informer que la demande de vérification de votre entreprise "${companyName}" a été refusée.${notes ? ` Motif : ${notes}` : ""} Vous pouvez soumettre une nouvelle demande avec des documents supplémentaires.`,
+        relatedContent: companyId,
+        contentType: "company",
+        action: isVerified
+          ? "Voir mon entreprise"
+          : "Soumettre une nouvelle demande",
+        actionUrl: `/companies/${companyId}`,
+        metadata: {
+          companyName,
+          companyId: companyId.toString(),
+          verificationStatus: status,
+          verificationNotes: notes,
+        },
+      };
+
+      const notification =
+        await this.notificationService.createNotification(options);
+      await this.notificationService.sendNotificationViaSocket(
+        companyOwnerId,
+        notification,
+      );
+
+      console.log(
+        ` Company verification notification sent to owner ${companyOwnerId} (status: ${status})`,
+      );
+    } catch (error) {
+      console.error("Error handling company verification notification:", error);
+    }
+  }
+
+  /**
+   * Notifier l'admin quand une nouvelle demande de vérification est soumise
+   */
+  async handleNewVerificationRequest(
+    companyOwnerId: ObjectId,
+    companyId: ObjectId,
+    companyName: string,
+    adminIds: ObjectId[],
+  ): Promise<void> {
+    if (!adminIds || adminIds.length === 0) return;
+
+    try {
+      const companyOwner = await CollectionsManager.userCollection.findOne({
+        _id: companyOwnerId,
+      });
+
+      const ownerName =
+        companyOwner?.userName || companyOwner?.firstName || "Un utilisateur";
+
+      for (const adminId of adminIds) {
+        const options: CreateNotificationOptions = {
+          userId: adminId,
+          type: "verification_request",
+          fromUser: companyOwnerId,
+          title: " Nouvelle demande de vérification",
+          description: `${ownerName} a soumis une demande de vérification pour l'entreprise "${companyName}". Veuillez examiner les documents fournis.`,
+          relatedContent: companyId,
+          contentType: "company",
+          action: "Examiner la demande",
+          actionUrl: `/admin/verification-requests/${companyId}`,
+          metadata: {
+            companyName,
+            companyId: companyId.toString(),
+            ownerName,
+            ownerId: companyOwnerId.toString(),
+          },
+        };
+
+        const notification =
+          await this.notificationService.createNotification(options);
+        await this.notificationService.sendNotificationViaSocket(
+          adminId,
+          notification,
+        );
+      }
+
+      console.log(
+        `New verification request notifications sent to ${adminIds.length} admins`,
+      );
+    } catch (error) {
+      console.error(
+        "Error handling new verification request notification:",
+        error,
+      );
+    }
+  }
+
+  /**
+   * Notifier l'admin quand une demande de vérification est mise à jour
+   */
+  async handleVerificationRequestUpdate(
+    companyId: ObjectId,
+    companyName: string,
+    adminId: ObjectId,
+    updateType: "new_documents" | "status_change" | "additional_info",
+    previousStatus?: string,
+    newStatus?: string,
+  ): Promise<void> {
+    try {
+      let title = "";
+      let description = "";
+
+      switch (updateType) {
+        case "new_documents":
+          title = " Nouveaux documents ajoutés";
+          description = `L'entreprise "${companyName}" a ajouté de nouveaux documents pour sa demande de vérification.`;
+          break;
+        case "status_change":
+          title = " Changement de statut";
+          description = `La demande de vérification de "${companyName}" est passée de ${previousStatus} à ${newStatus}.`;
+          break;
+        case "additional_info":
+          title = "ℹ Informations complémentaires";
+          description = `L'entreprise "${companyName}" a ajouté des informations supplémentaires à sa demande de vérification.`;
+          break;
+      }
+
+      const options: CreateNotificationOptions = {
+        userId: adminId,
+        type: "verification_request_update",
+        fromUser: companyId,
+        title,
+        description,
+        relatedContent: companyId,
+        contentType: "company",
+        action: "Voir la demande",
+        actionUrl: `/admin/verification-requests/${companyId}`,
+        metadata: {
+          companyName,
+          companyId: companyId.toString(),
+          updateType,
+          previousStatus,
+          newStatus,
+        },
+      };
+
+      const notification =
+        await this.notificationService.createNotification(options);
+      await this.notificationService.sendNotificationViaSocket(
+        adminId,
+        notification,
+      );
+
+      console.log(
+        ` Verification request update notification sent to admin ${adminId}`,
+      );
+    } catch (error) {
+      console.error(
+        "Error handling verification request update notification:",
+        error,
+      );
+    }
+  }
   /**
    * Notify user when they're mentioned in a post or comment
    */

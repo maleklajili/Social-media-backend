@@ -90,32 +90,79 @@ export class CompanyServices
         company.coverImage = `${coverResult.fileName}`;
       }
     }
+    for (const key of formData.keys()) {
+      const value = formData.get(key);
+      if (value instanceof File) {
+        console.log(
+          `- ${key}: FILE (${value.name}, ${value.size} bytes, ${value.type})`,
+        );
+      } else {
+        console.log(`- ${key}: ${value}`);
+      }
+    }
 
-    // Handle verification documents if requested
-    if (
-      formData.has("verificationDocuments") &&
-      formData.get("requestVerification") === "true"
-    ) {
+    const documentsCount = parseInt(
+      (formData.get("verificationDocumentsCount") as string) || "0",
+    );
+
+    if (documentsCount > 0) {
       const docsStorePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.companies}/verification`;
       company.verificationStatus = "pending";
 
-      const docsResult = await handleFileUpload(formData, {
-        fieldName: "verificationDocuments",
-        storePath: docsStorePath,
-        fileName: `doc-${Date.now()}`,
-        multiple: true,
-        writeToDisk: true,
-        userId,
-      });
+      const verificationDocuments = [];
 
-      if (Array.isArray(docsResult) && docsResult.length > 0) {
-        company.verificationDocuments = docsResult.map((doc, index) => ({
-          file: `${doc.fileName}`,
-          type: (formData.get(`documentType${index}`) as string) || "document",
-          name:
-            (formData.get(`documentName${index}`) as string) ||
-            `Document ${index + 1}`,
-        }));
+      for (let i = 0; i < documentsCount; i++) {
+        let file = formData.get(`verificationDocument_${i}`) as File;
+        if (!file || !(file instanceof File)) {
+          file = formData.get(`verificationDocuments_${i}`) as File;
+        }
+        if (!file || !(file instanceof File)) {
+          file = formData.get(`document_${i}`) as File;
+        }
+
+        const docType = formData.get(`documentType_${i}`) as string;
+        const docName = formData.get(`documentName_${i}`) as string;
+
+        if (file && file instanceof File && file.size > 0) {
+          const tempFormData = new FormData();
+          tempFormData.append("file", file);
+
+          const uploadResult = await handleFileUpload(tempFormData, {
+            fieldName: "file",
+            storePath: docsStorePath,
+            fileName: `doc-${Date.now()}-${i}`,
+            multiple: false,
+            writeToDisk: true,
+            userId,
+          });
+
+          if (
+            uploadResult &&
+            !Array.isArray(uploadResult) &&
+            uploadResult.fileName
+          ) {
+            verificationDocuments.push({
+              file: uploadResult.fileName,
+              type: docType || "document",
+              name: docName || `Document ${i + 1}`,
+            });
+            console.log(` ADD Document uploadé: ${uploadResult.fileName}`);
+          } else {
+            console.log(` Échec upload document ${i}`);
+          }
+        } else {
+          console.log(` ADD Document ${i} invalide ou vide`);
+        }
+      }
+
+      if (verificationDocuments.length > 0) {
+        company.verificationDocuments = verificationDocuments;
+        console.log(
+          `📁 ${verificationDocuments.length} documents de vérification sauvegardés pour la nouvelle entreprise`,
+        );
+      } else {
+        console.log(`⚠️ Aucun document valide trouvé, statut inchangé`);
+        company.verificationStatus = "not_requested";
       }
     }
 
@@ -138,7 +185,7 @@ export class CompanyServices
         },
       );
     } catch (err) {
-      console.error("❌ Error adding coins:", err);
+      console.error(" Error adding coins:", err);
     }
 
     return ResponseHelper.success(company);
@@ -151,7 +198,6 @@ export class CompanyServices
     formData: FormData,
   ): Promise<Response> {
     try {
-      // Check if company exists and belongs to user
       const existingCompany = await this.collection.findOne({
         _id: companyId,
         userId,
@@ -192,6 +238,7 @@ export class CompanyServices
         company.logo = existingCompany.logo;
       }
 
+      // Handle cover image update
       const coverStorePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.companies}/cover`;
       if (formData.has("coverImage")) {
         if (existingCompany.coverImage) {
@@ -218,10 +265,22 @@ export class CompanyServices
         company.coverImage = existingCompany.coverImage;
       }
 
-      if (
-        formData.has("verificationDocuments") &&
-        formData.get("requestVerification") === "true"
-      ) {
+      const keys: string[] = [];
+      for (const key of formData.keys()) {
+        keys.push(key);
+        const value = formData.get(key);
+        if (value instanceof File) {
+          console.log(`- ${key}: FILE (${value.name})`);
+        } else {
+          console.log(`- ${key}: ${value}`);
+        }
+      }
+
+      const documentsCount = parseInt(
+        (formData.get("verificationDocumentsCount") as string) || "0",
+      );
+
+      if (documentsCount > 0) {
         const docsStorePath = `${UPLOAD_PATHS.images}-${userId}/${UPLOAD_PATHS.companies}/verification`;
 
         if (
@@ -233,52 +292,86 @@ export class CompanyServices
           }
         }
 
-        const docsResult = await handleFileUpload(formData, {
-          fieldName: "verificationDocuments",
-          storePath: docsStorePath,
-          fileName: `doc-${Date.now()}`,
-          multiple: true,
-          writeToDisk: true,
-          userId,
-        });
+        const verificationDocuments = [];
 
-        if (Array.isArray(docsResult) && docsResult.length > 0) {
-          company.verificationDocuments = docsResult.map((doc, index) => ({
-            file: `${doc.fileName}`,
-            type:
-              (formData.get(`documentType${index}`) as string) || "document",
-            name:
-              (formData.get(`documentName${index}`) as string) ||
-              `Document ${index + 1}`,
-          }));
+        for (let i = 0; i < documentsCount; i++) {
+          let file = formData.get(`verificationDocument_${i}`) as File;
+          if (!file || !(file instanceof File)) {
+            file = formData.get(`verificationDocuments_${i}`) as File;
+          }
+          if (!file || !(file instanceof File)) {
+            file = formData.get(`document_${i}`) as File;
+          }
+
+          const docType = formData.get(`documentType_${i}`) as string;
+          const docName = formData.get(`documentName_${i}`) as string;
+
+          if (file && file instanceof File && file.size > 0) {
+            const tempFormData = new FormData();
+            tempFormData.append("file", file);
+
+            const uploadResult = await handleFileUpload(tempFormData, {
+              fieldName: "file",
+              storePath: docsStorePath,
+              fileName: `doc-${Date.now()}-${i}`,
+              multiple: false,
+              writeToDisk: true,
+              userId,
+            });
+
+            if (
+              uploadResult &&
+              !Array.isArray(uploadResult) &&
+              uploadResult.fileName
+            ) {
+              verificationDocuments.push({
+                file: uploadResult.fileName,
+                type: docType || "document",
+                name: docName || `Document ${i + 1}`,
+              });
+              console.log(`Update Document uploadé: ${uploadResult.fileName}`);
+            } else {
+              console.log(` Échec upload document ${i}`);
+            }
+          } else {
+            console.log(`Document ${i} invalide ou vide`);
+          }
+        }
+
+        if (verificationDocuments.length > 0) {
+          company.verificationDocuments = verificationDocuments;
           company.verificationStatus = "pending";
+          console.log(
+            ` ${verificationDocuments.length} nouveaux documents de vérification sauvegardés`,
+          );
+        } else {
+          company.verificationDocuments = existingCompany.verificationDocuments;
+          company.verificationStatus = existingCompany.verificationStatus;
         }
       } else {
         company.verificationDocuments = existingCompany.verificationDocuments;
         company.verificationStatus = existingCompany.verificationStatus;
       }
 
-      if (formData.has("documentsToDelete")) {
-        const docsToDeleteRaw = formData.get("documentsToDelete") as string;
-        const docsToDelete: string[] = JSON.parse(docsToDeleteRaw);
+      if (formData.has("filesToDelete")) {
+        const filesToDeleteRaw = formData.get("filesToDelete") as string;
+        const filesToDelete: string[] = JSON.parse(filesToDeleteRaw);
 
         if (
-          docsToDelete &&
-          docsToDelete.length > 0 &&
+          filesToDelete &&
+          filesToDelete.length > 0 &&
           company.verificationDocuments
         ) {
           company.verificationDocuments = company.verificationDocuments.filter(
-            (doc) => !docsToDelete.includes(doc.file),
+            (doc) => !filesToDelete.includes(doc.file),
           );
 
-          // Delete files from disk
-          for (const docPath of docsToDelete) {
+          for (const docPath of filesToDelete) {
             await FileService.deleteFile(docPath);
           }
         }
       }
 
-      // Keep existing fields if not provided
       if (!company.name) company.name = existingCompany.name;
       if (!company.industry) company.industry = existingCompany.industry;
       if (!company.description)
@@ -301,15 +394,14 @@ export class CompanyServices
       if (!company.verificationNotes)
         company.verificationNotes = existingCompany.verificationNotes;
 
-      // Update timestamp
       company.updatedAt = new Date();
 
-      // Update company
+      // Update company in database
       await this.companyRepository.updateCompany(company);
 
       return ResponseHelper.success(company);
     } catch (err) {
-      console.error("❌ Error updating company:", err);
+      console.error(" Error updating company:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -319,7 +411,6 @@ export class CompanyServices
     companyId: ObjectId,
   ): Promise<Response> {
     try {
-      // Check if company exists and belongs to user
       const existingCompany = await this.collection.findOne({
         _id: companyId,
         userId,
@@ -329,7 +420,6 @@ export class CompanyServices
         return ResponseHelper.error("Company not found or access denied");
       }
 
-      // Remove coins for deleting a company
       try {
         await this.userRepository.removeCoins(
           userId,
@@ -343,7 +433,7 @@ export class CompanyServices
           COINS_CONFIG.REMOVE_COMPANY,
         );
       } catch (err) {
-        console.error("❌ Error removing coins:", err);
+        console.error(" Error removing coins:", err);
       }
 
       // Delete logo and cover images
@@ -354,7 +444,6 @@ export class CompanyServices
         await FileService.deleteFile(existingCompany.coverImage);
       }
 
-      // Delete verification documents
       if (
         existingCompany.verificationDocuments &&
         existingCompany.verificationDocuments.length > 0
@@ -371,7 +460,7 @@ export class CompanyServices
         message: "Company and associated files deleted successfully",
       });
     } catch (err) {
-      console.error("❌ Error deleting company:", err);
+      console.error(" Error deleting company:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -465,23 +554,20 @@ export class CompanyServices
         );
       }
 
-      // Follow côté entreprise
       await this.companyRepository.followCompany(currentUserId, targetId);
-      // Follow côté utilisateur
       await this.userRepository.followCompany(currentUserId, targetId);
 
-      // 🔔 NOTIFICATION AU PROPRIÉTAIRE DE L'ENTREPRISE
       try {
         const follower = await this.userRepository.findById(currentUserId, 0);
         const followerName =
           follower?.userName || follower?.firstName || "Quelqu'un";
 
         await this.notificationHandler.handleCompanyFollow(
-          currentUserId, // Le follower
-          company.userId, // Le propriétaire de l'entreprise
-          targetId, // L'ID de l'entreprise
-          company.name, // Nom de l'entreprise
-          followerName, // Nom du follower
+          currentUserId,
+          company.userId,
+          targetId,
+          company.name,
+          followerName,
         );
       } catch (err) {
         console.error("Error sending company follow notification:", err);
@@ -523,9 +609,7 @@ export class CompanyServices
         return ResponseHelper.error("You are not following this company", 400);
       }
 
-      // Unfollow côté entreprise
       await this.companyRepository.unfollowCompany(currentUserId, targetId);
-      // Unfollow côté utilisateur
       await this.userRepository.unfollowCompany(currentUserId, targetId);
 
       const followerCount =
@@ -543,7 +627,7 @@ export class CompanyServices
 
   async getAllCompaniesWithFollowStatus(
     userId: ObjectId,
-    filter: Filter<Company>, // ← plus de any, utilisation du type MongoDB
+    filter: Filter<Company>,
     pagination: { skip: number; limit: number },
   ): Promise<{ data: Company[]; total: number }> {
     const companies = await this.collection
@@ -637,5 +721,110 @@ export class CompanyServices
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
+  }
+
+  async verifyCompany(
+    companyId: ObjectId,
+    status: "verified" | "rejected",
+    notes?: string,
+  ): Promise<Response> {
+    try {
+      const company = await this.companyRepository.getCompanyById(companyId);
+
+      if (!company) {
+        return ResponseHelper.error("Company not found");
+      }
+
+      const updateData: Partial<Company> = {
+        verificationStatus: status,
+        updatedAt: new Date(),
+        adminResponse:
+          notes ||
+          (status === "verified"
+            ? "Félicitations ! Votre entreprise a été vérifiée avec succès."
+            : "Nous vous remercions pour votre demande. Malheureusement, les documents fournis ne sont pas suffisants pour valider votre entreprise."),
+        adminResponseDate: new Date(),
+      };
+
+      if (status === "verified") {
+        updateData.verified = true;
+      } else {
+        updateData.verified = false;
+      }
+
+      await this.companyRepository.updateCompany({
+        ...company,
+        ...updateData,
+      } as Company);
+
+      // Send notification to company owner
+      try {
+        const companyName = company.name;
+        await this.notificationHandler.handleCompanyVerification(
+          company.userId,
+          companyId,
+          companyName,
+          status,
+          updateData.adminResponse,
+        );
+      } catch (err) {
+        console.error("Error sending verification notification:", err);
+      }
+
+      return ResponseHelper.success({
+        message: `Company ${status === "verified" ? "verified" : "rejected"} successfully`,
+        verificationStatus: status,
+        adminResponse: updateData.adminResponse,
+      });
+    } catch (err) {
+      console.error(" Error verifying company:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getVerificationRequests(
+    status?: string,
+    pagination?: { skip: number; limit: number },
+  ): Promise<{ data: Company[]; total: number }> {
+    const filter: Filter<Company> = {};
+
+    if (status && status !== "all") {
+      filter.verificationStatus = status as "pending" | "verified" | "rejected";
+    } else {
+      filter.verificationStatus = { $in: ["pending", "verified", "rejected"] };
+    }
+
+    const skip = pagination?.skip || 0;
+    const limit = pagination?.limit || 20;
+
+    const companies = await this.collection
+      .find(filter)
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const total = await this.collection.countDocuments(filter);
+
+    // Fetch user info for each company
+    const companiesWithUserInfo = await Promise.all(
+      companies.map(async (company) => {
+        const user = await this.userRepository.findById(company.userId, 0);
+        return {
+          ...company,
+          user: user
+            ? {
+                _id: user._id,
+                userName: user.userName,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+              }
+            : null,
+        };
+      }),
+    );
+
+    return { data: companiesWithUserInfo, total };
   }
 }

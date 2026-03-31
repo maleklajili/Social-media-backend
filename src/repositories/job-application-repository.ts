@@ -56,12 +56,18 @@ export class JobApplicationRepository implements IJobApplicationRepository {
     return (result[0] as JobApplication) || null;
   }
 
-  async getApplicationsByJobId(jobId: ObjectId): Promise<JobApplication[]> {
-    // ✅ Ajouter un lookup pour récupérer l'avatar des utilisateurs
-    return this.collection
-      .aggregate([
-        { $match: { jobId } },
+  async getApplicationsByJobId(
+    jobId: ObjectId,
+    pagination?: { skip: number; limit: number },
+  ): Promise<{ data: JobApplication[]; total: number }> {
+    try {
+      const filter = { jobId };
+      const total = await this.collection.countDocuments(filter);
+
+      const aggregation = this.collection.aggregate([
+        { $match: filter },
         { $sort: { appliedAt: -1 } },
+        // ✅ Joindre les détails de l'utilisateur pour l'avatar
         {
           $lookup: {
             from: "users",
@@ -76,20 +82,87 @@ export class JobApplicationRepository implements IJobApplicationRepository {
             preserveNullAndEmptyArrays: true,
           },
         },
+        // ✅ AJOUTER: Joindre les détails du job pour avoir le titre
+        {
+          $lookup: {
+            from: "jobs",
+            localField: "jobId",
+            foreignField: "_id",
+            as: "jobDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$jobDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        // ✅ AJOUTER: Joindre les détails de l'entreprise
+        {
+          $lookup: {
+            from: "companies",
+            localField: "companyId",
+            foreignField: "_id",
+            as: "companyDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$companyDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        // ✅ AJOUTER: Ajouter les champs enrichis
         {
           $addFields: {
             avatar: { $ifNull: ["$userDetails.image", null] },
+            // ✅ Ajouter le titre du job
+            jobTitle: { $ifNull: ["$jobDetails.title", "Offre d'emploi"] },
+            // ✅ Ajouter d'autres infos utiles
+            location: { $ifNull: ["$jobDetails.location", "Non spécifié"] },
+            contractType: {
+              $ifNull: ["$jobDetails.contractType", "Non spécifié"],
+            },
+            companyName: { $ifNull: ["$companyDetails.name", "Entreprise"] },
+            companyLogo: { $ifNull: ["$companyDetails.logo", ""] },
+            companyUserId: "$companyDetails.userId",
+            // ✅ Ajouter l'URL du CV
+            cvUrl: {
+              $cond: [
+                { $ifNull: ["$cvFileName", false] },
+                {
+                  $concat: [
+                    "/api/job-applications/",
+                    { $toString: "$_id" },
+                    "/cv",
+                  ],
+                },
+                null,
+              ],
+            },
           },
         },
         {
           $project: {
             userDetails: 0,
+            jobDetails: 0,
+            companyDetails: 0,
           },
         },
-      ])
-      .toArray() as Promise<JobApplication[]>;
-  }
+      ]);
 
+      if (pagination) {
+        aggregation.skip(pagination.skip).limit(pagination.limit);
+      }
+
+      const data = (await aggregation.toArray()) as JobApplication[];
+
+      return { data, total };
+    } catch (err) {
+      console.error("❌ Error getting applications by job ID:", err);
+      throw err;
+    }
+  }
   async getApplicationsByUserId(
     userId: ObjectId,
     pagination?: { skip: number; limit: number },

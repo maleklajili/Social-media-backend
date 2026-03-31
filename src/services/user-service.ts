@@ -662,4 +662,18 @@ export class UserService extends BaseService<User> implements IUserService {
 
     return score;
   }
+
+  async getUserStats(userId: ObjectId | undefined): Promise<Response> {
+    try {
+      if (!userId) {
+        return ResponseHelper.error("User ID is required", 400);
+      }
+
+      const stats = await this.userRepository.getUserStats(userId);
+      return ResponseHelper.success(stats);
+    } catch (err) {
+      console.error("Error in getUserStats:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 }

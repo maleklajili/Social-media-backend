@@ -6,6 +6,8 @@ import type { User } from "../models/user";
 
 export class userRepository implements IUserRepository {
   private collection = CollectionsManager.userCollection;
+  private postCollection = CollectionsManager.postCollection;
+  private commentCollection = CollectionsManager.commentCollection;
 
   async findById(
     userId: ObjectId,
@@ -360,5 +362,42 @@ export class userRepository implements IUserRepository {
       { projection: { _id: 1 } },
     );
     return !!user;
+  }
+
+  /**
+   * Récupérer les statistiques complètes d'un utilisateur
+   * @param userId - ID de l'utilisateur
+   * @returns Statistiques: postsCount, commentsCount, followersCount, followingCount
+   */
+  async getUserStats(userId: ObjectId): Promise<{
+    postsCount: number;
+    commentsCount: number;
+    followersCount: number;
+    followingCount: number;
+  }> {
+    try {
+      const postsCount = await this.postCollection.countDocuments({
+        userId: userId,
+      });
+
+      const commentsCount = await this.commentCollection.countDocuments({
+        userId: userId,
+      });
+
+      const user = await this.collection.findOne(
+        { _id: userId },
+        { projection: { followerCount: 1, followingCount: 1 } },
+      );
+
+      return {
+        postsCount,
+        commentsCount,
+        followersCount: user?.followerCount || 0,
+        followingCount: user?.followingCount || 0,
+      };
+    } catch (err) {
+      console.error("Error getting user stats:", err);
+      throw err;
+    }
   }
 }
