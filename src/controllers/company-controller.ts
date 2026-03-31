@@ -340,4 +340,52 @@ export class CompanyController extends BaseController<
       return ResponseHelper.serverError(String(err));
     }
   }
+
+  // In CompanyController class, add these endpoints:
+
+  @Put("/verify/:id", [authMiddleware])
+  async verifyCompany(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+
+      const { status, notes } = await req.json();
+
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing company id");
+      }
+
+      if (!status || !["verified", "rejected"].includes(status)) {
+        return ResponseHelper.error("Invalid verification status");
+      }
+
+      return this.service.verifyCompany(new ObjectId(id), status, notes);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/verification-requests", [authMiddleware, paginationMiddleware])
+  async getVerificationRequests(req: RequestWithPagination): Promise<Response> {
+    try {
+      const { status } = req.query;
+      const pagination = req.pagination;
+
+      if (!pagination) {
+        return ResponseHelper.error("Pagination manquante");
+      }
+
+      const result = await this.service.getVerificationRequests(
+        status as string,
+        { skip: pagination.skip, limit: pagination.take },
+      );
+
+      return autoPaginateResponse(
+        req,
+        Promise.resolve(result.data),
+        Promise.resolve(result.total),
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 }
