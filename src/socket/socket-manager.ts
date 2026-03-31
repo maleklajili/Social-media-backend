@@ -1,4 +1,4 @@
-// socket/socket-server.ts
+// socket/socket-manager.ts
 import { Server as SocketServer } from "socket.io";
 import http from "http";
 import { verifyToken } from "../utils/j-w-t";
@@ -46,7 +46,7 @@ export const initSocketServer = (httpServer?: http.Server) => {
 
   io = new SocketServer(server, {
     cors: {
-      origin: "*",
+      origin: "*", // À restreindre en production
       credentials: true,
       methods: ["GET", "POST"],
       allowedHeaders: ["authorization", "content-type"],
@@ -67,7 +67,7 @@ export const initSocketServer = (httpServer?: http.Server) => {
         socket.handshake.headers.authorization?.replace("Bearer ", "");
 
       console.log(
-        " [Socket] Auth attempt with token:",
+        "🔐 [Socket] Auth attempt with token:",
         token ? "présent" : "absent",
       );
 
@@ -88,10 +88,10 @@ export const initSocketServer = (httpServer?: http.Server) => {
       }
 
       socket.data.userId = userId;
-      console.log(` [Socket] Auth successful for user ${userId}`);
+      console.log(`✅ [Socket] Auth successful for user ${userId}`);
       next();
     } catch (error) {
-      console.error(" [Socket] Auth error:", error);
+      console.error("❌ [Socket] Auth error:", error);
       next(new Error("Erreur d'authentification"));
     }
   });
@@ -99,35 +99,35 @@ export const initSocketServer = (httpServer?: http.Server) => {
   // Gestion des connexions
   io.on("connection", (socket) => {
     const userId = socket.data.userId;
-    console.log(` [Socket] User ${userId} connected with ID ${socket.id}`);
+    console.log(`🔌 [Socket] User ${userId} connected with ID ${socket.id}`);
     console.log(`📌 Transport utilisé:`, socket.conn.transport.name);
 
     // Marquer l'utilisateur comme en ligne
     const wasAlreadyOnline = onlineUsers.has(userId);
     onlineUsers.set(userId, socket.id);
-    console.log(` [Socket] User ${userId} is now ONLINE`);
+    console.log(`✅ [Socket] User ${userId} is now ONLINE`);
     console.log(
-      ` [Socket] Current online users: ${Array.from(onlineUsers.keys()).join(", ")}`,
+      `👥 [Socket] Current online users: ${Array.from(onlineUsers.keys()).join(", ")}`,
     );
 
     // Joindre la room de l'utilisateur
     socket.join(`user:${userId}`);
     console.log(`📌 [Socket] User ${userId} joined room user:${userId}`);
 
-    // Utiliser io.emit au lieu de socket.broadcast pour s'assurer que tout le monde reçoit
+    // Notifier les autres utilisateurs que cet utilisateur est en ligne
     if (!wasAlreadyOnline) {
       socket.broadcast.emit("user-status-update", {
         userId,
         isOnline: true,
         lastSeen: new Date(),
       });
-      console.log(` [Socket] Broadcasted user-status-update for ${userId}`);
+      console.log(`📢 [Socket] Broadcasted user-status-update for ${userId}`);
     }
 
     // Envoyer la liste des utilisateurs en ligne au nouveau client
     const onlineUsersList = Array.from(onlineUsers.keys());
     socket.emit("online-users-list", onlineUsersList);
-    console.log(` [Socket] Sent online list to ${userId}:`, onlineUsersList);
+    console.log(`📋 [Socket] Sent online list to ${userId}:`, onlineUsersList);
 
     socket.emit("connected", {
       userId,
@@ -150,7 +150,7 @@ export const initSocketServer = (httpServer?: http.Server) => {
     socket.on("get-online-users", () => {
       const onlineUsersList = Array.from(onlineUsers.keys());
       console.log(
-        `[Socket] Sending online list to ${userId}:`,
+        `📋 [Socket] Sending online list to ${userId}:`,
         onlineUsersList,
       );
       socket.emit("online-users-list", onlineUsersList);
@@ -158,7 +158,7 @@ export const initSocketServer = (httpServer?: http.Server) => {
 
     // Écouter l'événement user:join du frontend
     socket.on("user:join", (data: { userId: string }) => {
-      console.log(` [Socket] User ${data.userId} joined via user:join event`);
+      console.log(`👤 [Socket] User ${data.userId} joined via user:join event`);
       if (!onlineUsers.has(data.userId)) {
         onlineUsers.set(data.userId, socket.id);
         socket.broadcast.emit("user:joined", { userId: data.userId });
@@ -174,7 +174,7 @@ export const initSocketServer = (httpServer?: http.Server) => {
       "message-read",
       (data: { messageId: string; conversationId: string }) => {
         console.log(
-          ` [Socket] User ${userId} read message ${data.messageId} in conversation ${data.conversationId}`,
+          `📖 [Socket] User ${userId} read message ${data.messageId} in conversation ${data.conversationId}`,
         );
 
         socket.to(`user:${data.conversationId}`).emit("message-read", {
@@ -186,13 +186,13 @@ export const initSocketServer = (httpServer?: http.Server) => {
 
     // Gérer la déconnexion
     socket.on("disconnect", (reason) => {
-      console.log(` [Socket] User ${userId} disconnected: ${reason}`);
+      console.log(`🔌 [Socket] User ${userId} disconnected: ${reason}`);
 
       // Marquer l'utilisateur comme hors ligne
       onlineUsers.delete(userId);
-      console.log(` [Socket] User ${userId} is now OFFLINE`);
+      console.log(`❌ [Socket] User ${userId} is now OFFLINE`);
       console.log(
-        ` [Socket] Remaining online users: ${Array.from(onlineUsers.keys()).join(", ")}`,
+        `👥 [Socket] Remaining online users: ${Array.from(onlineUsers.keys()).join(", ")}`,
       );
 
       // Notifier tous les autres utilisateurs que cet utilisateur est hors ligne
@@ -206,14 +206,14 @@ export const initSocketServer = (httpServer?: http.Server) => {
     });
 
     socket.on("error", (error) => {
-      console.error(` [Socket] Error for user ${userId}:`, error);
+      console.error(`❌ [Socket] Error for user ${userId}:`, error);
     });
 
     socket.on(
       "typing",
       (data: { conversationId: string; isTyping: boolean }) => {
         console.log(
-          ` [Socket] User ${userId} typing in ${data.conversationId}: ${data.isTyping}`,
+          `⌨️ [Socket] User ${userId} typing in ${data.conversationId}: ${data.isTyping}`,
         );
         socket.to(`user:${data.conversationId}`).emit("user_typing", {
           userId,
@@ -225,7 +225,7 @@ export const initSocketServer = (httpServer?: http.Server) => {
 
     socket.on("view_conversation", (data: { conversationId: string }) => {
       console.log(
-        ` [Socket] User ${userId} viewed conversation ${data.conversationId}`,
+        `👁️ [Socket] User ${userId} viewed conversation ${data.conversationId}`,
       );
       socket.to(`user:${data.conversationId}`).emit("conversation_viewed", {
         userId,
@@ -239,6 +239,7 @@ export const initSocketServer = (httpServer?: http.Server) => {
     notificationController.registerSocketHandlers(socket);
   });
 
+  console.log("✅ [Socket] Socket.IO server initialized successfully");
   return io;
 };
 
