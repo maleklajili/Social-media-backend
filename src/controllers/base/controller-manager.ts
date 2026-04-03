@@ -19,6 +19,7 @@ import { TransactionController } from "../transaction-controller";
 import UserController from "../user-controller";
 import { FriendGroupController } from "../friend-group-controller";
 import AdminController from "../admin-controller";
+import { SearchController } from "../search-controller";
 
 export class ControllerManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,6 +45,7 @@ export class ControllerManager {
       ReviewController,
       FriendGroupController,
       AdminController,
+      SearchController,
     ];
   }
 }
