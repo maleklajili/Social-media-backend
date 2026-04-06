@@ -20,6 +20,7 @@ import UserController from "../user-controller";
 import { FriendGroupController } from "../friend-group-controller";
 import AdminController from "../admin-controller";
 import { SearchController } from "../search-controller";
+import { ReportController } from "../report-controller";
 
 export class ControllerManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,6 +47,7 @@ export class ControllerManager {
       FriendGroupController,
       AdminController,
       SearchController,
+      ReportController,
     ];
   }
 }

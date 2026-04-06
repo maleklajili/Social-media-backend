@@ -176,7 +176,7 @@ class SpellCheckService {
         hasError: true,
       };
     } catch {
-      //eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return { corrected: word, suggestions: [], hasError: false };
     }
   }
