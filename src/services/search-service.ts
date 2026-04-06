@@ -3,6 +3,7 @@ import { ResponseHelper } from "../utils/response-helper";
 import type { SearchResult } from "../models/search/search-result";
 import type { ISearchService } from "../interfaces/search/i-search-service";
 import type { User } from "../models/user";
+import { spellCheckService } from "./spell-check.service";
 
 export class SearchService implements ISearchService {
   constructor(private searchRepository: SearchRepository) {}
@@ -19,6 +20,12 @@ export class SearchService implements ISearchService {
         return ResponseHelper.error(
           "Search query must be at least 2 characters",
         );
+      }
+      const spellCheckResult = await spellCheckService.correctQuery(query);
+      const searchQuery = query;
+      if (spellCheckResult.hasErrors) {
+        console.log(`🔍 Original query: "${query}"`);
+        console.log(`✅ Corrected query: "${spellCheckResult.corrected}"`);
       }
 
       const limit = options?.limit || 20;
@@ -44,7 +51,7 @@ export class SearchService implements ISearchService {
               url: `/community/${community._id}`,
               createdAt: community.createdAt || new Date(),
               relevanceScore: this.calculateRelevance(
-                query,
+                searchQuery,
                 community.name,
                 community.title,
                 community.description,
@@ -56,7 +63,10 @@ export class SearchService implements ISearchService {
 
       // Search Users (if no type filter or type is user)
       if (!type || type === "user") {
-        const users = await this.searchRepository.searchUsers(query, limit);
+        const users = await this.searchRepository.searchUsers(
+          searchQuery,
+          limit,
+        );
         for (const user of users) {
           if (user._id) {
             const fullName =
@@ -76,7 +86,7 @@ export class SearchService implements ISearchService {
               url: `/profile/${user._id}`,
               createdAt: user.createdAt || new Date(),
               relevanceScore: this.calculateRelevance(
-                query,
+                searchQuery,
                 user.userName,
                 user.firstName,
                 user.lastName,
@@ -89,7 +99,10 @@ export class SearchService implements ISearchService {
 
       // Search Posts (if no type filter or type is post)
       if (!type || type === "post") {
-        const posts = await this.searchRepository.searchPosts(query, limit);
+        const posts = await this.searchRepository.searchPosts(
+          searchQuery,
+          limit,
+        );
         for (const post of posts) {
           if (post._id) {
             // Try different possible property names for post image
@@ -112,7 +125,7 @@ export class SearchService implements ISearchService {
               url: `/post/${post._id}`,
               createdAt: post.createdAt || new Date(),
               relevanceScore: this.calculateRelevance(
-                query,
+                searchQuery,
                 post.title,
                 post.content,
               ),
@@ -129,7 +142,12 @@ export class SearchService implements ISearchService {
       return ResponseHelper.success({
         results: limitedResults,
         total: limitedResults.length,
-        query: query,
+        query: searchQuery,
+        originalQuery: query,
+        didYouMean: spellCheckResult.hasErrors
+          ? spellCheckResult.corrected
+          : undefined,
+        corrections: spellCheckResult.corrections,
       });
     } catch (err) {
       console.error("❌ Error in unified search:", err);
