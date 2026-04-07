@@ -32,4 +32,5 @@ export interface IFriendGroupRepository {
   searchFriendGroups(userId: ObjectId, query: string): Promise<FriendGroup[]>;
   getFriendGroupsByIds(ids: ObjectId[]): Promise<FriendGroup[]>;
   updateMembersCount(groupId: ObjectId, count: number): Promise<boolean>;
+  getUserGroups(userId: ObjectId): Promise<FriendGroup[]>;
 }

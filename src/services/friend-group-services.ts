@@ -6,16 +6,19 @@ import type { FriendGroup } from "../models/friend-group";
 import { ResponseHelper } from "../utils/response-helper";
 import { CollectionsManager } from "../models/base/collection-manager";
 import type { IFriendGroupService } from "../interfaces/friend-group/i-friend-group-service";
+import { userRepository } from "../repositories/user-repository";
 
 export class FriendGroupServices
   extends BaseService<FriendGroup>
   implements IFriendGroupService
 {
   private repository: FriendGroupRepository;
+  private userRepo: userRepository;
 
   constructor() {
     super(CollectionsManager.friendGroupCollection);
     this.repository = new FriendGroupRepository();
+    this.userRepo = new userRepository();
   }
 
   /**
@@ -529,7 +532,6 @@ export class FriendGroupServices
         query.trim(),
       );
 
-      // Enrichir les groupes avec le nombre de membres
       const enrichedGroups = groups.map((group) => ({
         ...group,
         membersCount: group.members?.length || 0,
@@ -539,6 +541,52 @@ export class FriendGroupServices
     } catch (error) {
       console.error("Error searching friend groups:", error);
       return ResponseHelper.error("Erreur lors de la recherche", 500);
+    }
+  }
+  async getUserGroups(userId: ObjectId): Promise<Response> {
+    try {
+      const groups = await this.repository.getUserGroups(userId);
+      const enrichedGroups = groups.map((group) => ({
+        ...group,
+        membersCount: group.members?.length || 0,
+      }));
+      return ResponseHelper.success(enrichedGroups, 200);
+    } catch (error) {
+      console.error("Error fetching user groups:", error);
+      return ResponseHelper.error(
+        "Erreur lors de la récupération des groupes",
+        500,
+      );
+    }
+  }
+  async getGroupMembers(
+    groupId: ObjectId,
+    userId: ObjectId,
+  ): Promise<Response> {
+    try {
+      const group = await this.repository.getFriendGroupById(groupId);
+      if (!group) return ResponseHelper.notFound("Groupe non trouvé");
+      const isMember =
+        group.members.some((m) => m.toString() === userId.toString()) ||
+        group.userId.toString() === userId.toString();
+      if (!isMember)
+        return ResponseHelper.forbidden("Vous n'êtes pas membre de ce groupe");
+      const memberIds = group.members;
+      const users = await this.userRepo.findByIds(memberIds);
+      const enrichedMembers = users.map((user) => ({
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        userName: user.userName,
+        image: user.image,
+      }));
+      return ResponseHelper.success(enrichedMembers, 200);
+    } catch (error) {
+      console.error("Error fetching group members:", error);
+      return ResponseHelper.error(
+        "Erreur lors de la récupération des membres",
+        500,
+      );
     }
   }
 }

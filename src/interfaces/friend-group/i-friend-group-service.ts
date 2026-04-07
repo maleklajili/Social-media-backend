@@ -40,4 +40,6 @@ export interface IFriendGroupService {
     memberIds: ObjectId[],
   ): Promise<Response>;
   searchFriendGroups(userId: ObjectId, query: string): Promise<Response>;
+  getUserGroups(userId: ObjectId): Promise<Response>;
+  getGroupMembers(groupId: ObjectId, userId: ObjectId): Promise<Response>;
 }

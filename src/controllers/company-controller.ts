@@ -341,14 +341,13 @@ export class CompanyController extends BaseController<
     }
   }
 
-  // In CompanyController class, add these endpoints:
-
   @Put("/verify/:id", [authMiddleware])
   async verifyCompany(req: ServerRequest): Promise<Response> {
     try {
       const { id } = req.params;
 
-      const { status, notes } = await req.json();
+      const body = (await req.json()) as { status: string; notes?: string };
+      const { status, notes } = body;
 
       if (!id || !ObjectId.isValid(id)) {
         return ResponseHelper.error("Invalid or missing company id");
@@ -358,7 +357,11 @@ export class CompanyController extends BaseController<
         return ResponseHelper.error("Invalid verification status");
       }
 
-      return this.service.verifyCompany(new ObjectId(id), status, notes);
+      return this.service.verifyCompany(
+        new ObjectId(id),
+        status as "verified" | "rejected",
+        notes,
+      );
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

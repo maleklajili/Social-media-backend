@@ -3,6 +3,8 @@ import { ServerRequest } from "../../config/interfaces/i-request";
 import { authMiddleware } from "../../middleware/aut-middleware";
 import { CollectionsManager } from "../../models/base/collection-manager";
 import type { Message } from "../../models/messages/message";
+import { MessageType } from "../../models/messages/message";
+
 import type {
   SendMessageInput,
   UpdateMessageInput,
@@ -85,31 +87,22 @@ export class MessageController extends BaseController<Message, MessageService> {
   @Post("/media/:receiverId", [authMiddleware])
   async sendMediaMessage(req: ServerRequest): Promise<Response> {
     try {
-      console.log("🟢 [Controller] sendMediaMessage appelé");
-      console.log("🆔 receiverId param:", req.params.receiverId);
-
       const userId = req.user?._id;
-      console.log("👤 userId du token:", userId?.toString());
 
       if (!userId) {
-        console.error("❌ Utilisateur non authentifié");
+        console.error(" Utilisateur non authentifié");
         return ResponseHelper.error("Non authentifié", 401);
       }
 
       const receiverId = req.params.receiverId;
-      console.log("🎯 receiverId:", receiverId);
 
       if (!receiverId || !ObjectId.isValid(receiverId)) {
-        console.error("❌ receiverId invalide:", receiverId);
+        console.error(" receiverId invalide:", receiverId);
         return ResponseHelper.error("ID du destinataire invalide", 400);
       }
 
-      console.log("📝 Récupération du FormData...");
       const formData = await req.formData();
-      console.log("✅ FormData récupéré");
 
-      // Afficher le contenu du FormData
-      console.log("📋 Contenu du FormData:");
       for (const [key, value] of formData.entries()) {
         if (value instanceof File) {
           console.log(
@@ -126,10 +119,9 @@ export class MessageController extends BaseController<Message, MessageService> {
         formData as unknown as FormData,
       );
 
-      console.log("✅ [Controller] Résultat reçu du service");
       return result;
     } catch (err) {
-      console.error("❌❌❌ ERREUR dans le contrôleur:", err);
+      console.error("ERREUR dans le contrôleur:", err);
       console.error(
         "Stack trace:",
         err instanceof Error ? err.stack : String(err),
@@ -262,7 +254,113 @@ export class MessageController extends BaseController<Message, MessageService> {
       return ResponseHelper.serverError(String(err));
     }
   }
+  @Post("/groups/:groupId/media", [authMiddleware])
+  async sendMediaGroupMessage(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      if (!userId) return ResponseHelper.error("Non authentifié", 401);
 
+      const groupId = req.params.groupId;
+      if (!groupId || !ObjectId.isValid(groupId)) {
+        return ResponseHelper.error("ID de groupe invalide", 400);
+      }
+
+      const formData = await req.formData();
+      const mediaType = formData.get("type") as string;
+
+      if (
+        !mediaType ||
+        !Object.values(MessageType).includes(mediaType as MessageType)
+      ) {
+        return ResponseHelper.error("Type de média invalide", 400);
+      }
+
+      return await this.service.sendMediaGroupMessage(
+        userId.toString(),
+        groupId,
+        formData as unknown as FormData,
+        mediaType as MessageType,
+      );
+    } catch (err) {
+      console.error(" Error in sendMediaGroupMessage:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Post("/groups/:groupId", [authMiddleware])
+  async sendGroupMessage(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      if (!userId) return ResponseHelper.error("Non authentifié", 401);
+
+      const groupId = req.params.groupId;
+      if (!groupId || !ObjectId.isValid(groupId)) {
+        return ResponseHelper.error("ID de groupe invalide", 400);
+      }
+
+      const body = (await req.json()) as { text: string };
+
+      const { text } = body;
+      if (!text || typeof text !== "string") {
+        return ResponseHelper.error("Le message est requis", 400);
+      }
+
+      return await this.service.sendGroupMessage(userId.toString(), {
+        groupId,
+        text,
+      });
+    } catch (err) {
+      console.error(" Error in sendGroupMessage:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Delete("/groups/:groupId/self", [authMiddleware])
+  async deleteGroupConversationForSelf(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      const groupId = req.params.groupId;
+      if (!userId || !groupId)
+        return ResponseHelper.error("Paramètres invalides", 400);
+      return await this.service.softDeleteGroupConversationForUser(
+        userId.toString(),
+        groupId,
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Get("/groups/recent", [authMiddleware])
+  async getGroupConversationsList(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      if (!userId) {
+        return ResponseHelper.error("Non authentifié", 401);
+      }
+      return await this.service.getGroupConversationsList(userId.toString());
+    } catch (err) {
+      console.error(" Error in getGroupConversationsList:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Get("/groups/:groupId", [authMiddleware])
+  async getGroupConversation(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      if (!userId) return ResponseHelper.error("Non authentifié", 401);
+
+      const groupId = req.params.groupId;
+      if (!groupId || !ObjectId.isValid(groupId)) {
+        return ResponseHelper.error("ID de groupe invalide", 400);
+      }
+
+      return await this.service.getGroupConversation(
+        userId.toString(),
+        groupId,
+      );
+    } catch (err) {
+      console.error(" Error in getGroupConversation:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   @Get("/search", [authMiddleware])
   async searchMessages(req: ServerRequest): Promise<Response> {
     try {
@@ -280,7 +378,7 @@ export class MessageController extends BaseController<Message, MessageService> {
 
       return await this.service.searchMessages(userId.toString(), query);
     } catch (err) {
-      console.error("❌ Error in searchMessages:", err);
+      console.error(" Error in searchMessages:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
