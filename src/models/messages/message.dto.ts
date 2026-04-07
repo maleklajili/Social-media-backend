@@ -6,6 +6,11 @@ export interface SendMessageInput {
   payload: MessagePayload;
 }
 
+export interface SendGroupMessageInput {
+  groupId: string;
+  text: string;
+}
+
 export interface MarkAsReadInput {
   messageIds: string[];
 }
@@ -23,16 +28,18 @@ export interface MessageResponse {
     userName: string;
     image?: string;
   };
-  receiver: {
+  receiver?: {
     _id: string;
     firstName: string;
     lastName: string;
     userName: string;
     image?: string;
   };
+  groupId?: string;
   type: MessageType;
   payload: MessagePayload;
   read: boolean;
+  readBy?: string[];
   createdAt: Date;
   updatedAt: Date;
 }

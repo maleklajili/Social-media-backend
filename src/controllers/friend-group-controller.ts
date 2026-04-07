@@ -67,7 +67,7 @@ export class FriendGroupController extends BaseController<
         body.color,
       );
     } catch (err) {
-      console.error("❌ Error creating friend group:", err);
+      console.error(" Error creating friend group:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -82,7 +82,7 @@ export class FriendGroupController extends BaseController<
 
       return this.service.getUserFriendGroups(userId);
     } catch (err) {
-      console.error("❌ Error fetching user friend groups:", err);
+      console.error(" Error fetching user friend groups:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -103,7 +103,7 @@ export class FriendGroupController extends BaseController<
 
       return this.service.getFriendGroupById(new ObjectId(groupId), userId);
     } catch (err) {
-      console.error("❌ Error fetching friend group:", err);
+      console.error(" Error fetching friend group:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -130,7 +130,7 @@ export class FriendGroupController extends BaseController<
         body,
       );
     } catch (err) {
-      console.error("❌ Error updating friend group:", err);
+      console.error(" Error updating friend group:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -151,7 +151,7 @@ export class FriendGroupController extends BaseController<
 
       return this.service.deleteFriendGroup(new ObjectId(groupId), userId);
     } catch (err) {
-      console.error("❌ Error deleting friend group:", err);
+      console.error(" Error deleting friend group:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -181,7 +181,7 @@ export class FriendGroupController extends BaseController<
         new ObjectId(memberId),
       );
     } catch (err) {
-      console.error("❌ Error adding member to group:", err);
+      console.error(" Error adding member to group:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -211,7 +211,7 @@ export class FriendGroupController extends BaseController<
         new ObjectId(memberId),
       );
     } catch (err) {
-      console.error("❌ Error removing member from group:", err);
+      console.error(" Error removing member from group:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -250,7 +250,7 @@ export class FriendGroupController extends BaseController<
         memberIds,
       );
     } catch (err) {
-      console.error("❌ Error adding members to group:", err);
+      console.error(" Error adding members to group:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -289,7 +289,7 @@ export class FriendGroupController extends BaseController<
         memberIds,
       );
     } catch (err) {
-      console.error("❌ Error removing members from group:", err);
+      console.error(" Error removing members from group:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -310,7 +310,33 @@ export class FriendGroupController extends BaseController<
 
       return this.service.searchFriendGroups(userId, query);
     } catch (err) {
-      console.error("❌ Error searching friend groups:", err);
+      console.error(" Error searching friend groups:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Get("/my-groups", [authMiddleware])
+  async getMyGroups(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      if (!userId) {
+        return ResponseHelper.error("User not authenticated", 401);
+      }
+      return this.service.getUserGroups(userId);
+    } catch (err) {
+      console.error("Error fetching my groups:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Get("/:groupId/members", [authMiddleware])
+  async getGroupMembers(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      const groupId = req.params.groupId;
+      if (!userId || !groupId)
+        return ResponseHelper.error("Paramètres invalides", 400);
+      return this.service.getGroupMembers(new ObjectId(groupId), userId);
+    } catch (err) {
+      console.error("Error in getGroupMembers:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
