@@ -40,6 +40,19 @@ class UserController extends BaseController<User, UserService> {
       return ResponseHelper.serverError(String(err));
     }
   }
+  // user-controller.ts
+  @Delete("/:id", [authMiddleware])
+  async deleteUser(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.params?.id;
+      if (!userId || !ObjectId.isValid(userId)) {
+        return ResponseHelper.error("Invalid user ID format", 400);
+      }
+      return this.service.delete(new ObjectId(userId));
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 
   @Get("/current-user", [authMiddleware])
   async getCurrentUser(req: ServerRequest): Promise<Response> {

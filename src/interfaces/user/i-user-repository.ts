@@ -37,6 +37,7 @@ export interface IUserRepository {
     currentUserId: ObjectId,
     limit?: number,
   ): Promise<User[]>;
+  delete(userId: ObjectId): Promise<void>;
   getMutualFriendsList(userId1: ObjectId, userId2: ObjectId): Promise<User[]>;
   countFriendSuggestions(userId: ObjectId, search: string): Promise<number>;
   getFriendSuggestions(
