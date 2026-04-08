@@ -13,7 +13,11 @@ export interface ICompanyService {
     company: Company,
     formData: FormData,
   ): Promise<Response>;
-  deleteCompany(userId: ObjectId, companyId: ObjectId): Promise<Response>;
+  deleteCompany(
+    currentUserId: ObjectId,
+    companyId: ObjectId,
+    isAdmin: boolean,
+  ): Promise<Response>;
   getCompaniesByUserId(userId: ObjectId): Promise<Response>;
   getCompanyById(companyId: ObjectId): Promise<Response>;
   getAggregatedStats(): Promise<{

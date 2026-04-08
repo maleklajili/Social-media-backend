@@ -102,7 +102,26 @@ export class JobServices extends BaseService<Job> implements IJobService {
       return ResponseHelper.serverError(String(err));
     }
   }
-
+  async getAllJobsForAdmin(page: number, limit: number): Promise<Response> {
+    try {
+      const { jobs, total } = await this.jobRepository.getAllJobsForAdmin(
+        page,
+        limit,
+      );
+      return ResponseHelper.success({
+        data: jobs,
+        pagination: {
+          currentPage: page,
+          itemsPerPage: limit,
+          totalCount: total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (err) {
+      console.error(" Error in getAllJobsForAdmin:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   /**
    * Update existing job
    */
@@ -153,38 +172,55 @@ export class JobServices extends BaseService<Job> implements IJobService {
     }
   }
 
-  async deleteJob(userId: ObjectId, jobId: ObjectId): Promise<Response> {
+  // job-services.ts
+  async deleteJob(
+    userId: ObjectId,
+    jobId: ObjectId,
+    isAdmin: boolean,
+  ): Promise<Response> {
     try {
-      // Check if job exists and belongs to user
+      // 1. Récupérer l'offre sans restriction d'utilisateur
       const existingJob = await this.collection.findOne({
         _id: jobId,
-        userId,
       });
 
       if (!existingJob) {
-        return ResponseHelper.error("Job not found or access denied");
+        return ResponseHelper.error("Job not found");
       }
-      // Remove job reference from company first
+
+      // 2. Vérifier les droits : propriétaire OU admin
+      const isOwner = existingJob.userId.equals(userId);
+      if (!isOwner && !isAdmin) {
+        return ResponseHelper.error(
+          "Access denied: you are not the owner or admin",
+        );
+      }
+
+      // 3. Supprimer la référence dans l'entreprise (toujours nécessaire)
       await this.companyRepository.removeJobFromCompany(
         existingJob.companyId,
         jobId,
       );
-      // Remove coins for deleting a job
+
+      // 4. Retirer les coins du propriétaire (même si c'est un admin qui supprime)
       try {
-        await this.userRepository.removeCoins(userId, COINS_CONFIG.REMOVE_JOB);
+        await this.userRepository.removeCoins(
+          existingJob.userId,
+          COINS_CONFIG.REMOVE_JOB,
+        );
         await this.transactionService.addStandardSpending(
-          userId,
+          existingJob.userId,
           "job",
           jobId,
-          `Suppression d'une offre d'emploi`,
+          `Suppression d'une offre d'emploi par ${isAdmin ? "admin" : "propriétaire"}`,
           COINS_CONFIG.REMOVE_JOB,
         );
       } catch (err) {
         console.error("❌ Error removing coins:", err);
       }
 
-      // Delete job from database
-      await this.jobRepository.deleteJob(jobId, userId);
+      // 5. Supprimer l'offre de la base
+      await this.jobRepository.deleteJob(jobId, existingJob.userId);
 
       return ResponseHelper.success({
         message: "Job deleted successfully",
