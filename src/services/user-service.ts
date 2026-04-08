@@ -38,7 +38,17 @@ export class UserService extends BaseService<User> implements IUserService {
     const user = await this.userRepository.findById(userId, 0);
     return ResponseHelper.success(user);
   }
+  async delete(userId: ObjectId): Promise<Response> {
+    const user = await this.userRepository.findById(userId, 0);
 
+    if (!user) {
+      return ResponseHelper.error("User not found", 404);
+    }
+
+    await this.userRepository.delete(userId);
+
+    return ResponseHelper.success("User deleted successfully");
+  }
   async changePassword(
     userId: ObjectId | undefined,
     body: ChangePasswordPayload,

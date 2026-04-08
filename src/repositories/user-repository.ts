@@ -21,6 +21,9 @@ export class userRepository implements IUserRepository {
   /*  async findByIds(ids: ObjectId[]): Promise<User[]> {
     return this.collection.find({ _id: { $in: ids } }).toArray();
   } */
+  async delete(userId: ObjectId): Promise<void> {
+    await this.collection.deleteOne({ _id: userId });
+  }
 
   async findByIdentifier(identifier: string): Promise<User | null> {
     const isEmail = validator.isEmail(identifier);
