@@ -226,8 +226,18 @@ export class CompanyController extends BaseController<
         return ResponseHelper.error("undefined current user");
       }
 
-      return this.service.deleteCompany(req.user._id, new ObjectId(id));
+      const usersCollection = CollectionsManager.userCollection;
+      const user = await usersCollection.findOne({ _id: req.user._id });
+      const isAdmin = user?.isAdmin === true;
+
+      const result = await this.service.deleteCompany(
+        req.user._id,
+        new ObjectId(id),
+        isAdmin,
+      );
+      return result;
     } catch (err) {
+      console.error(" Controller error:", err);
       return ResponseHelper.serverError(String(err));
     }
   }

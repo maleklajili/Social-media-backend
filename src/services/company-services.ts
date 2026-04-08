@@ -407,54 +407,60 @@ export class CompanyServices
   }
 
   async deleteCompany(
-    userId: ObjectId,
+    currentUserId: ObjectId,
     companyId: ObjectId,
+    isAdmin: boolean,
   ): Promise<Response> {
     try {
       const existingCompany = await this.collection.findOne({
         _id: companyId,
-        userId,
       });
 
       if (!existingCompany) {
-        return ResponseHelper.error("Company not found or access denied");
+        return ResponseHelper.error("Company not found");
+      }
+
+      const isOwner = existingCompany.userId.equals(currentUserId);
+      if (!isOwner && !isAdmin) {
+        return ResponseHelper.error(
+          "Access denied: you are not the owner or admin",
+        );
       }
 
       try {
         await this.userRepository.removeCoins(
-          userId,
+          existingCompany.userId,
           COINS_CONFIG.REMOVE_COMPANY,
         );
         await this.transactionService.addStandardSpending(
-          userId,
+          existingCompany.userId,
           "company",
           companyId,
-          `Suppression d'une page entreprise`,
+          `Suppression d'une page entreprise par ${isAdmin ? "admin" : "propriétaire"}`,
           COINS_CONFIG.REMOVE_COMPANY,
         );
       } catch (err) {
         console.error(" Error removing coins:", err);
       }
 
-      // Delete logo and cover images
+      // 4. Supprimer les fichiers associés (logo, cover, documents)
       if (existingCompany.logo) {
         await FileService.deleteFile(existingCompany.logo);
       }
       if (existingCompany.coverImage) {
         await FileService.deleteFile(existingCompany.coverImage);
       }
-
-      if (
-        existingCompany.verificationDocuments &&
-        existingCompany.verificationDocuments.length > 0
-      ) {
+      if (existingCompany.verificationDocuments?.length) {
         for (const doc of existingCompany.verificationDocuments) {
           await FileService.deleteFile(doc.file);
         }
       }
 
-      // Delete company from database
-      await this.companyRepository.deleteCompany(companyId, userId);
+      // 5. Supprimer l'entreprise de la base
+      await this.companyRepository.deleteCompany(
+        companyId,
+        existingCompany.userId,
+      );
 
       return ResponseHelper.success({
         message: "Company and associated files deleted successfully",

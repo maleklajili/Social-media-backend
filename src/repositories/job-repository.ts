@@ -62,4 +62,39 @@ export class JobRepository implements IJobRepository {
   async countJobs(): Promise<number> {
     return this.collection.countDocuments();
   }
+  async getAllJobsForAdmin(
+    page: number,
+    limit: number,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<{ jobs: any; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const pipeline = [
+      {
+        $lookup: {
+          from: "companies",
+          localField: "companyId",
+          foreignField: "_id",
+          as: "company",
+        },
+      },
+      {
+        $unwind: {
+          path: "$company",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+    ];
+
+    const jobs = await this.collection.aggregate(pipeline).toArray();
+    const total = await this.collection.countDocuments();
+
+    return { jobs, total };
+  }
 }
