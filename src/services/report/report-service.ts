@@ -9,12 +9,16 @@ import type {
 } from "../../models/report";
 import { ReportRepository } from "../../repositories/report/report-repository";
 import { CollectionsManager } from "../../models/base/collection-manager";
+import { userRepository } from "../../repositories/user-repository";
+import populateReferences from "../../utils/populate";
 
 export class ReportService implements IReportService {
   private reportRepository: ReportRepository;
+  private userRepository: userRepository;
 
   constructor() {
     this.reportRepository = new ReportRepository();
+    this.userRepository = new userRepository();
   }
 
   async createReport(
@@ -126,7 +130,19 @@ export class ReportService implements IReportService {
       );
       const totalCount =
         await this.reportRepository.countReportsByStatus(status);
-
+      // Populate sharedBy array with public user fields
+      try {
+        await populateReferences(
+          reports,
+          this.userRepository,
+          "reportedById",
+          "reportedBy",
+          ["_id", "firstName", "lastName", "image"],
+          true, // This tells the function to handle it as an array
+        );
+      } catch (err) {
+        console.error("Failed to populate sharedBy users for posts:", err);
+      }
       return ResponseHelper.success({
         reports,
         pagination: {
