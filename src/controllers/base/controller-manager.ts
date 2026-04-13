@@ -20,6 +20,10 @@ import UserController from "../user-controller";
 import { FriendGroupController } from "../friend-group-controller";
 import { AiCvController } from "../ai-cv-controller";
 import { ManualCvController } from "../manual-cv-controller";
+import { JobMatchController } from "../job-match-controller";
+import { NotificationController } from "../notification-controller";
+import { ModerationController } from "../moderation-controller";
+import { PaymentController } from "../payment-controller";
 
 export class ControllerManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,6 +50,10 @@ export class ControllerManager {
       FriendGroupController,
       AiCvController,
       ManualCvController,
+      JobMatchController,
+      NotificationController,
+      ModerationController,
+      PaymentController,
     ];
   }
 }

@@ -5,6 +5,7 @@ import type { User } from "../models/user";
 import { tokenService } from "../services/token-service";
 import { ResponseHelper } from "./response-helper";
 import { UtilsFunc } from "./utils-func";
+import { ContentModeratorClient } from "./content-moderator-client";
 
 export function getTokenFromHeaders(headers: {
   get(name: string): string | null;
@@ -68,6 +69,38 @@ export async function createUser(
 
   const result = await CollectionsManager.userCollection.insertOne(newUser);
   const userId = result.insertedId;
+
+  // ── AI Moderation: check fake user (async, non-blocking) ──────────────
+  ContentModeratorClient.checkFakeUser({
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    userName,
+    email: userData.email,
+    bio: userData.bio || "",
+    image: userData.image || "",
+    city: userData.city || "",
+    professionalTitle: userData.professionalTitle || "",
+    website: userData.website || "",
+    phone: userData.phone || "",
+  })
+    .then((modResult) => {
+      if (modResult.fake || modResult.score >= 30) {
+        CollectionsManager.userCollection
+          .updateOne(
+            { _id: userId },
+            {
+              $set: {
+                isFlagged: modResult.fake,
+                fakeScore: modResult.score,
+                fakeFlags: modResult.flags,
+              },
+            },
+          )
+          .catch((err) => console.error("Failed to flag user:", err));
+      }
+    })
+    .catch((err) => console.error("AI fake user check failed:", err));
+
   const accessToken = tokenService.generateAccessToken(userId);
   const refreshToken = tokenService.generateRefreshToken(userId);
 

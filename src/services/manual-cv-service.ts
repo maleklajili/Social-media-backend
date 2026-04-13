@@ -10,6 +10,8 @@ import type {
   ManualCvEducation,
   ManualCvSkill,
   ManualCvLanguage,
+  ManualCvProject,
+  ManualCvCertification,
 } from "../models/manual-cv";
 import { BaseService } from "./base/base-service";
 import { CollectionsManager } from "../models/base/collection-manager";
@@ -18,6 +20,9 @@ import { CvPdfRenderer } from "../utils/cv-pdf-renderer";
 import type { Education } from "../models/education";
 import type { Experience } from "../models/experience";
 import type { Skill } from "../models/skill";
+import type { Project } from "../models/project";
+import type { Certification } from "../models/certifications";
+import type { Language } from "../models/skills/language";
 
 export class ManualCvService
   extends BaseService<ManualCv>
@@ -47,8 +52,8 @@ export class ManualCvService
         educations: (data.educations as ManualCvEducation[]) || [],
         skills: (data.skills as ManualCvSkill[]) || [],
         languages: (data.languages as ManualCvLanguage[]) || [],
-        projects: (data.projects as string[]) || [],
-        certifications: (data.certifications as string[]) || [],
+        projects: (data.projects as ManualCvProject[]) || [],
+        certifications: (data.certifications as ManualCvCertification[]) || [],
         interests: (data.interests as string[]) || [],
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -113,9 +118,10 @@ export class ManualCvService
       if (data.languages !== undefined)
         updateData.languages = data.languages as ManualCvLanguage[];
       if (data.projects !== undefined)
-        updateData.projects = data.projects as string[];
+        updateData.projects = data.projects as ManualCvProject[];
       if (data.certifications !== undefined)
-        updateData.certifications = data.certifications as string[];
+        updateData.certifications =
+          data.certifications as ManualCvCertification[];
       if (data.interests !== undefined)
         updateData.interests = data.interests as string[];
 
@@ -150,7 +156,15 @@ export class ManualCvService
     }
   }
 
-  async downloadPdf(userId: ObjectId, cvId: ObjectId): Promise<Response> {
+  async downloadPdf(
+    userId: ObjectId,
+    cvId: ObjectId,
+    primaryColor?: string,
+    accentColor?: string,
+    fontFamily?: string,
+    formatOverride?: string,
+    lang?: string,
+  ): Promise<Response> {
     try {
       const cv = await this.manualCvRepository.getById(cvId, userId);
       if (!cv) {
@@ -159,26 +173,35 @@ export class ManualCvService
 
       const markdownContent = this.convertToMarkdown(cv);
 
-      // DEBUG: Log the generated markdown
-      console.log("=== MANUAL CV DEBUG ===");
-      console.log("CV Data:", JSON.stringify(cv.personalInfo, null, 2));
-      console.log("Markdown:\n", markdownContent);
-      console.log("=== END DEBUG ===");
-
-      let photoUrl = "";
-      try {
-        const user = await this.userRepository.findById(userId, 0);
-        if (user?.image) {
-          photoUrl = user.image;
+      let photoUrl = cv.personalInfo.photoUrl || "";
+      if (!photoUrl) {
+        try {
+          const user = await this.userRepository.findById(userId, 0);
+          if (user?.image) {
+            photoUrl = user.image;
+          }
+        } catch {
+          // Photo not critical
         }
-      } catch {
-        // Photo not critical
       }
 
       const pdfBuffer = await CvPdfRenderer.renderPdf(
         markdownContent,
-        cv.format,
+        formatOverride || cv.format,
         photoUrl,
+        cv.personalInfo.fullName || "",
+        cv.personalInfo.professionalTitle || "",
+        userId.toString(),
+        primaryColor,
+        accentColor,
+        cv.personalInfo.email || "",
+        cv.personalInfo.phone || "",
+        [cv.personalInfo.city, cv.personalInfo.country]
+          .filter(Boolean)
+          .join(", "),
+        cv.personalInfo.website || "",
+        fontFamily,
+        lang,
       );
 
       const filename = `${cv.title.replace(/[^a-zA-Z0-9\u00C0-\u024F\s-]/g, "").trim()}.pdf`;
@@ -205,7 +228,15 @@ export class ManualCvService
     language: string = "fr",
   ): Promise<Response> {
     try {
-      const [user, educations, experiences, skills] = await Promise.all([
+      const [
+        user,
+        educations,
+        experiences,
+        skills,
+        languages,
+        projects,
+        certifications,
+      ] = await Promise.all([
         CollectionsManager.userCollection.findOne(
           { _id: userId },
           { projection: { password: 0 } },
@@ -213,36 +244,42 @@ export class ManualCvService
         CollectionsManager.educationCollection.find({ userId }).toArray(),
         CollectionsManager.experienceCollection.find({ userId }).toArray(),
         CollectionsManager.skillCollection.find({ userId }).toArray(),
+        CollectionsManager.languageCollection.find({ userId }).toArray(),
+        CollectionsManager.projectCollection.find({ userId }).toArray(),
+        CollectionsManager.certificationCollection.find({ userId }).toArray(),
       ]);
 
       if (!user) {
         return ResponseHelper.notFound("Utilisateur non trouvé");
       }
 
+      const u = user as unknown as Record<string, unknown>;
       const personalInfo: ManualCvPersonalInfo = {
         fullName: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
-        professionalTitle: (user as Record<string, unknown>)
-          .professionalTitle as string | undefined,
+        professionalTitle: u.professionalTitle as string | undefined,
         email: user.email,
-        phone: (user as Record<string, unknown>).phone as string | undefined,
-        city: (user as Record<string, unknown>).city as string | undefined,
-        website: (user as Record<string, unknown>).website as
-          | string
-          | undefined,
-        summary: (user as Record<string, unknown>).bio as string | undefined,
+        phone: u.phone as string | undefined,
+        address: u.adress as string | undefined,
+        city: u.city as string | undefined,
+        country: u.location as string | undefined,
+        website: u.website as string | undefined,
+        photoUrl: user.image
+          ? `/uploads/images-${userId.toString()}/${user.image}`
+          : undefined,
+        summary: u.bio as string | undefined,
       };
 
       const cvExperiences: ManualCvExperience[] = experiences.map(
         (exp: Experience) => ({
-          jobTitle: exp.title || "",
-          company: exp.company || "",
+          jobTitle: exp.post || "",
+          company: exp.entreprise || "",
           startDate: exp.startDate
-            ? new Date(exp.startDate).toISOString().split("T")[0]
+            ? (new Date(exp.startDate).toISOString().split("T")[0] ?? "")
             : "",
           endDate: exp.endDate
-            ? new Date(exp.endDate).toISOString().split("T")[0]
+            ? (new Date(exp.endDate).toISOString().split("T")[0] ?? "")
             : undefined,
-          current: !exp.endDate,
+          current: exp.currentPost ?? !exp.endDate,
           description: exp.description || "",
         }),
       );
@@ -252,12 +289,12 @@ export class ManualCvService
           degree: edu.degree || "",
           school: edu.school || "",
           startDate: edu.startDate
-            ? new Date(edu.startDate).toISOString().split("T")[0]
+            ? (new Date(edu.startDate).toISOString().split("T")[0] ?? "")
             : "",
           endDate: edu.endDate
-            ? new Date(edu.endDate).toISOString().split("T")[0]
+            ? (new Date(edu.endDate).toISOString().split("T")[0] ?? "")
             : undefined,
-          current: !edu.endDate,
+          current: edu.current ?? !edu.endDate,
           description: edu.description || "",
         }),
       );
@@ -266,6 +303,34 @@ export class ManualCvService
         name: skill.name || "",
         level: skill.level || undefined,
       }));
+
+      const cvLanguages: ManualCvLanguage[] = languages.map(
+        (lang: Language) => ({
+          name: lang.name || "",
+          level: lang.level || lang.fluency || undefined,
+        }),
+      );
+
+      const cvProjects: ManualCvProject[] = projects.map((proj: Project) => ({
+        name: proj.title || "",
+        description: proj.description || undefined,
+        link: proj.liveUrl || proj.githubUrl || undefined,
+        startDate: proj.startDate
+          ? (new Date(proj.startDate).toISOString().split("T")[0] ?? "")
+          : undefined,
+        endDate: proj.endDate
+          ? (new Date(proj.endDate).toISOString().split("T")[0] ?? "")
+          : undefined,
+      }));
+
+      const cvCertifications: ManualCvCertification[] = certifications.map(
+        (cert: Certification) => ({
+          name: cert.name || "",
+          organization: undefined,
+          date: undefined,
+          description: cert.type || undefined,
+        }),
+      );
 
       const cv: ManualCv = {
         userId,
@@ -276,9 +341,9 @@ export class ManualCvService
         experiences: cvExperiences,
         educations: cvEducations,
         skills: cvSkills,
-        languages: [],
-        projects: [],
-        certifications: [],
+        languages: cvLanguages,
+        projects: cvProjects,
+        certifications: cvCertifications,
         interests: [],
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -304,7 +369,9 @@ export class ManualCvService
     const contactParts: string[] = [];
     if (info.email) contactParts.push(info.email);
     if (info.phone) contactParts.push(info.phone);
+    if (info.address) contactParts.push(info.address);
     if (info.city) contactParts.push(info.city);
+    if (info.country) contactParts.push(info.country);
     if (info.website) contactParts.push(info.website);
     if (contactParts.length > 0) lines.push(contactParts.join(" | "));
 
@@ -355,14 +422,27 @@ export class ManualCvService
     if (cv.projects.length > 0) {
       lines.push("", "## Projets");
       for (const project of cv.projects) {
-        lines.push(`- ${project}`);
+        const period = project.startDate
+          ? `${project.startDate}${project.endDate ? ` - ${project.endDate}` : ""}`
+          : "";
+        lines.push(`### ${project.name}`);
+        if (period || project.link) {
+          const meta = [period, project.link].filter(Boolean).join(" | ");
+          lines.push(meta);
+        }
+        if (project.description) lines.push("", project.description);
+        lines.push("");
       }
     }
 
     if (cv.certifications.length > 0) {
       lines.push("", "## Certifications");
       for (const cert of cv.certifications) {
-        lines.push(`- ${cert}`);
+        lines.push(`### ${cert.name}`);
+        const meta = [cert.organization, cert.date].filter(Boolean).join(" | ");
+        if (meta) lines.push(meta);
+        if (cert.description) lines.push("", cert.description);
+        lines.push("");
       }
     }
 

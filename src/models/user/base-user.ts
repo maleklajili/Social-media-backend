@@ -20,10 +20,20 @@ export interface BaseUser extends BaseModel {
   location: string;
   fullName: string;
   coins: number;
+  plan?: "free" | "pro" | "gold";
+  planExpiry?: Date;
   skills?: [ObjectId];
   followers?: ObjectId[];
   following?: ObjectId[];
   followingCompanies?: ObjectId[];
   followerCount?: number;
   followingCount?: number;
+
+  // Moderation (auto-AI)
+  isFlagged?: boolean;
+  fakeScore?: number;
+  fakeFlags?: string[];
+  isBanned?: boolean;
+  banReason?: string;
+  warningCount?: number;
 }

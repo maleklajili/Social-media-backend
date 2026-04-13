@@ -131,7 +131,6 @@ export class ReviewServices
     companyId: string,
     page: number,
     limit: number,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _currentUserId?: ObjectId,
   ): Promise<Response> {
     try {

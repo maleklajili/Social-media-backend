@@ -35,9 +35,7 @@ export class NotificationController extends BaseController<
   @Get("/")
   async getUserNotifications(req: RequestWithPagination): Promise<Response> {
     try {
-      // Get userId from auth middleware
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const userId = (req as any).userId;
+      const userId = req.user?._id;
       if (!userId) {
         return ResponseHelper.unauthorized("Not authenticated");
       }
@@ -67,8 +65,7 @@ export class NotificationController extends BaseController<
   @Get("/unread")
   async getUnreadCount(req: ServerRequest): Promise<Response> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const userId = (req as any).userId;
+      const userId = req.user?._id;
       if (!userId) {
         return ResponseHelper.unauthorized("Not authenticated");
       }
@@ -88,8 +85,7 @@ export class NotificationController extends BaseController<
   @Get("/unread/list")
   async getUnreadNotifications(req: ServerRequest): Promise<Response> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const userId = (req as any).userId;
+      const userId = req.user?._id;
       if (!userId) {
         return ResponseHelper.unauthorized("Not authenticated");
       }
@@ -110,8 +106,7 @@ export class NotificationController extends BaseController<
   @Get("/:id")
   async getNotification(_id: ObjectId, req: ServerRequest): Promise<Response> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const userId = (req as any).userId;
+      const userId = req.user?._id;
       if (!userId) {
         return ResponseHelper.unauthorized("Not authenticated");
       }
@@ -138,8 +133,7 @@ export class NotificationController extends BaseController<
   @Put("/:id/read")
   async markAsRead(_id: ObjectId, req: ServerRequest): Promise<Response> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const userId = (req as any).userId;
+      const userId = req.user?._id;
       if (!userId) {
         return ResponseHelper.unauthorized("Not authenticated");
       }
@@ -176,8 +170,7 @@ export class NotificationController extends BaseController<
   @Put("/read/all")
   async markAllAsRead(req: ServerRequest): Promise<Response> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const userId = (req as any).userId;
+      const userId = req.user?._id;
       if (!userId) {
         return ResponseHelper.unauthorized("Not authenticated");
       }
@@ -210,8 +203,7 @@ export class NotificationController extends BaseController<
     req: ServerRequest,
   ): Promise<Response> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const userId = (req as any).userId;
+      const userId = req.user?._id;
       if (!userId) {
         return ResponseHelper.unauthorized("Not authenticated");
       }
@@ -238,8 +230,7 @@ export class NotificationController extends BaseController<
   @Delete("/")
   async deleteAllNotifications(req: ServerRequest): Promise<Response> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const userId = (req as any).userId;
+      const userId = req.user?._id;
       if (!userId) {
         return ResponseHelper.unauthorized("Not authenticated");
       }
@@ -263,8 +254,7 @@ export class NotificationController extends BaseController<
     req: ServerRequest,
   ): Promise<Response> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const userId = (req as any).userId;
+      const userId = req.user?._id;
       if (!userId) {
         return ResponseHelper.unauthorized("Not authenticated");
       }

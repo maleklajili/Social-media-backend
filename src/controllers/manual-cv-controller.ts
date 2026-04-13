@@ -115,7 +115,21 @@ export class ManualCvController extends BaseController<
         return ResponseHelper.error("ID du CV invalide");
       }
       const { ObjectId } = await import("mongodb");
-      return this.service.downloadPdf(req.user._id, new ObjectId(id));
+      const url = new URL(req.url, "http://localhost");
+      const primaryColor = url.searchParams.get("primaryColor") || undefined;
+      const accentColor = url.searchParams.get("accentColor") || undefined;
+      const fontFamily = url.searchParams.get("fontFamily") || undefined;
+      const format = url.searchParams.get("format") || undefined;
+      const lang = url.searchParams.get("lang") || undefined;
+      return this.service.downloadPdf(
+        req.user._id,
+        new ObjectId(id),
+        primaryColor,
+        accentColor,
+        fontFamily,
+        format,
+        lang,
+      );
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

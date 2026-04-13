@@ -11,7 +11,14 @@ export interface IManualCvService {
     data: Record<string, unknown>,
   ): Promise<Response>;
   deleteCv(userId: ObjectId, cvId: ObjectId): Promise<Response>;
-  downloadPdf(userId: ObjectId, cvId: ObjectId): Promise<Response>;
+  downloadPdf(
+    userId: ObjectId,
+    cvId: ObjectId,
+    primaryColor?: string,
+    accentColor?: string,
+    fontFamily?: string,
+    formatOverride?: string,
+  ): Promise<Response>;
   importFromProfile(
     userId: ObjectId,
     format: ManualCvFormat,

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr-CA">
+<html lang="{{ lang|default('fr') }}">
 <head>
 <meta charset="UTF-8"/>
 <style>
@@ -40,6 +40,28 @@
   /* Items */
   .item { font-size: 9.5pt; color: #475569; margin-bottom: 2pt; }
 </style>
+{% if primary_color %}
+<style>
+  .section-title { background-color: {{ primary_color }} !important; }
+  .name { color: {{ primary_color }} !important; }
+  .header { border-bottom-color: {{ primary_color }} !important; }
+  .skill-item { border-left-color: {{ primary_color }} !important; }
+  .position { color: {{ primary_color }} !important; }
+  .title { color: {{ primary_color }} !important; }
+  .company-school { color: {{ primary_color }} !important; }
+</style>
+{% endif %}
+{% if accent_color %}
+<style>
+  .position { color: {{ accent_color }} !important; }
+  .title { color: {{ accent_color }} !important; }
+</style>
+{% endif %}
+{% if font_family %}
+<style>
+  body { font-family: "{{ font_family }}", sans-serif !important; }
+</style>
+{% endif %}
 </head>
 <body>
 
@@ -59,7 +81,7 @@
 <!-- Résumé -->
 {% if cv.summary %}
 <div class="section">
-  <div class="section-title">RÉSUMÉ</div>
+  <div class="section-title">{{ t.profile }}</div>
   <div class="summary">{{ cv.summary }}</div>
 </div>
 {% endif %}
@@ -67,7 +89,7 @@
 <!-- Expérience Professionnelle -->
 {% if cv.experience %}
 <div class="section">
-  <div class="section-title">EXPÉRIENCE PROFESSIONNELLE</div>
+  <div class="section-title">{{ t.experience }}</div>
   {% for exp in cv.experience %}
   <div class="entry">
     <table class="entry-table" cellpadding="0" cellspacing="0">
@@ -90,7 +112,7 @@
 <!-- Formation -->
 {% if cv.education %}
 <div class="section">
-  <div class="section-title">FORMATION</div>
+  <div class="section-title">{{ t.education }}</div>
   {% for edu in cv.education %}
   <div class="entry">
     <table class="entry-table" cellpadding="0" cellspacing="0">
@@ -108,7 +130,7 @@
 <!-- Compétences -->
 {% if cv.skills %}
 <div class="section">
-  <div class="section-title">COMPÉTENCES</div>
+  <div class="section-title">{{ t.skills }}</div>
   <table class="skills-table" cellpadding="0" cellspacing="0">
   {% set ns = namespace(col=0) %}
   {% for skill in cv.skills %}
@@ -125,7 +147,7 @@
 <!-- Projets -->
 {% if cv.projects %}
 <div class="section">
-  <div class="section-title">PROJETS</div>
+  <div class="section-title">{{ t.projects }}</div>
   {% for p in cv.projects %}
   <div class="entry">
     <span class="position">{{ p.title }}</span>
@@ -138,9 +160,9 @@
 <!-- Langues -->
 {% if cv.languages %}
 <div class="section">
-  <div class="section-title">LANGUES</div>
+  <div class="section-title">{{ t.languages }}</div>
   {% for lang in cv.languages %}
-  <div class="item">&bull; {{ lang.name }}{% if lang.level %} &mdash; {{ lang.level }}{% endif %}</div>
+<div class="item">&bull; {{ lang.name }}</div>
   {% endfor %}
 </div>
 {% endif %}
@@ -148,9 +170,16 @@
 <!-- Certifications -->
 {% if cv.certifications %}
 <div class="section">
-  <div class="section-title">CERTIFICATIONS</div>
+  <div class="section-title">{{ t.certifications }}</div>
   {% for cert in cv.certifications %}
-  <div class="item">&bull; {{ cert }}</div>
+  <div class="item">
+    <strong>{{ cert.title if cert.title is defined else cert }}</strong>
+    {% if cert.organization is defined and cert.organization %} &mdash; {{ cert.organization }}{% endif %}
+    {% if cert.date is defined and cert.date %} ({{ cert.date }}){% endif %}
+    {% if cert.description is defined and cert.description %}
+    <div>{{ cert.description }}</div>
+    {% endif %}
+  </div>
   {% endfor %}
 </div>
 {% endif %}
@@ -158,7 +187,7 @@
 <!-- Intérêts -->
 {% if cv.interests %}
 <div class="section">
-  <div class="section-title">INTÉRÊTS</div>
+  <div class="section-title">{{ t.interests }}</div>
   <div class="item">{{ cv.interests|join(' &bull; ') }}</div>
 </div>
 {% endif %}

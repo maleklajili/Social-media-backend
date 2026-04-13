@@ -1,0 +1,630 @@
+{
+  "info": {
+    "_postman_id": "cvtech-ai-collection",
+    "name": "CvTech — AI Endpoints",
+    "description": "Collection Postman pour tous les endpoints IA de l'application CvTech Social Media.\n\nModules couverts :\n- Génération de CV par IA (Ollama LLM)\n- Modération de contenu (Toxicité + Détection de faux utilisateurs)\n- Matching emploi intelligent (TF-IDF + Cosine Similarity)\n\nAuthentification : Bearer Token JWT requis pour tous les endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:9000/api",
+      "description": "URL de base du backend"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "description": "JWT access token (obtenu via POST /auth/login)"
+    },
+    {
+      "key": "cv_id",
+      "value": "",
+      "description": "ID du CV généré (ObjectId)"
+    },
+    {
+      "key": "post_id",
+      "value": "",
+      "description": "ID d'un post flaggé"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "description": "ID d'un utilisateur flaggé"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentification",
+      "description": "Obtenir un token JWT pour authentifier les requêtes AI.",
+      "item": [
+        {
+          "name": "Login (obtenir token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('access_token', res.data.accessToken);",
+                  "    console.log('Token saved ✓');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"votre_email@example.com\",\n    \"password\": \"votre_mot_de_passe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authentification pour obtenir un JWT access token.\n\nLe token est automatiquement sauvegardé dans la variable `access_token`."
+          },
+          "response": [
+            {
+              "name": "Succès",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"accessToken\": \"eyJhbGciOiJIUzI1NiIs...\",\n        \"refreshToken\": \"eyJhbGciOiJIUzI1NiIs...\",\n        \"user\": {\n            \"_id\": \"6612abc...\",\n            \"firstName\": \"John\",\n            \"lastName\": \"Doe\",\n            \"email\": \"john@example.com\"\n        }\n    }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🤖 Génération de CV par IA",
+      "description": "Endpoints pour générer, reformuler, télécharger et supprimer des CVs générés par intelligence artificielle.\n\nTechnologie : Ollama (LLM local — Llama 3.2)\nFormats : standard, canadian, european, latex, modern\nLangues : fr, en",
+      "item": [
+        {
+          "name": "Générer un CV",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) {",
+                  "    pm.collectionVariables.set('cv_id', res.data._id);",
+                  "    console.log('CV ID saved: ' + res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"language\": \"fr\",\n    \"section\": \"full\",\n    \"format\": \"modern\",\n    \"customPrompt\": \"Mettre l'accent sur mes compétences en développement web\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai-cv/generate",
+              "host": ["{{base_url}}"],
+              "path": ["ai-cv", "generate"]
+            },
+            "description": "Génère un CV complet à partir du profil utilisateur en utilisant le LLM Ollama.\n\n**Paramètres du body :**\n| Champ | Type | Requis | Valeurs | Description |\n|-------|------|--------|---------|-------------|\n| `language` | string | Non | `fr`, `en` | Langue du CV (défaut: `fr`) |\n| `section` | string | Non | `full`, `summary`, `experience`, `education`, `skills`, `projects` | Section à générer (défaut: `full`) |\n| `format` | string | Non | `standard`, `canadian`, `european`, `latex`, `modern` | Format/style du CV (défaut: `standard`) |\n| `customPrompt` | string | Non | texte libre | Instructions personnalisées pour l'IA |\n\n**Configuration Ollama :**\n- Modèle : llama3.2\n- Température : 0.25 (haute précision)\n- Contexte : 4096 tokens\n- Max output : 2500 tokens"
+          },
+          "response": [
+            {
+              "name": "Succès — CV Généré",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"_id\": \"6612abc123def456789\",\n        \"userId\": \"6610def456abc789123\",\n        \"title\": \"CV Développeur Full-Stack\",\n        \"content\": \"# John Doe\\n## Développeur Full-Stack\\n\\n### Résumé Professionnel\\n...\",\n        \"section\": \"full\",\n        \"format\": \"modern\",\n        \"status\": \"generated\",\n        \"language\": \"fr\",\n        \"promptUsed\": \"Mettre l'accent sur mes compétences en développement web\",\n        \"version\": 1,\n        \"parentId\": null,\n        \"createdAt\": \"2026-04-12T10:30:00.000Z\",\n        \"updatedAt\": \"2026-04-12T10:30:00.000Z\"\n    }\n}"
+            },
+            {
+              "name": "Erreur — Non authentifié",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n    \"success\": false,\n    \"message\": \"Utilisateur non authentifié\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Reformuler un CV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"instructions\": \"Rendre le ton plus professionnel et ajouter des métriques quantitatives\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai-cv/reformulate/{{cv_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["ai-cv", "reformulate", "{{cv_id}}"]
+            },
+            "description": "Reformule un CV existant avec de nouvelles instructions.\n\nCrée une nouvelle version du CV (version incrémentée) en gardant le lien avec le CV parent.\n\n**Paramètres URL :**\n| Param | Type | Description |\n|-------|------|-------------|\n| `id` | ObjectId | ID du CV à reformuler |\n\n**Body :**\n| Champ | Type | Requis | Description |\n|-------|------|--------|-------------|\n| `instructions` | string | Non | Nouvelles instructions de reformulation |"
+          },
+          "response": [
+            {
+              "name": "Succès — CV Reformulé",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"_id\": \"6612abc123def456790\",\n        \"userId\": \"6610def456abc789123\",\n        \"title\": \"CV Développeur Full-Stack\",\n        \"content\": \"# John Doe\\n## Développeur Full-Stack Senior\\n...\",\n        \"section\": \"full\",\n        \"format\": \"modern\",\n        \"status\": \"reformulated\",\n        \"language\": \"fr\",\n        \"promptUsed\": \"Rendre le ton plus professionnel et ajouter des métriques quantitatives\",\n        \"version\": 2,\n        \"parentId\": \"6612abc123def456789\",\n        \"createdAt\": \"2026-04-12T11:00:00.000Z\",\n        \"updatedAt\": \"2026-04-12T11:00:00.000Z\"\n    }\n}"
+            },
+            {
+              "name": "Erreur — CV introuvable",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n    \"success\": false,\n    \"message\": \"CV not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Lister mes CVs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/ai-cv/my-cvs",
+              "host": ["{{base_url}}"],
+              "path": ["ai-cv", "my-cvs"]
+            },
+            "description": "Récupère tous les CVs générés par IA de l'utilisateur connecté.\n\nTriés par date de création décroissante."
+          },
+          "response": [
+            {
+              "name": "Succès",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"_id\": \"6612abc123def456789\",\n            \"title\": \"CV Développeur Full-Stack\",\n            \"format\": \"modern\",\n            \"section\": \"full\",\n            \"status\": \"generated\",\n            \"language\": \"fr\",\n            \"version\": 1,\n            \"createdAt\": \"2026-04-12T10:30:00.000Z\"\n        },\n        {\n            \"_id\": \"6612abc123def456790\",\n            \"title\": \"CV Développeur Full-Stack\",\n            \"format\": \"modern\",\n            \"section\": \"full\",\n            \"status\": \"reformulated\",\n            \"language\": \"fr\",\n            \"version\": 2,\n            \"parentId\": \"6612abc123def456789\",\n            \"createdAt\": \"2026-04-12T11:00:00.000Z\"\n        }\n    ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Télécharger CV en PDF",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/ai-cv/download-pdf/{{cv_id}}?primaryColor=%23FF6E22&accentColor=%231E293B&fontFamily=Helvetica&format=modern&lang=fr",
+              "host": ["{{base_url}}"],
+              "path": ["ai-cv", "download-pdf", "{{cv_id}}"],
+              "query": [
+                {
+                  "key": "primaryColor",
+                  "value": "%23FF6E22",
+                  "description": "Couleur principale du PDF (hex, défaut: thème du template)"
+                },
+                {
+                  "key": "accentColor",
+                  "value": "%231E293B",
+                  "description": "Couleur d'accent (hex)"
+                },
+                {
+                  "key": "fontFamily",
+                  "value": "Helvetica",
+                  "description": "Police de caractères (Helvetica, Arial, Times, etc.)"
+                },
+                {
+                  "key": "format",
+                  "value": "modern",
+                  "description": "Template du PDF : standard, canadian, european, latex, modern"
+                },
+                {
+                  "key": "lang",
+                  "value": "fr",
+                  "description": "Langue des labels (fr, en)"
+                }
+              ]
+            },
+            "description": "Télécharge le CV généré en format PDF stylisé.\n\nLe PDF est rendu via un template HTML Jinja2 puis converti avec `xhtml2pdf`.\n\n**Paramètres URL :**\n| Param | Type | Description |\n|-------|------|-------------|\n| `id` | ObjectId | ID du CV à télécharger |\n\n**Query Parameters (tous optionnels) :**\n| Param | Type | Description |\n|-------|------|-------------|\n| `primaryColor` | string | Couleur principale (hex encodé %23) |\n| `accentColor` | string | Couleur d'accent |\n| `fontFamily` | string | Police de caractères |\n| `format` | string | Template PDF (standard, canadian, european, latex, modern) |\n| `lang` | string | Langue des labels (fr, en) |\n\n**Réponse :** Fichier PDF binaire (`Content-Type: application/pdf`)"
+          },
+          "response": [
+            {
+              "name": "Succès — Fichier PDF",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/pdf"
+                },
+                {
+                  "key": "Content-Disposition",
+                  "value": "attachment; filename=\"cv_modern_fr.pdf\""
+                }
+              ],
+              "body": "<<< Binary PDF content >>>"
+            }
+          ]
+        },
+        {
+          "name": "Supprimer un CV",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/ai-cv/delete/{{cv_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["ai-cv", "delete", "{{cv_id}}"]
+            },
+            "description": "Supprime définitivement un CV généré par IA.\n\n**Paramètres URL :**\n| Param | Type | Description |\n|-------|------|-------------|\n| `id` | ObjectId | ID du CV à supprimer |"
+          },
+          "response": [
+            {
+              "name": "Succès",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"deleted\": true\n    }\n}"
+            },
+            {
+              "name": "Erreur — ID invalide",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n    \"success\": false,\n    \"message\": \"ID du CV invalide\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🛡️ Modération de Contenu (IA)",
+      "description": "Endpoints pour la modération automatique du contenu par IA.\n\nTechnologie : TF-IDF + Naive Bayes (Python)\nDétection : Toxicité (score ≥ 30) + Faux utilisateurs (score ≥ 50)\nCatégories : insult, hate_speech, threat, harassment, profanity, spam, aggressive_tone",
+      "item": [
+        {
+          "name": "Lister les posts flaggés",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/moderation/flagged-posts",
+              "host": ["{{base_url}}"],
+              "path": ["moderation", "flagged-posts"]
+            },
+            "description": "Récupère tous les posts signalés comme toxiques par l'IA.\n\nLimité à 50 résultats, triés par date décroissante."
+          },
+          "response": [
+            {
+              "name": "Succès",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"posts\": [\n            {\n                \"_id\": \"6612abc...\",\n                \"content\": \"Contenu du post...\",\n                \"userId\": \"6610def...\",\n                \"flagged\": true,\n                \"toxicityScore\": 65,\n                \"toxicityCategories\": [\"insult\", \"profanity\"],\n                \"moderationStatus\": \"pending\",\n                \"createdAt\": \"2026-04-12T10:00:00.000Z\"\n            }\n        ],\n        \"count\": 1\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Lister les utilisateurs flaggés",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/moderation/flagged-users",
+              "host": ["{{base_url}}"],
+              "path": ["moderation", "flagged-users"]
+            },
+            "description": "Récupère tous les comptes utilisateurs signalés comme suspects/faux par l'IA.\n\nLimité à 50 résultats, triés par fakeScore décroissant.\nLe mot de passe est exclu de la réponse."
+          },
+          "response": [
+            {
+              "name": "Succès",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"users\": [\n            {\n                \"_id\": \"6610def...\",\n                \"firstName\": \"user12345\",\n                \"lastName\": \"test\",\n                \"email\": \"fake@tempmail.com\",\n                \"isFlagged\": true,\n                \"fakeScore\": 75,\n                \"fakeFlags\": [\"suspicious_username\", \"disposable_email\", \"no_profile_picture\"],\n                \"isBanned\": false\n            }\n        ],\n        \"count\": 1\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Statistiques de modération",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/moderation/stats",
+              "host": ["{{base_url}}"],
+              "path": ["moderation", "stats"]
+            },
+            "description": "Retourne des statistiques globales sur la modération de la plateforme.\n\nInclut le taux de toxicité et le taux de faux utilisateurs en pourcentage."
+          },
+          "response": [
+            {
+              "name": "Succès",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"flaggedPosts\": 12,\n        \"flaggedUsers\": 3,\n        \"totalPosts\": 450,\n        \"totalUsers\": 120,\n        \"toxicityRate\": 2.67,\n        \"fakeUserRate\": 2.5\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Vérification manuelle de toxicité",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"text\": \"Texte à analyser pour la toxicité\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/moderation/check-text",
+              "host": ["{{base_url}}"],
+              "path": ["moderation", "check-text"]
+            },
+            "description": "Outil admin pour vérifier manuellement la toxicité d'un texte.\n\n**Body :**\n| Champ | Type | Requis | Description |\n|-------|------|--------|-------------|\n| `text` | string | Oui | Le texte à analyser |\n\n**Seuil de toxicité :** Score ≥ 30 = contenu toxique\n\n**Catégories détectées :**\n- `insult` — Insultes (FR + EN)\n- `hate_speech` — Discours haineux\n- `threat` — Menaces / violence\n- `harassment` — Harcèlement\n- `profanity` — Vulgarités\n- `spam` — Spam / publicité\n- `aggressive_tone` — Ton agressif (CAPS excessifs)"
+          },
+          "response": [
+            {
+              "name": "Contenu toxique détecté",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"toxic\": true,\n        \"score\": 65,\n        \"categories\": [\"insult\", \"profanity\"],\n        \"reason\": \"Contenu toxique détecté: insult, profanity\",\n        \"details\": {\n            \"insults\": [\"idiot\", \"imbécile\"],\n            \"profanity\": [\"merde\"]\n        }\n    }\n}"
+            },
+            {
+              "name": "Contenu acceptable",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"toxic\": false,\n        \"score\": 0,\n        \"categories\": [],\n        \"reason\": \"Contenu acceptable\",\n        \"details\": {}\n    }\n}"
+            },
+            {
+              "name": "Erreur — Texte manquant",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n    \"success\": false,\n    \"message\": \"Text is required\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Approuver un post flaggé",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/moderation/post/{{post_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["moderation", "post", "{{post_id}}", "approve"]
+            },
+            "description": "Approuve un post précédemment signalé par l'IA.\n\nMet à jour : `flagged = false`, `moderationStatus = \"approved\"`.\n\n**Paramètres URL :**\n| Param | Type | Description |\n|-------|------|-------------|\n| `id` | ObjectId | ID du post à approuver |"
+          },
+          "response": [
+            {
+              "name": "Succès",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"approved\": true\n    }\n}"
+            },
+            {
+              "name": "Post introuvable",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n    \"success\": false,\n    \"message\": \"Post not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Rejeter un post flaggé",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/moderation/post/{{post_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["moderation", "post", "{{post_id}}", "reject"]
+            },
+            "description": "Rejette un post signalé (soft-delete : le post reste en base mais est marqué rejeté).\n\nMet à jour : `flagged = true`, `moderationStatus = \"rejected\"`.\n\n**Paramètres URL :**\n| Param | Type | Description |\n|-------|------|-------------|\n| `id` | ObjectId | ID du post à rejeter |"
+          },
+          "response": [
+            {
+              "name": "Succès",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"rejected\": true\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Bannir un utilisateur",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"reason\": \"Compte détecté comme faux par l'IA de modération\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/moderation/user/{{user_id}}/ban",
+              "host": ["{{base_url}}"],
+              "path": ["moderation", "user", "{{user_id}}", "ban"]
+            },
+            "description": "Bannit un utilisateur signalé comme suspect.\n\nMet à jour : `isBanned = true`, `banReason = <reason>`.\n\n**Paramètres URL :**\n| Param | Type | Description |\n|-------|------|-------------|\n| `id` | ObjectId | ID de l'utilisateur |\n\n**Body (optionnel) :**\n| Champ | Type | Description |\n|-------|------|-------------|\n| `reason` | string | Raison du bannissement (défaut: \"Compte suspect détecté par l'IA\") |"
+          },
+          "response": [
+            {
+              "name": "Succès",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"banned\": true\n    }\n}"
+            },
+            {
+              "name": "Utilisateur introuvable",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n    \"success\": false,\n    \"message\": \"User not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Débannir un utilisateur",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/moderation/user/{{user_id}}/unban",
+              "host": ["{{base_url}}"],
+              "path": ["moderation", "user", "{{user_id}}", "unban"]
+            },
+            "description": "Débannit un utilisateur et retire le flag suspect.\n\nMet à jour : `isBanned = false`, `isFlagged = false`, `banReason = undefined`.\n\n**Paramètres URL :**\n| Param | Type | Description |\n|-------|------|-------------|\n| `id` | ObjectId | ID de l'utilisateur |"
+          },
+          "response": [
+            {
+              "name": "Succès",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"unbanned\": true\n    }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🎯 Matching Emploi Intelligent",
+      "description": "Endpoint de recommandation d'emplois par IA.\n\nTechnologie : TF-IDF + Cosine Similarity (Python)\nScoring : 70% similarité TF-IDF + 30% correspondance directe des compétences\nDonnées agrégées : profil utilisateur, expériences, éducation, compétences, compétences techniques, CV manuel, projets, certifications",
+      "item": [
+        {
+          "name": "Obtenir les emplois recommandés",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/jobs/matches",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "matches"]
+            },
+            "description": "Retourne les offres d'emploi classées par pertinence pour le profil de l'utilisateur.\n\n**Comment ça marche :**\n1. Le backend récupère en parallèle : profil utilisateur, expériences, éducation, compétences, compétences techniques, CV manuels, offres actives\n2. Les données sont fusionnées pour construire un profil enrichi\n3. Le script Python `job_matcher.py` calcule le score via TF-IDF + cosine similarity\n4. Un bonus de 30% est ajouté pour la correspondance directe des noms de compétences\n5. Les résultats sont triés par score décroissant\n\n**Données du profil agrégées automatiquement :**\n- Titre professionnel, bio, résumé\n- Compétences générales et techniques\n- Expériences professionnelles\n- Formation / éducation\n- Projets (depuis CV manuel)\n- Certifications (depuis CV manuel)\n- Centres d'intérêt"
+          },
+          "response": [
+            {
+              "name": "Succès — Recommandations",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"data\": [\n            {\n                \"_id\": \"6612job123...\",\n                \"title\": \"Développeur Full-Stack Node.js\",\n                \"description\": \"Nous recherchons un développeur expérimenté...\",\n                \"location\": \"Tunis, Tunisie\",\n                \"contractType\": \"CDI\",\n                \"experience\": \"2-5 ans\",\n                \"remotePolicy\": \"Hybride\",\n                \"skills\": [\"Node.js\", \"React\", \"MongoDB\", \"TypeScript\"],\n                \"matchScore\": 82\n            },\n            {\n                \"_id\": \"6612job456...\",\n                \"title\": \"Ingénieur DevOps\",\n                \"description\": \"Gestion de l'infrastructure cloud...\",\n                \"location\": \"Paris, France\",\n                \"contractType\": \"CDI\",\n                \"experience\": \"3-7 ans\",\n                \"remotePolicy\": \"Full remote\",\n                \"skills\": [\"Docker\", \"Kubernetes\", \"AWS\", \"CI/CD\"],\n                \"matchScore\": 45\n            }\n        ],\n        \"total\": 2\n    }\n}"
+            },
+            {
+              "name": "Aucune offre active",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"data\": [],\n        \"total\": 0\n    }\n}"
+            },
+            {
+              "name": "Erreur — Non authentifié",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n    \"success\": false,\n    \"message\": \"Utilisateur non authentifié\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🧪 Tests — Flux Complet IA",
+      "description": "Scénarios de test de bout en bout pour valider le fonctionnement des modules IA.",
+      "item": [
+        {
+          "name": "Test 1 — Générer CV + Reformuler + Télécharger PDF",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"language\": \"fr\",\n    \"section\": \"full\",\n    \"format\": \"canadian\",\n    \"customPrompt\": \"Créer un CV orienté marché québécois\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai-cv/generate",
+              "host": ["{{base_url}}"],
+              "path": ["ai-cv", "generate"]
+            },
+            "description": "**Scénario de test complet :**\n1. Générer un CV format canadien → sauvegarder l'ID\n2. Reformuler le CV avec nouvelles instructions\n3. Télécharger en PDF\n4. Lister mes CVs pour vérifier les 2 versions\n5. Supprimer le CV"
+          },
+          "response": []
+        },
+        {
+          "name": "Test 2 — Modération : Texte toxique",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"text\": \"Tu es un idiot stupide, va mourir!! PERSONNE T'AIME!!!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/moderation/check-text",
+              "host": ["{{base_url}}"],
+              "path": ["moderation", "check-text"]
+            },
+            "description": "**Résultat attendu :**\n- `toxic: true`\n- `score: ≥ 30`\n- `categories: [\"insult\", \"threat\", \"harassment\", \"aggressive_tone\"]`"
+          },
+          "response": []
+        },
+        {
+          "name": "Test 3 — Modération : Texte clean",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"text\": \"Bonjour, je suis ravi de rejoindre cette communauté professionnelle. Au plaisir d'échanger avec vous tous.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/moderation/check-text",
+              "host": ["{{base_url}}"],
+              "path": ["moderation", "check-text"]
+            },
+            "description": "**Résultat attendu :**\n- `toxic: false`\n- `score: 0`\n- `categories: []`\n- `reason: \"Contenu acceptable\"`"
+          },
+          "response": []
+        },
+        {
+          "name": "Test 4 — Job Matching",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/jobs/matches",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "matches"]
+            },
+            "description": "**Prérequis :**\n- L'utilisateur doit avoir un profil complété (compétences, expériences)\n- Des offres d'emploi doivent exister en base\n\n**Résultat attendu :**\n- Liste d'offres triées par `matchScore` décroissant\n- Chaque offre a un score entre 0 et 100\n- Scoring : 70% TF-IDF cosine + 30% skill overlap"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

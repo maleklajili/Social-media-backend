@@ -18,6 +18,7 @@ import type { ICommentRepository } from "../../interfaces/comment/i-comment-repo
 import type { ICommunityRepository } from "../../interfaces/community/i-community-repository";
 import { CommunityRepository } from "../../repositories/community-repository";
 import { NotificationEventHandler } from "../notification-event-handler";
+import { ContentModeratorClient } from "../../utils/content-moderator-client";
 export class PostServices extends BaseService<Post> implements IPostService {
   private commentRepository: ICommentRepository;
   private communityRepository: ICommunityRepository;
@@ -99,6 +100,30 @@ export class PostServices extends BaseService<Post> implements IPostService {
       }
 
       post.trendingScore = this.calculateTrendingScore(post);
+
+      // ── AI Moderation: check toxicity ──────────────────────────────────
+      try {
+        const textToCheck = `${post.title || ""} ${post.content || ""}`.trim();
+        if (textToCheck) {
+          const modResult =
+            await ContentModeratorClient.checkToxicity(textToCheck);
+          post.toxicityScore = modResult.score;
+          post.toxicityCategories = modResult.categories;
+
+          if (modResult.toxic) {
+            post.flagged = true;
+            post.moderationStatus = "flagged";
+            post.moderationReason = modResult.reason;
+          } else {
+            post.flagged = false;
+            post.moderationStatus = "approved";
+          }
+        }
+      } catch (err) {
+        console.error("AI moderation check failed (post created anyway):", err);
+        post.moderationStatus = "pending";
+      }
+
       await this.postRepository.addPost(post);
 
       try {

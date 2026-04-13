@@ -11,7 +11,10 @@ export class AiCvRepository implements IAiCvRepository {
   }
 
   async getByUserId(userId: ObjectId): Promise<AiCv[]> {
-    return this.collection.find({ userId }).sort({ createdAt: -1 }).toArray();
+    return this.collection
+      .find({ userId }, { projection: { content: 0 } })
+      .sort({ createdAt: -1 })
+      .toArray();
   }
 
   async getById(id: ObjectId, userId: ObjectId): Promise<AiCv | null> {

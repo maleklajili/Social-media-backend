@@ -1,180 +1,216 @@
 <!doctype html>
-<html lang="fr">
+<html lang="{{ lang|default('fr') }}">
   <head>
     <meta charset="UTF-8" />
     <style>
       @page {
         size: A4;
-        margin: 1in 0.75in;
+        margin: 1.5cm 2cm;
       }
       * {
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
       }
       body {
-        font-family: "Times New Roman", serif;
+        font-family: "Georgia", "Times New Roman", serif;
         font-size: 10pt;
-        color: #000;
-        line-height: 1.3;
+        color: #111;
+        line-height: 1.35;
       }
 
-      /* Header */
       .header {
         text-align: center;
-        margin-bottom: 14pt;
-        border-bottom: 1pt solid #000;
-        padding-bottom: 10pt;
+        margin-bottom: 6pt;
       }
       .name {
-        font-size: 14pt;
+        font-size: 22pt;
         font-weight: bold;
-        letter-spacing: 0.05em;
+        color: #1e3a8a;
+        margin-bottom: 3pt;
+      }
+      .title-line {
+        font-size: 11pt;
+        font-style: italic;
+        color: #444;
         margin-bottom: 4pt;
       }
-      .contact-info {
+      .contact-line {
         font-size: 9pt;
-        letter-spacing: 0.02em;
-      }
-      .contact-info span {
-        margin: 0 10pt;
+        color: #222;
       }
       .contact-sep {
-        color: #333;
-        margin: 0 6pt;
+        margin: 0 4pt;
+        color: #888;
       }
 
-      /* Section */
+      .header-rule {
+        border: none;
+        border-top: 1.5pt solid #1e3a8a;
+        margin: 7pt 0 10pt 0;
+      }
+
       .section-title {
         font-size: 11pt;
         font-weight: bold;
+        color: #1e3a8a;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.03em;
         margin-top: 10pt;
-        margin-bottom: 6pt;
-        border-bottom: 1pt solid #000;
-        padding-bottom: 3pt;
+        margin-bottom: 2pt;
+      }
+      .section-rule {
+        border: none;
+        border-top: 0.75pt solid #1e3a8a;
+        margin: 2pt 0 5pt 0;
       }
 
-      /* Entry */
       .entry {
-        margin-bottom: 10pt;
+        margin-bottom: 6pt;
       }
-      .entry-table {
+      .entry-header {
         width: 100%;
+        border-collapse: collapse;
+      }
+      .entry-left {
+        font-size: 10pt;
+      }
+      .entry-right {
+        font-size: 9pt;
+        text-align: right;
+        white-space: nowrap;
+        font-style: italic;
       }
       .entry-title {
         font-weight: bold;
-        font-size: 10pt;
       }
       .entry-subtitle {
         font-style: italic;
         color: #333;
-        font-size: 10pt;
-      }
-      .entry-date {
-        font-size: 9pt;
-        color: #555;
-        text-align: right;
-      }
-      .entry-description {
-        font-size: 9pt;
-        color: #333;
-        margin-top: 3pt;
-        line-height: 1.3;
       }
 
-      /* Summary */
+      .bullet-item {
+        font-size: 10pt;
+        margin-left: 14pt;
+        line-height: 1.4;
+      }
+
       .summary {
-        font-size: 9pt;
-        color: #333;
-        line-height: 1.3;
+        font-size: 10pt;
+        text-align: justify;
+        line-height: 1.45;
       }
 
-      /* Skills */
-      .skill-table {
+      .skill-row {
         width: 100%;
+        border-collapse: collapse;
         font-size: 10pt;
-        margin-bottom: 6pt;
+        margin-bottom: 2pt;
       }
       .skill-label {
         font-weight: bold;
-        width: 80pt;
+        width: 110pt;
         vertical-align: top;
-        padding-right: 10pt;
+        padding-right: 6pt;
       }
-      .skill-list {
+      .skill-value {
         vertical-align: top;
       }
 
-      /* Items */
+      .lang-inline {
+        font-size: 10pt;
+        line-height: 1.7;
+      }
       .item {
-        font-size: 9pt;
-        color: #333;
-        margin-bottom: 2pt;
+        font-size: 10pt;
+        margin-left: 14pt;
       }
     </style>
+
+    {% if primary_color %}
+    <style>
+      .name, .section-title { color: {{ primary_color }} !important; }
+      .section-rule, .header-rule { border-top-color: {{ primary_color }} !important; }
+    </style>
+    {% endif %} {% if accent_color %}
+    <style>
+      .entry-subtitle, .title-line { color: {{ accent_color }} !important; }
+    </style>
+    {% endif %} {% if font_family %}
+    <style>
+      body {
+        font-family: "{{ font_family }}", serif !important;
+      }
+    </style>
+    {% endif %}
   </head>
+
   <body>
     <!-- Header -->
     <div class="header">
       <div class="name">{{ cv.name }}</div>
-      <div class="contact-info">
-        {% if cv.contact_info.email %}<span>{{ cv.contact_info.email }}</span>{%
-        endif %} {% if cv.contact_info.phone %}<span class="contact-sep">|</span
-        ><span>{{ cv.contact_info.phone }}</span>{% endif %} {% if
-        cv.contact_info.location %}<span class="contact-sep">|</span
-        ><span>{{ cv.contact_info.location }}</span>{% endif %} {% if
-        cv.contact_info.linkedin %}<span class="contact-sep">|</span
-        ><span>{{ cv.contact_info.linkedin }}</span>{% endif %} {% if
-        cv.contact_info.website %}<span class="contact-sep">|</span
-        ><span>{{ cv.contact_info.website }}</span>{% endif %}
+      {% if cv.title %}
+      <div class="title-line">{{ cv.title }}</div>
+      {% endif %}
+      <div class="contact-line">
+        {% set parts = [] %} {% if cv.contact_info.email %}{% set _ =
+        parts.append(cv.contact_info.email) %}{% endif %} {% if
+        cv.contact_info.phone %}{% set _ = parts.append(cv.contact_info.phone)
+        %}{% endif %} {% if cv.contact_info.location %}{% set _ =
+        parts.append(cv.contact_info.location) %}{% endif %} {% if
+        cv.contact_info.website %}{% set _ =
+        parts.append(cv.contact_info.website) %}{% endif %} {% if
+        cv.contact_info.linkedin %}{% set _ =
+        parts.append(cv.contact_info.linkedin) %}{% endif %} {% for p in parts
+        %}{% if not loop.first %}<span class="contact-sep">|</span>{% endif %}{{
+        p }}{% endfor %}
       </div>
     </div>
+    <hr class="header-rule" />
 
-    <!-- Résumé Professionnel -->
+    <!-- Profil -->
     {% if cv.summary %}
-    <div class="section-title">Résumé Professionnel</div>
+    <div class="section-title">{{ t.profile }}</div>
+    <hr class="section-rule" />
     <div class="summary">{{ cv.summary }}</div>
     {% endif %}
 
-    <!-- Expérience Professionnelle -->
+    <!-- Expérience -->
     {% if cv.experience %}
-    <div class="section-title">Expérience Professionnelle</div>
+    <div class="section-title">{{ t.experience }}</div>
+    <hr class="section-rule" />
     {% for exp in cv.experience %}
     <div class="entry">
-      <table class="entry-table" cellpadding="0" cellspacing="0">
+      <table class="entry-header" cellpadding="0" cellspacing="0">
         <tr>
-          <td>
-            <div class="entry-title">{{ exp.post }}</div>
-            {% if exp.company %}
-            <div class="entry-subtitle">{{ exp.company }}</div>
-            {% endif %}
+          <td class="entry-left">
+            <span class="entry-title">{{ exp.post }}</span>
+            {% if exp.company %} &ndash;
+            <span class="entry-subtitle">{{ exp.company }}</span>{% endif %}
           </td>
-          <td><div class="entry-date">{{ exp.dates }}</div></td>
+          <td class="entry-right">{{ exp.dates }}</td>
         </tr>
       </table>
-      {% if exp.achievements %}
-      <div class="entry-description">
-        {% for a in exp.achievements %}&bull; {{ a }}<br />{% endfor %}
-      </div>
-      {% endif %}
+      {% for a in exp.achievements %}
+      <div class="bullet-item">&ndash; {{ a }}</div>
+      {% endfor %}
     </div>
     {% endfor %} {% endif %}
 
     <!-- Formation -->
     {% if cv.education %}
-    <div class="section-title">Formation</div>
+    <div class="section-title">{{ t.education }}</div>
+    <hr class="section-rule" />
     {% for edu in cv.education %}
     <div class="entry">
-      <table class="entry-table" cellpadding="0" cellspacing="0">
+      <table class="entry-header" cellpadding="0" cellspacing="0">
         <tr>
-          <td>
-            <div class="entry-title">{{ edu.degree }}</div>
-            {% if edu.school %}
-            <div class="entry-subtitle">{{ edu.school }}</div>
-            {% endif %}
+          <td class="entry-left">
+            <span class="entry-title">{{ edu.degree }}</span>
+            {% if edu.school %},
+            <span class="entry-subtitle">{{ edu.school }}</span>{% endif %}
           </td>
-          <td><div class="entry-date">{{ edu.dates }}</div></td>
+          <td class="entry-right">{{ edu.dates }}</td>
         </tr>
       </table>
     </div>
@@ -182,71 +218,79 @@
 
     <!-- Compétences -->
     {% if cv.skills %}
-    <div class="section-title">Compétences</div>
+    <div class="section-title">{{ t.skills }}</div>
+    <hr class="section-rule" />
     {% set ns = namespace(current_cat='', items=[]) %} {% for skill in cv.skills
     %} {% if skill.category and skill.category != ns.current_cat %} {% if
     ns.current_cat and ns.items %}
-    <table class="skill-table" cellpadding="0" cellspacing="0">
+    <table class="skill-row" cellpadding="0" cellspacing="0">
       <tr>
         <td class="skill-label">{{ ns.current_cat }} :</td>
-        <td class="skill-list">{{ ns.items|join(', ') }}</td>
+        <td class="skill-value">{{ ns.items|join(', ') }}</td>
       </tr>
     </table>
     {% endif %} {% set ns.current_cat = skill.category %} {% set ns.items =
     [skill.name] %} {% elif skill.category %} {% set ns.items = ns.items +
     [skill.name] %} {% else %}
-    <div class="item">
-      &bull; {{ skill.name }}{% if skill.level %} ({{ skill.level }}){% endif %}
+    <div class="bullet-item">
+      &ndash; {{ skill.name }}{% if skill.level %} ({{ skill.level }}){% endif
+      %}
     </div>
     {% endif %} {% endfor %} {% if ns.current_cat and ns.items %}
-    <table class="skill-table" cellpadding="0" cellspacing="0">
+    <table class="skill-row" cellpadding="0" cellspacing="0">
       <tr>
         <td class="skill-label">{{ ns.current_cat }} :</td>
-        <td class="skill-list">{{ ns.items|join(', ') }}</td>
+        <td class="skill-value">{{ ns.items|join(', ') }}</td>
       </tr>
     </table>
     {% endif %} {% endif %}
 
-    <!-- Langues -->
-    {% if cv.languages %}
-    <div class="section-title">Langues</div>
-    {% for lang in cv.languages %}
-    <table class="skill-table" cellpadding="0" cellspacing="0">
-      <tr>
-        <td class="skill-label">{{ lang.name }} :</td>
-        <td class="skill-list">{{ lang.level }}</td>
-      </tr>
-    </table>
-    {% endfor %} {% endif %}
-
-    <!-- Certifications -->
-    {% if cv.certifications %}
-    <div class="section-title">Certifications</div>
-    {% for cert in cv.certifications %}
+    <!-- Projets -->
+    {% if cv.projects %}
+    <div class="section-title">{{ t.projects }}</div>
+    <hr class="section-rule" />
+    {% for p in cv.projects %}
     <div class="entry">
-      <table class="entry-table" cellpadding="0" cellspacing="0">
-        <tr>
-          <td><div class="entry-title">{{ cert }}</div></td>
-        </tr>
-      </table>
+      <div>
+        <span class="entry-title">{{ p.title }}</span>{% if p.dates %}
+        <span class="entry-right">({{ p.dates }})</span>{% endif %}
+      </div>
+      {% if p.description %}
+      <div class="bullet-item">&ndash; {{ p.description }}</div>
+      {% endif %}
     </div>
     {% endfor %} {% endif %}
 
-    <!-- Projets -->
-    {% if cv.projects %}
-    <div class="section-title">Projets</div>
-    {% for p in cv.projects %}
+    <!-- Langues -->
+    {% if cv.languages %}
+    <div class="section-title">{{ t.languages }}</div>
+    <hr class="section-rule" />
+    <div class="lang-inline">
+      {% for lang in cv.languages %}
+      <strong>{{ lang.name }}</strong>{% if not loop.last %} &nbsp;&mdash;&nbsp;
+      {% endif %} {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Certifications -->
+    {% if cv.certifications %}
+    <div class="section-title">{{ t.certifications }}</div>
+    <hr class="section-rule" />
+    {% for cert in cv.certifications %}
     <div class="entry">
-      <div class="entry-title">{{ p.title }}</div>
-      {% if p.description %}
-      <div class="entry-description">{{ p.description }}</div>
-      {% endif %}
+      <span class="entry-title"
+        >{{ cert.title if cert.title is defined else cert }}</span
+      >
+      {% if cert.organization is defined and cert.organization %} &ndash;
+      <span class="entry-subtitle">{{ cert.organization }}</span>{% endif %} {%
+      if cert.date is defined and cert.date %} ({{ cert.date }}){% endif %}
     </div>
     {% endfor %} {% endif %}
 
     <!-- Intérêts -->
     {% if cv.interests %}
-    <div class="section-title">Intérêts</div>
+    <div class="section-title">{{ t.interests }}</div>
+    <hr class="section-rule" />
     <div class="item">{{ cv.interests|join(' &bull; ') }}</div>
     {% endif %}
   </body>

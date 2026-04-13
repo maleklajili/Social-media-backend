@@ -11,11 +11,24 @@ import { CollectionsManager } from "../models/base/collection-manager";
 import { ResponseHelper } from "../utils/response-helper";
 import type { TransactionService } from "./transaction-services";
 import { COINS_CONFIG } from "../utils/coins-config";
+import { ExperienceRepository } from "../repositories/experience-repository";
+import { EducationRepository } from "../repositories/education-repository";
+import { skillRepository } from "../repositories/skill-repository";
+import { TechnicalSkillRepository } from "../repositories/skills/technical-skill-repository";
+import { ManualCvRepository } from "../repositories/manual-cv-repository";
+import { JobMatcherClient } from "../utils/job-matcher-client";
+import type { Job } from "../models/job";
 
 export class JobApplicationService
   extends BaseService<JobApplication>
   implements IJobApplicationService
 {
+  private readonly experienceRepo = new ExperienceRepository();
+  private readonly educationRepo = new EducationRepository();
+  private readonly skillRepo = new skillRepository();
+  private readonly technicalSkillRepo = new TechnicalSkillRepository();
+  private readonly manualCvRepo = new ManualCvRepository();
+
   constructor(
     public applicationRepository: IJobApplicationRepository,
     public jobRepository: IJobRepository,
@@ -39,11 +52,11 @@ export class JobApplicationService
 
       const job = await this.jobRepository.getJobById(jobId);
       if (!job) {
-        return ResponseHelper.error("Job not found");
+        return ResponseHelper.error("Job not found", 404);
       }
 
       if (job.status !== "active") {
-        return ResponseHelper.error("Job is no longer active");
+        return ResponseHelper.error("Job is no longer active", 422);
       }
 
       const hasApplied = await this.applicationRepository.hasAlreadyApplied(
@@ -51,7 +64,10 @@ export class JobApplicationService
         userId,
       );
       if (hasApplied) {
-        return ResponseHelper.error("You have already applied to this job");
+        return ResponseHelper.error(
+          "Vous avez déjà postulé à cette offre",
+          409,
+        );
       }
 
       if (!application.coverLetter || application.coverLetter.trim() === "") {
@@ -75,6 +91,11 @@ export class JobApplicationService
       };
 
       await this.applicationRepository.addApplication(newApplication);
+
+      // Fire-and-forget: compute TF-IDF match score in background
+      this._computeAndSaveScore(newApplication._id!, userId, job).catch((err) =>
+        console.error("[JobMatch] Score computation failed:", err),
+      );
 
       const updatedJob = { ...job, applications: (job.applications || 0) + 1 };
       await this.jobRepository.updateJob(updatedJob);
@@ -321,6 +342,156 @@ export class JobApplicationService
     } catch (err) {
       console.error(" Error responding to application:", err);
       return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  // ───────────────────────────────────────────────────
+  // NLP Matching: TF-IDF + Cosine Similarity
+  // ───────────────────────────────────────────────────
+
+  /** Returns applications for a job sorted by matchScore descending. */
+  async getRankedCandidates(jobId: ObjectId): Promise<Response> {
+    try {
+      const job = await this.jobRepository.getJobById(jobId);
+      if (!job) return ResponseHelper.error("Job not found", 404);
+
+      // First get all applications (ranked version uses score sort)
+      const applications =
+        await this.applicationRepository.getApplicationsByJobIdRanked(jobId);
+
+      // Compute missing scores (applications that arrived before scoring was enabled)
+      const unscored = applications.filter(
+        (a) => a.score == null || a.score === undefined,
+      );
+
+      if (unscored.length > 0) {
+        await Promise.all(
+          unscored.map((a) =>
+            this._computeAndSaveScore(a._id!, a.userId, job).catch(() => {}),
+          ),
+        );
+        // Re-fetch after scoring
+        const rescored =
+          await this.applicationRepository.getApplicationsByJobIdRanked(jobId);
+        return ResponseHelper.success(rescored, 200);
+      }
+
+      return ResponseHelper.success(applications, 200);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  /** Compute TF-IDF + Cosine Similarity score for one candidate vs a job. */
+  private async _computeAndSaveScore(
+    applicationId: ObjectId,
+    userId: ObjectId,
+    job: Job,
+  ): Promise<void> {
+    const [user, skills, technicalSkills, experiences, education, manualCvs] =
+      await Promise.all([
+        this.userRepository.findById(userId, 0),
+        this.skillRepo.findByUserId(userId),
+        this.technicalSkillRepo.getTechnicalSkillsByUserId(userId),
+        this.experienceRepo.getExperiencesByUserId(userId),
+        this.educationRepo.getEducationsByUserId(userId),
+        this.manualCvRepo.getByUserId(userId),
+      ]);
+
+    if (!user) return;
+
+    // Build base profile from separate profile collections
+    const profileSkills = skills.map((s) => ({
+      name: s.categorie ?? s.name ?? "",
+    }));
+    const profileTechSkills = technicalSkills.map((ts) => ({
+      name: ts.name ?? ts.category ?? "",
+    }));
+    const profileExperiences = experiences.map((e) => ({
+      post: e.post ?? "",
+      entreprise: e.entreprise ?? "",
+      description: e.description ?? "",
+      skills: Array.isArray(e.skills) ? e.skills : [],
+    }));
+    const profileEducation = education.map((edu) => ({
+      degree: edu.degree ?? "",
+      school: edu.school ?? "",
+      description:
+        (edu as unknown as { description?: string }).description ?? "",
+    }));
+
+    // Merge ManualCV data (use the most recent CV)
+    const cv = manualCvs.length > 0 ? manualCvs[0] : null;
+    if (cv) {
+      // Add CV skills not already present
+      for (const s of cv.skills ?? []) {
+        if (
+          s.name &&
+          !profileSkills.some(
+            (ps) => ps.name.toLowerCase() === s.name.toLowerCase(),
+          )
+        ) {
+          profileSkills.push({ name: s.name });
+        }
+      }
+      // Add CV experiences
+      for (const exp of cv.experiences ?? []) {
+        profileExperiences.push({
+          post: exp.jobTitle ?? "",
+          entreprise: exp.company ?? "",
+          description: exp.description ?? "",
+          skills: [],
+        });
+      }
+      // Add CV educations
+      for (const edu of cv.educations ?? []) {
+        profileEducation.push({
+          degree: edu.degree ?? "",
+          school: edu.school ?? "",
+          description: edu.description ?? "",
+        });
+      }
+    }
+
+    const profile = {
+      professionalTitle:
+        cv?.personalInfo?.professionalTitle ?? user.professionalTitle ?? "",
+      bio: (user as unknown as { bio?: string }).bio ?? "",
+      summary: cv?.personalInfo?.summary ?? "",
+      skills: profileSkills,
+      technicalSkills: profileTechSkills,
+      experiences: profileExperiences,
+      education: profileEducation,
+      // Extra CV fields for richer text matching
+      projects: (cv?.projects ?? []).map((p) => ({
+        name: p.name ?? "",
+        description: p.description ?? "",
+      })),
+      certifications: (cv?.certifications ?? []).map((c) => ({
+        name: c.name ?? "",
+        organization: c.organization ?? "",
+        description: c.description ?? "",
+      })),
+      interests: cv?.interests ?? [],
+    };
+
+    const serialisedJob = {
+      ...job,
+      _id: job._id?.toString() ?? "",
+      userId: job.userId?.toString() ?? "",
+      companyId: job.companyId?.toString() ?? "",
+    };
+
+    const matched = await JobMatcherClient.matchJobs(
+      profile as Record<string, unknown>,
+      [serialisedJob],
+    );
+
+    if (matched.length > 0 && matched[0]) {
+      await this.applicationRepository.updateApplicationScore(
+        applicationId,
+        matched[0].matchScore,
+      );
     }
   }
 }

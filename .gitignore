@@ -38,3 +38,6 @@ uploads
 
 __pycache__/
 *.pyc
+
+# Python debug files
+python-ai/debug_*

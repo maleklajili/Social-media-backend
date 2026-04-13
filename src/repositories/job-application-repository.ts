@@ -56,6 +56,16 @@ export class JobApplicationRepository implements IJobApplicationRepository {
     return (result[0] as JobApplication) || null;
   }
 
+  async updateApplicationScore(
+    applicationId: ObjectId,
+    score: number,
+  ): Promise<void> {
+    await this.collection.updateOne(
+      { _id: applicationId },
+      { $set: { score, updatedAt: new Date() } },
+    );
+  }
+
   async getApplicationsByJobId(jobId: ObjectId): Promise<JobApplication[]> {
     // ✅ Ajouter un lookup pour récupérer l'avatar des utilisateurs
     return this.collection
@@ -86,6 +96,35 @@ export class JobApplicationRepository implements IJobApplicationRepository {
             userDetails: 0,
           },
         },
+      ])
+      .toArray() as Promise<JobApplication[]>;
+  }
+
+  async getApplicationsByJobIdRanked(
+    jobId: ObjectId,
+  ): Promise<JobApplication[]> {
+    return this.collection
+      .aggregate([
+        { $match: { jobId } },
+        { $sort: { score: -1, appliedAt: -1 } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        { $unwind: { path: "$userDetails", preserveNullAndEmptyArrays: true } },
+        {
+          $addFields: {
+            avatar: { $ifNull: ["$userDetails.image", null] },
+            professionalTitle: {
+              $ifNull: ["$userDetails.professionalTitle", null],
+            },
+          },
+        },
+        { $project: { userDetails: 0 } },
       ])
       .toArray() as Promise<JobApplication[]>;
   }

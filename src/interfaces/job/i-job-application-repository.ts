@@ -24,4 +24,6 @@ export interface IJobApplicationRepository {
     jobId: ObjectId,
     status: string,
   ): Promise<JobApplication[]>;
+  updateApplicationScore(applicationId: ObjectId, score: number): Promise<void>;
+  getApplicationsByJobIdRanked(jobId: ObjectId): Promise<JobApplication[]>;
 }

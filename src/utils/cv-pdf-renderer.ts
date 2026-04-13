@@ -14,7 +14,7 @@ export class CvPdfRenderer {
    * Resolve a user.image value (relative URL or path) to an absolute local file path.
    * Returns empty string if the file cannot be found.
    */
-  private static resolvePhotoPath(photoUrl: string): string {
+  private static resolvePhotoPath(photoUrl: string, userId?: string): string {
     if (!photoUrl) return "";
 
     // If it's already an absolute path that exists, use it
@@ -33,10 +33,18 @@ export class CvPdfRenderer {
     const directPath = join(UPLOADS_DIR, relative.replace(/^uploads\/?/, ""));
     if (existsSync(directPath)) return directPath;
 
-    // Try just the filename in images folder
+    // Try user-specific folder: uploads/images-{userId}/{filename}
     const filename = photoUrl.split("/").pop() || "";
-    const imagesPath = join(UPLOADS_DIR, "images", filename);
-    if (existsSync(imagesPath)) return imagesPath;
+    if (userId && filename) {
+      const userImagesPath = join(UPLOADS_DIR, `images-${userId}`, filename);
+      if (existsSync(userImagesPath)) return userImagesPath;
+    }
+
+    // Try generic images folder
+    if (filename) {
+      const imagesPath = join(UPLOADS_DIR, "images", filename);
+      if (existsSync(imagesPath)) return imagesPath;
+    }
 
     return "";
   }
@@ -45,8 +53,19 @@ export class CvPdfRenderer {
     content: string,
     format: string = "standard",
     photoUrl: string = "",
+    userName: string = "",
+    userTitle: string = "",
+    userId?: string,
+    primaryColor?: string,
+    accentColor?: string,
+    userEmail?: string,
+    userPhone?: string,
+    userAddress?: string,
+    userWebsite?: string,
+    fontFamily?: string,
+    lang?: string,
   ): Promise<Buffer> {
-    const resolvedPhoto = this.resolvePhotoPath(photoUrl);
+    const resolvedPhoto = this.resolvePhotoPath(photoUrl, userId);
     return new Promise((resolve, reject) => {
       const py = spawn("python", [PYTHON_SCRIPT], {
         stdio: ["pipe", "pipe", "pipe"],
@@ -57,9 +76,27 @@ export class CvPdfRenderer {
         content,
         format,
         photoUrl: resolvedPhoto,
+        userName,
+        userTitle,
+        userEmail: userEmail || "",
+        userPhone: userPhone || "",
+        userAddress: userAddress || "",
+        userWebsite: userWebsite || "",
+        primaryColor: primaryColor || "",
+        accentColor: accentColor || "",
+        fontFamily: fontFamily || "",
+        lang: lang || "fr",
       });
       const chunks: Buffer[] = [];
       let stderr = "";
+      let killed = false;
+
+      // Timeout: kill process after 30 seconds
+      const timeout = setTimeout(() => {
+        killed = true;
+        py.kill("SIGKILL");
+        reject(new Error("PDF rendering timed out after 30s"));
+      }, 30_000);
 
       py.stdout.on("data", (data: Buffer) => {
         chunks.push(data);
@@ -70,6 +107,8 @@ export class CvPdfRenderer {
       });
 
       py.on("close", (code: number | null) => {
+        clearTimeout(timeout);
+        if (killed) return;
         if (code !== 0) {
           let errorMsg = `PDF rendering failed (code ${code})`;
           try {

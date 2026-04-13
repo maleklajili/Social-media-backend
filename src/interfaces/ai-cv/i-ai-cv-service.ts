@@ -16,5 +16,12 @@ export interface IAiCvService {
   ): Promise<Response>;
   getUserCvs(userId: ObjectId): Promise<Response>;
   deleteCv(userId: ObjectId, cvId: ObjectId): Promise<Response>;
-  downloadPdf(userId: ObjectId, cvId: ObjectId): Promise<Response>;
+  downloadPdf(
+    userId: ObjectId,
+    cvId: ObjectId,
+    primaryColor?: string,
+    accentColor?: string,
+    fontFamily?: string,
+    formatOverride?: string,
+  ): Promise<Response>;
 }

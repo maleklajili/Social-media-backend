@@ -8,8 +8,11 @@ export interface ManualCvPersonalInfo {
   professionalTitle?: string;
   email?: string;
   phone?: string;
+  address?: string;
   city?: string;
+  country?: string;
   website?: string;
+  photoUrl?: string;
   summary?: string;
 }
 
@@ -41,6 +44,21 @@ export interface ManualCvLanguage {
   level?: string; // "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "Natif"
 }
 
+export interface ManualCvProject {
+  name: string;
+  description?: string;
+  link?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface ManualCvCertification {
+  name: string;
+  organization?: string;
+  date?: string;
+  description?: string;
+}
+
 export interface ManualCv extends BaseModel {
   userId: ObjectId;
   title: string;
@@ -51,7 +69,7 @@ export interface ManualCv extends BaseModel {
   educations: ManualCvEducation[];
   skills: ManualCvSkill[];
   languages: ManualCvLanguage[];
-  projects: string[];
-  certifications: string[];
+  projects: ManualCvProject[];
+  certifications: ManualCvCertification[];
   interests: string[];
 }
