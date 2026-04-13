@@ -37,6 +37,7 @@ export interface IUserRepository {
     currentUserId: ObjectId,
     limit?: number,
   ): Promise<User[]>;
+  delete(userId: ObjectId): Promise<void>;
   getMutualFriendsList(userId1: ObjectId, userId2: ObjectId): Promise<User[]>;
   countFriendSuggestions(userId: ObjectId, search: string): Promise<number>;
   getFriendSuggestions(
@@ -49,4 +50,10 @@ export interface IUserRepository {
   unfollowCompany(userId: ObjectId, companyId: ObjectId): Promise<void>;
   getFollowedCompanies(userId: ObjectId): Promise<ObjectId[]>;
   isFollowingCompany(userId: ObjectId, companyId: ObjectId): Promise<boolean>;
+  getUserStats(userId: ObjectId): Promise<{
+    postsCount: number;
+    commentsCount: number;
+    followersCount: number;
+    followingCount: number;
+  }>;
 }

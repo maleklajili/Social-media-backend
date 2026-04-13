@@ -24,6 +24,9 @@ import { JobMatchController } from "../job-match-controller";
 import { NotificationController } from "../notification-controller";
 import { ModerationController } from "../moderation-controller";
 import { PaymentController } from "../payment-controller";
+import AdminController from "../admin-controller";
+import { SearchController } from "../search-controller";
+import { ReportController } from "../report-controller";
 
 export class ControllerManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,6 +57,9 @@ export class ControllerManager {
       NotificationController,
       ModerationController,
       PaymentController,
+      AdminController,
+      SearchController,
+      ReportController,
     ];
   }
 }

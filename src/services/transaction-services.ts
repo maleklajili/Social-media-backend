@@ -57,7 +57,52 @@ export class TransactionService implements ITransactionService {
 
     return await this.transactionRepository.create(transaction);
   }
+  // Add this method to the TransactionService class
+  async getAllTransactions(
+    page: number = 1,
+    limit: number = 20,
+    filters?: {
+      userId?: ObjectId;
+      type?: TransactionType;
+      startDate?: Date;
+      endDate?: Date;
+    },
+  ): Promise<Response> {
+    try {
+      const result = await this.transactionRepository.findAll(
+        page,
+        limit,
+        filters,
+      );
 
+      // Optional: Calculate summary statistics
+      const summary = {
+        totalAmount: result.transactions.reduce((sum, t) => sum + t.amount, 0),
+        byType: {
+          earned: result.transactions
+            .filter((t) => t.type === "earned")
+            .reduce((sum, t) => sum + t.amount, 0),
+          spent: Math.abs(
+            result.transactions
+              .filter((t) => t.type === "spent")
+              .reduce((sum, t) => sum + t.amount, 0),
+          ),
+          purchased: result.transactions
+            .filter((t) => t.type === "purchased")
+            .reduce((sum, t) => sum + t.amount, 0),
+        },
+      };
+
+      return ResponseHelper.success({
+        ...result,
+        page,
+        limit,
+        summary,
+      });
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   async getUserTransactions(
     userId: ObjectId,
     page: number = 1,

@@ -91,10 +91,13 @@ export class JobApplicationController extends BaseController<
   }
 
   @Get("/job/:jobId", [authMiddleware])
-  async getApplicationsForJob(req: ServerRequest): Promise<Response> {
+  async getApplicationsForJob(req: RequestWithPagination): Promise<Response> {
     try {
       const jobId = new ObjectId(req.params.jobId);
-      return this.service.getApplicationsForJob(jobId);
+      const page = parseInt(req.query?.page as string) || 1;
+      const limit = parseInt(req.query?.limit as string) || 10;
+
+      return this.service.getApplicationsForJob(jobId, page, limit);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

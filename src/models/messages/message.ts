@@ -27,11 +27,13 @@ export type MessagePayload = TextPayload | MediaPayload;
 
 export interface Message extends BaseModel {
   sender: ObjectId;
-  receiver: ObjectId;
+  receiver?: ObjectId; // optionnel : présent pour les messages privés
+  groupId?: ObjectId; // optionnel : présent pour les messages de groupe
   type: MessageType;
   payload: MessagePayload;
-  read: boolean;
-  deletedFor?: ObjectId[]; // IDs des utilisateurs qui ont soft-deleted le message
+  read: boolean; // pour les messages privés
+  readBy?: ObjectId[]; // pour les messages de groupe : liste des IDs qui ont lu
+  deletedFor?: ObjectId[]; // IDs des utilisateurs qui ont soft-deleted
   createdAt: Date;
   updatedAt: Date;
 }

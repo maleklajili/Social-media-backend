@@ -2,13 +2,6 @@ import { ObjectId } from "mongodb";
 import type { PlanType, Payment } from "../models/payment";
 import { CollectionsManager } from "../models/base/collection-manager";
 
-const FLOUCI_URL = "https://developers.flouci.com/api/generate_payment";
-const APP_TOKEN = process.env.FLOUCI_APP_TOKEN;
-const APP_SECRET = process.env.FLOUCI_APP_SECRET;
-const BACKEND_URL =
-  process.env.BACKEND_PUBLIC_URL ||
-  `http://localhost:${process.env.PORT || 9000}`;
-
 const PLAN_PRICES: Record<string, number> = {
   pro: 1990, // 19.90 TND en millimes
   gold: 4990, // 49.90 TND en millimes
@@ -19,82 +12,32 @@ const PLAN_COINS: Record<string, number> = {
   gold: 2000,
 };
 
-// ─── Créer un lien de paiement Flouci ───
-export async function createFlouciPayment(plan: PlanType, userId: string) {
-  if (!APP_TOKEN || !APP_SECRET) {
-    throw new Error("Flouci credentials not configured");
-  }
+// Infos bancaires renvoyées au client
+export const BANK_INFO = {
+  bankName: "Banque Nationale Agricole (BNA)",
+  iban: "TN59 0001 8000 0000 1234 5678",
+  rib: "01 800 0000001234567 89",
+  accountHolder: "CvBuilder SARL",
+  swift: "BNTETNTT",
+};
+
+// ─── Créer une demande de paiement par virement ───
+export async function createTransferPayment(
+  userId: ObjectId,
+  plan: PlanType,
+  transferProof: string,
+) {
   if (plan === "free") {
     throw new Error("Cannot pay for free plan");
   }
 
-  const trackingId = `${userId}_${plan}_${Date.now()}`;
-
-  const res = await fetch(FLOUCI_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      app_token: APP_TOKEN,
-      app_secret: APP_SECRET,
-      amount: PLAN_PRICES[plan],
-      accept_card: true,
-      session_timeout_secs: 1200,
-      success_link: `${BACKEND_URL}/payment/success?userId=${userId}&plan=${plan}`,
-      fail_link: `${BACKEND_URL}/payment/fail?userId=${userId}`,
-      developer_tracking_id: trackingId,
-    }),
-  });
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = (await res.json()) as Record<string, any>;
-
-  if (!data.result?.link || !data.result?.payment_id) {
-    throw new Error(data.message || "Flouci payment creation failed");
-  }
-
-  return {
-    link: data.result.link,
-    paymentId: data.result.payment_id,
-    trackingId,
-  };
-}
-
-// ─── Vérifier un paiement Flouci ───
-export async function verifyFlouciPayment(paymentId: string) {
-  if (!APP_TOKEN || !APP_SECRET) {
-    throw new Error("Flouci credentials not configured");
-  }
-
-  const res = await fetch(
-    `https://developers.flouci.com/api/verify_payment/${encodeURIComponent(paymentId)}`,
-    {
-      headers: {
-        apptokens: APP_TOKEN,
-        appsecret: APP_SECRET,
-      },
-    },
-  );
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = (await res.json()) as Record<string, any>;
-  return data.result; // { status: 'SUCCESS' | 'PENDING' | 'FAILED' }
-}
-
-// ─── Sauvegarder l'intention de paiement ───
-export async function savePaymentIntent(
-  userId: ObjectId,
-  paymentId: string,
-  plan: PlanType,
-  trackingId: string,
-) {
   const payment: Payment = {
     _id: new ObjectId(),
     userId,
-    paymentId,
     plan,
     amount: PLAN_PRICES[plan] ?? 0,
-    status: "PENDING",
-    developerTrackingId: trackingId,
+    status: "PENDING_VERIFICATION",
+    transferProof,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -103,24 +46,81 @@ export async function savePaymentIntent(
   return payment;
 }
 
-// ─── Activer le plan premium ───
-export async function activatePlan(
-  userId: string,
-  plan: PlanType,
-  paymentId: string,
+// ─── Admin : approuver un paiement ───
+export async function approvePayment(
+  paymentId: ObjectId,
+  adminId: ObjectId,
+  adminNote?: string,
 ) {
-  const userOid = new ObjectId(userId);
-  const coins = PLAN_COINS[plan] || 0;
+  const payment = await CollectionsManager.paymentCollection.findOne({
+    _id: paymentId,
+  });
+  if (!payment) throw new Error("Payment not found");
+  if (payment.status !== "PENDING_VERIFICATION") {
+    throw new Error("Payment already processed");
+  }
 
-  // Mettre à jour le paiement
   await CollectionsManager.paymentCollection.updateOne(
-    { paymentId },
-    { $set: { status: "SUCCESS", updatedAt: new Date() } },
+    { _id: paymentId },
+    {
+      $set: {
+        status: "SUCCESS",
+        adminNote,
+        verifiedAt: new Date(),
+        verifiedBy: adminId,
+        updatedAt: new Date(),
+      },
+    },
   );
 
-  // Upgrader l'utilisateur
+  // Activer le plan
+  await activatePlan(payment.userId, payment.plan);
+  return { approved: true };
+}
+
+// ─── Admin : rejeter un paiement ───
+export async function rejectPayment(
+  paymentId: ObjectId,
+  adminId: ObjectId,
+  adminNote?: string,
+) {
+  const payment = await CollectionsManager.paymentCollection.findOne({
+    _id: paymentId,
+  });
+  if (!payment) throw new Error("Payment not found");
+  if (payment.status !== "PENDING_VERIFICATION") {
+    throw new Error("Payment already processed");
+  }
+
+  await CollectionsManager.paymentCollection.updateOne(
+    { _id: paymentId },
+    {
+      $set: {
+        status: "REJECTED",
+        adminNote,
+        verifiedAt: new Date(),
+        verifiedBy: adminId,
+        updatedAt: new Date(),
+      },
+    },
+  );
+  return { rejected: true };
+}
+
+// ─── Admin : liste des paiements en attente ───
+export async function getPendingPayments() {
+  return CollectionsManager.paymentCollection
+    .find({ status: "PENDING_VERIFICATION" })
+    .sort({ createdAt: -1 })
+    .toArray();
+}
+
+// ─── Activer le plan premium ───
+async function activatePlan(userId: ObjectId, plan: PlanType) {
+  const coins = PLAN_COINS[plan] || 0;
+
   await CollectionsManager.userCollection.updateOne(
-    { _id: userOid },
+    { _id: userId },
     {
       $set: {
         plan,
@@ -131,28 +131,19 @@ export async function activatePlan(
     },
   );
 
-  // Créer une transaction pour les coins offerts
   if (coins > 0) {
     await CollectionsManager.transactionCollection.insertOne({
       _id: new ObjectId(),
-      userId: userOid,
+      userId,
       amount: coins,
       type: "earned",
       description: `Coins offerts — Plan ${plan.charAt(0).toUpperCase() + plan.slice(1)}`,
       itemType: "subscription",
-      metadata: { plan, paymentId },
+      metadata: { plan },
       createdAt: new Date(),
       updatedAt: new Date(),
     });
   }
-}
-
-// ─── Marquer paiement échoué ───
-export async function failPayment(paymentId: string) {
-  await CollectionsManager.paymentCollection.updateOne(
-    { paymentId },
-    { $set: { status: "FAILED", updatedAt: new Date() } },
-  );
 }
 
 // ─── Obtenir le plan actuel de l'utilisateur ───
@@ -164,12 +155,10 @@ export async function getUserPlan(userId: ObjectId) {
 
   if (!user) throw new Error("User not found");
 
-  // Vérifier si le plan a expiré
   const plan = user.plan || "free";
   const expired = user.planExpiry && new Date(user.planExpiry) < new Date();
 
   if (expired && plan !== "free") {
-    // Rétrograder automatiquement
     await CollectionsManager.userCollection.updateOne(
       { _id: userId },
       {
@@ -191,10 +180,19 @@ export async function getUserPlan(userId: ObjectId) {
   };
 }
 
+// ─── Vérifier le statut d'un paiement ───
+export async function getPaymentStatus(paymentId: ObjectId) {
+  const payment = await CollectionsManager.paymentCollection.findOne({
+    _id: paymentId,
+  });
+  if (!payment) throw new Error("Payment not found");
+  return { status: payment.status };
+}
+
 // ─── Historique des paiements ───
 export async function getPaymentHistory(userId: ObjectId) {
   return CollectionsManager.paymentCollection
-    .find({ userId, status: "SUCCESS" })
+    .find({ userId })
     .sort({ createdAt: -1 })
     .toArray();
 }

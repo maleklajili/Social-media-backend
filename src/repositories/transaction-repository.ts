@@ -16,6 +16,53 @@ export class TransactionRepository implements ITransactionRepository {
     return { ...transaction, _id: result.insertedId };
   }
 
+  // Add this method to the TransactionRepository class
+  async findAll(
+    page: number = 1,
+    limit: number = 20,
+    filters?: {
+      userId?: ObjectId;
+      type?: TransactionType;
+      startDate?: Date;
+      endDate?: Date;
+    },
+  ): Promise<{ transactions: Transaction[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    // Build the query filter
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const query: any = {};
+
+    if (filters?.userId) {
+      query.userId = filters.userId;
+    }
+
+    if (filters?.type) {
+      query.type = filters.type;
+    }
+
+    if (filters?.startDate || filters?.endDate) {
+      query.createdAt = {};
+      if (filters.startDate) {
+        query.createdAt.$gte = filters.startDate;
+      }
+      if (filters.endDate) {
+        query.createdAt.$lte = filters.endDate;
+      }
+    }
+
+    const [transactions, total] = await Promise.all([
+      this.collection
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .toArray(),
+      this.collection.countDocuments(query),
+    ]);
+
+    return { transactions, total };
+  }
   async findByUserId(
     userId: ObjectId,
     page: number = 1,

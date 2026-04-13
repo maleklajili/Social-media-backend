@@ -14,6 +14,7 @@ export interface IUserService {
     user: User,
     formData: FormData,
   ): Promise<Response>;
+  delete(userId: ObjectId): Promise<Response>;
   followUser(currentUserId: ObjectId, targetUserId: string): Promise<Response>;
   unfollowUser(
     currentUserId: ObjectId,
@@ -39,4 +40,5 @@ export interface IUserService {
     limit?: number,
     search?: string,
   ): Promise<{ data: User[]; total: number }>;
+  getUserStats(userId: ObjectId | undefined): Promise<Response>;
 }

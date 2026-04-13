@@ -14,7 +14,19 @@ export interface ITransactionService {
     itemType?: string,
     itemId?: ObjectId | string,
   ): Promise<Transaction>;
-
+  /**
+   * Récupérer toutes les transactions avec filtres optionnels
+   */
+  getAllTransactions(
+    page?: number,
+    limit?: number,
+    filters?: {
+      userId?: ObjectId;
+      type?: TransactionType;
+      startDate?: Date;
+      endDate?: Date;
+    },
+  ): Promise<Response>;
   /**
    * Récupérer les transactions d'un utilisateur avec pagination
    */

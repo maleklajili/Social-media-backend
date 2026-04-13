@@ -4,6 +4,16 @@ import type { Transaction, TransactionType } from "../../models/transaction";
 
 export interface ITransactionRepository {
   create(transaction: Transaction): Promise<Transaction>;
+  findAll(
+    page?: number,
+    limit?: number,
+    filters?: {
+      userId?: ObjectId;
+      type?: TransactionType;
+      startDate?: Date;
+      endDate?: Date;
+    },
+  ): Promise<{ transactions: Transaction[]; total: number }>;
   findByUserId(
     userId: ObjectId,
     page?: number,

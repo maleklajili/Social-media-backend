@@ -22,6 +22,7 @@ export interface BaseUser extends BaseModel {
   coins: number;
   plan?: "free" | "pro" | "gold";
   planExpiry?: Date;
+  isAdmin?: boolean;
   skills?: [ObjectId];
   followers?: ObjectId[];
   following?: ObjectId[];

@@ -29,4 +29,22 @@ export interface IMessageRepository {
   softDeleteMessage(messageId: ObjectId, userId: ObjectId): Promise<boolean>;
   getMessageMediaUrl(messageId: ObjectId): Promise<string | null>;
   searchMessages(userId: ObjectId, query: string): Promise<Message[]>;
+
+  getGroupConversation(
+    groupId: ObjectId,
+    currentUserId: ObjectId,
+  ): Promise<Message[]>;
+  markGroupMessagesAsRead(groupId: ObjectId, userId: ObjectId): Promise<void>;
+  softDeleteGroupConversationForUser(
+    groupId: ObjectId,
+    userId: ObjectId,
+  ): Promise<number>;
+  countUnreadGroupMessages(
+    groupId: ObjectId,
+    userId: ObjectId,
+  ): Promise<number>;
+  getLastGroupMessage(
+    groupId: ObjectId,
+    userId: ObjectId,
+  ): Promise<Message | null>;
 }
