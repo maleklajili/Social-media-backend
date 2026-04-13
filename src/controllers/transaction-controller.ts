@@ -9,6 +9,7 @@ import { TransactionService } from "../services/transaction-services";
 import { TransactionRepository } from "../repositories/transaction-repository";
 import { userRepository } from "../repositories/user-repository";
 import type { TransactionType } from "../models/transaction";
+import { ObjectId } from "mongodb";
 
 export class TransactionController {
   private service: TransactionService;
@@ -19,7 +20,50 @@ export class TransactionController {
       new userRepository(),
     );
   }
+  // Add this method to the TransactionController class
+  @Get("/transactions/all", [authMiddleware, paginationMiddleware])
+  async getAllTransactions(req: RequestWithPagination): Promise<Response> {
+    try {
+      // Optional: Add admin authorization check
+      // if (!req.user?.isAdmin) {
+      //   return ResponseHelper.error("Unauthorized: Admin access required");
+      // }
 
+      const page = req.pagination?.page || 1;
+      const limit = req.pagination?.limit || 20;
+
+      // Optional filters from query parameters
+      const filters: {
+        userId?: ObjectId;
+        type?: TransactionType;
+        startDate?: Date;
+        endDate?: Date;
+      } = {};
+
+      if (req.query.userId) {
+        filters.userId = new ObjectId(req.query.userId as string);
+      }
+
+      if (
+        req.query.type &&
+        ["earned", "spent", "purchased"].includes(req.query.type as string)
+      ) {
+        filters.type = req.query.type as TransactionType;
+      }
+
+      if (req.query.startDate) {
+        filters.startDate = new Date(req.query.startDate as string);
+      }
+
+      if (req.query.endDate) {
+        filters.endDate = new Date(req.query.endDate as string);
+      }
+
+      return await this.service.getAllTransactions(page, limit, filters);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   @Get("/transactions", [authMiddleware, paginationMiddleware])
   async getTransactions(req: RequestWithPagination): Promise<Response> {
     try {

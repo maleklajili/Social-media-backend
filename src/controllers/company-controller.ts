@@ -226,8 +226,18 @@ export class CompanyController extends BaseController<
         return ResponseHelper.error("undefined current user");
       }
 
-      return this.service.deleteCompany(req.user._id, new ObjectId(id));
+      const usersCollection = CollectionsManager.userCollection;
+      const user = await usersCollection.findOne({ _id: req.user._id });
+      const isAdmin = user?.isAdmin === true;
+
+      const result = await this.service.deleteCompany(
+        req.user._id,
+        new ObjectId(id),
+        isAdmin,
+      );
+      return result;
     } catch (err) {
+      console.error(" Controller error:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -335,6 +345,57 @@ export class CompanyController extends BaseController<
       return await this.service.getCompanyByIdWithFollowStatus(
         new ObjectId(id),
         req.user._id,
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Put("/verify/:id", [authMiddleware])
+  async verifyCompany(req: ServerRequest): Promise<Response> {
+    try {
+      const { id } = req.params;
+
+      const body = (await req.json()) as { status: string; notes?: string };
+      const { status, notes } = body;
+
+      if (!id || !ObjectId.isValid(id)) {
+        return ResponseHelper.error("Invalid or missing company id");
+      }
+
+      if (!status || !["verified", "rejected"].includes(status)) {
+        return ResponseHelper.error("Invalid verification status");
+      }
+
+      return this.service.verifyCompany(
+        new ObjectId(id),
+        status as "verified" | "rejected",
+        notes,
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Get("/verification-requests", [authMiddleware, paginationMiddleware])
+  async getVerificationRequests(req: RequestWithPagination): Promise<Response> {
+    try {
+      const { status } = req.query;
+      const pagination = req.pagination;
+
+      if (!pagination) {
+        return ResponseHelper.error("Pagination manquante");
+      }
+
+      const result = await this.service.getVerificationRequests(
+        status as string,
+        { skip: pagination.skip, limit: pagination.take },
+      );
+
+      return autoPaginateResponse(
+        req,
+        Promise.resolve(result.data),
+        Promise.resolve(result.total),
       );
     } catch (err) {
       return ResponseHelper.serverError(String(err));

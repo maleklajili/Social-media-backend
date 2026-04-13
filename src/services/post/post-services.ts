@@ -279,7 +279,15 @@ export class PostServices extends BaseService<Post> implements IPostService {
           this.communityRepository,
           "community",
           "community",
-          ["_id", "name", "banner", "privacy", "membersCount", "description"],
+          [
+            "_id",
+            "name",
+            "banner",
+            "privacy",
+            "membersCount",
+            "description",
+            "icon",
+          ],
           false,
         );
       } catch (err) {
@@ -354,7 +362,15 @@ export class PostServices extends BaseService<Post> implements IPostService {
           this.communityRepository,
           "community",
           "community",
-          ["_id", "name", "banner", "privacy", "membersCount", "description"],
+          [
+            "_id",
+            "name",
+            "banner",
+            "privacy",
+            "membersCount",
+            "description",
+            "icon",
+          ],
           false,
         );
       } catch (err) {

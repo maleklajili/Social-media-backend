@@ -20,6 +20,7 @@ export interface BaseUser extends BaseModel {
   location: string;
   fullName: string;
   coins: number;
+  isAdmin?: boolean;
   skills?: [ObjectId];
   followers?: ObjectId[];
   following?: ObjectId[];

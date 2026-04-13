@@ -15,4 +15,9 @@ export interface IJobRepository {
     skills?: string[];
   }): Promise<Job[]>;
   countJobs(): Promise<number>;
+
+  getAllJobsForAdmin(
+    page: number,
+    limit: number,
+  ): Promise<{ jobs: Job[]; total: number }>;
 }

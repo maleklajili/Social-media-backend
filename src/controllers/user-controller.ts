@@ -40,6 +40,19 @@ class UserController extends BaseController<User, UserService> {
       return ResponseHelper.serverError(String(err));
     }
   }
+  // user-controller.ts
+  @Delete("/:id", [authMiddleware])
+  async deleteUser(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.params?.id;
+      if (!userId || !ObjectId.isValid(userId)) {
+        return ResponseHelper.error("Invalid user ID format", 400);
+      }
+      return this.service.delete(new ObjectId(userId));
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 
   @Get("/current-user", [authMiddleware])
   async getCurrentUser(req: ServerRequest): Promise<Response> {
@@ -115,11 +128,15 @@ class UserController extends BaseController<User, UserService> {
     }
   }
 
+  // controllers/user-controller.ts
+
+  // controllers/user-controller.ts
+
   @Get("/followers/:userId?", [authMiddleware])
   async getFollowers(req: ServerRequest): Promise<Response> {
     try {
-      // If userId is provided, get followers of that user, otherwise get followers of current user
-      const targetUserId = req.params?.userId || req.user?._id?.toString();
+      const userIdFromParams = req.params?.["userId?"];
+      const targetUserId = userIdFromParams || req.user?._id?.toString();
       const currentUserId = req.user?._id;
 
       if (!targetUserId) {
@@ -128,16 +145,19 @@ class UserController extends BaseController<User, UserService> {
 
       return this.service.getFollowers(targetUserId, currentUserId);
     } catch (err) {
-      console.error("❌ Error in getFollowers:", err);
+      console.error(" Error in getFollowers:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
 
+  // controllers/user-controller.ts
+
   @Get("/following/:userId?", [authMiddleware])
   async getFollowing(req: ServerRequest): Promise<Response> {
     try {
-      // If userId is provided, get following of that user, otherwise get following of current user
-      const targetUserId = req.params?.userId || req.user?._id?.toString();
+      const userIdFromParams = req.params?.["userId?"];
+
+      const targetUserId = userIdFromParams || req.user?._id?.toString();
       const currentUserId = req.user?._id;
 
       if (!targetUserId) {
@@ -146,7 +166,7 @@ class UserController extends BaseController<User, UserService> {
 
       return this.service.getFollowing(targetUserId, currentUserId);
     } catch (err) {
-      console.error("❌ Error in getFollowing:", err);
+      console.error(" Error in getFollowing:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -181,7 +201,7 @@ class UserController extends BaseController<User, UserService> {
 
       return this.service.getFriends(currentUserId);
     } catch (err) {
-      console.error("❌ Error in getFriends:", err);
+      console.error(" Error in getFriends:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -213,7 +233,7 @@ class UserController extends BaseController<User, UserService> {
         totalPages: Math.ceil(result.total / (pagination?.take || 10)),
       });
     } catch (err) {
-      console.error("❌ Error in getFriendSuggestions:", err);
+      console.error(" Error in getFriendSuggestions:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -256,7 +276,7 @@ class UserController extends BaseController<User, UserService> {
 
       return this.service.searchFriends(currentUserId, query);
     } catch (err) {
-      console.error("❌ Error in searchFriends:", err);
+      console.error("Error in searchFriends:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -363,6 +383,25 @@ class UserController extends BaseController<User, UserService> {
     try {
       return this.service.deleteCoverPhoto(req.user?._id);
     } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  /**
+   * GET /user/:userId/stats
+   * Récupérer les statistiques d'un utilisateur
+   */
+  @Get("/:userId/stats", [authMiddleware])
+  async getUserStats(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.params?.userId;
+      if (!userId || !ObjectId.isValid(userId)) {
+        return ResponseHelper.error("Invalid user ID format", 400);
+      }
+
+      return this.service.getUserStats(new ObjectId(userId));
+    } catch (err) {
+      console.error("Error in getUserStats:", err);
       return ResponseHelper.serverError(String(err));
     }
   }

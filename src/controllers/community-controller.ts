@@ -35,7 +35,14 @@ export class CommunityController extends BaseController<
         return ResponseHelper.error("Utilisateur non authentifié");
       }
 
-      const filter = {};
+      // Create filter object with optional technology/category filter
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      const filter: any = {};
+
+      // Add technology/category filter if provided in query
+      if (req.query?.category) {
+        filter.category = req.query.category;
+      }
       return super.getAll(req, undefined, filter);
     } catch (err) {
       return ResponseHelper.serverError(String(err));

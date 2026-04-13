@@ -139,7 +139,12 @@ export class JobController extends BaseController<Job, JobServices> {
         return ResponseHelper.error("undefined current user");
       }
 
-      return this.service.deleteJob(req.user._id, new ObjectId(id));
+      const usersCollection = CollectionsManager.userCollection;
+      const user = await usersCollection.findOne({ _id: req.user._id });
+      const isAdmin = user?.isAdmin === true;
+
+      // Appeler le service avec le flag isAdmin
+      return this.service.deleteJob(req.user._id, new ObjectId(id), isAdmin);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
@@ -286,6 +291,16 @@ export class JobController extends BaseController<Job, JobServices> {
         message: "Job featured status updated successfully",
         isFeatured: newFeaturedStatus,
       });
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @Get("/admin/all", [authMiddleware, paginationMiddleware])
+  async getAllForAdmin(req: RequestWithPagination): Promise<Response> {
+    try {
+      const page = req.pagination?.page ?? 1;
+      const limit = req.pagination?.limit ?? 10;
+      return this.service.getAllJobsForAdmin(page, limit);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

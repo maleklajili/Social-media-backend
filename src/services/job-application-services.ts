@@ -195,16 +195,25 @@ export class JobApplicationService
     }
   }
 
-  async getApplicationsForJob(jobId: ObjectId): Promise<Response> {
+  async getApplicationsForJob(
+    jobId: ObjectId,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<Response> {
     try {
       const job = await this.jobRepository.getJobById(jobId);
       if (!job) {
         return ResponseHelper.error("Job not found");
       }
 
-      const applications =
-        await this.applicationRepository.getApplicationsByJobId(jobId);
-      return ResponseHelper.success(applications, 200);
+      const skip = (page - 1) * limit;
+      const { data, total } =
+        await this.applicationRepository.getApplicationsByJobId(jobId, {
+          skip,
+          limit,
+        });
+
+      return ResponseHelper.paginated(data, page, limit, total);
     } catch (err) {
       console.error(" Error getting job applications:", err);
       return ResponseHelper.serverError(String(err));

@@ -1,0 +1,81 @@
+{
+  "name": "maram ajili",
+  "title": "étudiante",
+  "contact": "maherziaaouini@gmail.com | 12345678 | tunis, tunis | fghkll\n",
+  "summary": "Je suis étudiante en informatique avec un fort intérêt pour le développement mobile et la gestion de stock. Mon objectif professionnel est de développer des solutions innovantes et efficaces dans le domaine de l'informatique. Avec mon expérience accumulée, je suis prête à relever les défis du marché et à contribuer à l'élaboration de projets réussis.",
+  "experience": [
+    {
+      "post": "Development mobile",
+      "company": "Tekup",
+      "dates": "2024-06-03 - 2025-08-05",
+      "achievements": [
+        "J'ai développé des applications mobiles pour les besoins de l'entreprise, en utilisant les dernières technologies et frameworks.",
+        "J'ai travaillé en équipe pour résoudre les problèmes techniques et améliorer la qualité du code."
+      ]
+    },
+    {
+      "post": "Développement web",
+      "company": "Tekup",
+      "dates": "2023-03-31 - 2024-06-02",
+      "achievements": [
+        "J'ai développé des applications web dynamiques en utilisant les technologies .NET et C#.",
+        "J'ai travaillé sur le développement de bases de données pour stocker et gérer les données."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Ingénieur informatique",
+      "school": "Tekup",
+      "dates": "2023-03-31 - En cours"
+    },
+    {
+      "degree": "Licence en informatique",
+      "school": "ISI",
+      "dates": "2020-02-29 - 2023-03-31"
+    }
+  ],
+  "skills": [
+    {
+      "name": "iOS",
+      "category": "",
+      "level": "Intermédiaire"
+    }
+  ],
+  "projects": [
+    {
+      "title": "Gestion de stock",
+      "description": "J'ai développé un projet de gestion de stock en utilisant .NET C#. Le projet a permis de gérer les stocks d'un magasin et de réaliser des rapports pour les besoins de l'entreprise."
+    }
+  ],
+  "languages": [
+    {
+      "name": "Arabe",
+      "level": ""
+    },
+    {
+      "name": "Français",
+      "level": ""
+    }
+  ],
+  "interests": [
+    "Animaux"
+  ],
+  "certifications": [
+    {
+      "title": "(à ajouter)",
+      "organization": "",
+      "date": "",
+      "description": ""
+    }
+  ],
+  "publications": [],
+  "extra_sections": {},
+  "contact_info": {
+    "email": "maherziaaouini@gmail.com",
+    "phone": "12345678",
+    "location": "tunis, tunis",
+    "website": "",
+    "linkedin": ""
+  }
+}

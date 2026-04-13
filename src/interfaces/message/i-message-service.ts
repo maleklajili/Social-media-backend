@@ -1,6 +1,7 @@
 import type {
   SendMessageInput,
   UpdateMessageInput,
+  SendGroupMessageInput,
 } from "../../models/messages/message.dto";
 
 export interface IMessageService {
@@ -26,4 +27,15 @@ export interface IMessageService {
     input: UpdateMessageInput,
   ): Promise<Response>;
   searchMessages(userId: string, query: string): Promise<Response>;
+
+  sendGroupMessage(
+    senderId: string,
+    input: SendGroupMessageInput,
+  ): Promise<Response>;
+  getGroupConversation(userId: string, groupId: string): Promise<Response>;
+  softDeleteGroupConversationForUser(
+    userId: string,
+    groupId: string,
+  ): Promise<Response>;
+  getGroupConversationsList(userId: string): Promise<Response>;
 }

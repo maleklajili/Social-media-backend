@@ -11,7 +11,10 @@ export type NotificationType =
   | "community_post"
   | "community_join"
   | "company_follow"
-  | "job_application";
+  | "job_application"
+  | "company_verification"
+  | "verification_request"
+  | "verification_request_update";
 
 export type NotificationContentType =
   | "post"

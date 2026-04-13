@@ -89,7 +89,14 @@ export class FriendGroupRepository implements IFriendGroupRepository {
     );
     return result.modifiedCount === 1;
   }
-
+  async getUserGroups(userId: ObjectId): Promise<FriendGroup[]> {
+    return this.collection
+      .find({
+        $or: [{ userId: userId }, { members: userId }],
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+  }
   async removeMembersFromGroup(
     groupId: ObjectId,
     memberIds: ObjectId[],

@@ -36,7 +36,9 @@ export interface Company extends BaseModel {
     type: string;
     name: string;
   }[];
-  verificationNotes?: string;
+  verificationNotes?: string; // Note de l'entreprise à l'admin
+  adminResponse?: string; // Réponse de l'admin à l'entreprise (NOUVEAU)
+  adminResponseDate?: Date; // Date de la réponse de l'admin (NOUVEAU)
   stats: {
     views: number;
     followers: number;

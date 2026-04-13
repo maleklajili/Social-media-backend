@@ -11,6 +11,7 @@ import type {
   SendMessageInput,
   MessageResponse,
   UpdateMessageInput,
+  SendGroupMessageInput,
 } from "../../models/messages/message.dto";
 import type { IMessageService } from "../../interfaces/message/i-message-service";
 import type { User } from "../../models/user";
@@ -24,63 +25,53 @@ import { handleFileUpload, type UploadResult } from "../../utils/upload-helper";
 import { UPLOAD_PATHS } from "../../config/config";
 import { COINS_CONFIG } from "../../utils/coins-config";
 import type { TransactionService } from "../transaction-services";
+import { FriendGroupRepository } from "../../repositories/friend-group-repository";
 
-// Types pour les événements Socket.IO
 interface MessageDeletedEvent {
   messageId: string;
   deletedBy: string;
 }
-
 interface MessagesReadEvent {
   messageIds: string[];
   readerId: string;
 }
-
 interface ConversationViewedEvent {
   userId: string;
   otherUserId: string;
   viewedAt: Date;
 }
-
 interface ConversationDeletedEvent {
   otherUserId: string;
   deletedCount: number;
 }
-
 interface ConversationSoftDeletedEvent {
   otherUserId: string;
   modifiedCount: number;
 }
-
 interface MessageSoftDeletedEvent {
   messageId: string;
   userId: string;
 }
-
 interface RecentChatsEmptyEvent {
   userId: string;
   timestamp: Date;
 }
-
 interface RecentChatsErrorEvent {
   userId: string;
   error: string;
   timestamp: Date;
 }
-
 interface AllMessagesDeletedEvent {
   userId: string;
   deletedCount: number;
   timestamp: Date;
 }
-
 interface ChatPreviewUpdatedEvent {
   otherUserId: string;
   lastMessage: MessageResponse;
   unreadCount: number;
   timestamp: Date;
 }
-
 interface RecentChatsUpdatedEvent {
   userId: string;
   chats: Array<{
@@ -97,7 +88,6 @@ interface RecentChatsUpdatedEvent {
   timestamp: Date;
   totalUnread: number;
 }
-
 interface SearchResultConversation {
   user: {
     _id: string;
@@ -111,7 +101,6 @@ interface SearchResultConversation {
   lastMessage: MessageResponse;
   messageCount: number;
 }
-
 interface SearchResultsEvent {
   query: string;
   results: SearchResultConversation[];
@@ -123,12 +112,15 @@ export class MessageService
   extends BaseService<Message>
   implements IMessageService
 {
+  private friendGroupRepo: FriendGroupRepository;
+
   constructor(
     private messageRepo: MessageRepository,
     private userRepo: userRepository,
     private transactionService?: TransactionService,
   ) {
     super(CollectionsManager.messageCollection);
+    this.friendGroupRepo = new FriendGroupRepository();
   }
 
   async sendMessage(
@@ -189,7 +181,6 @@ export class MessageService
 
       const response = this.formatMessageResponse(message, sender, receiver);
 
-      // ✅ Émission INSTANTANÉE vers les deux users
       this.emitNewMessage(senderId, input.receiverId, response);
 
       return ResponseHelper.success(response);
@@ -313,7 +304,6 @@ export class MessageService
 
       const response = this.formatMessageResponse(message, sender, receiver);
 
-      // ✅ Émission INSTANTANÉE
       this.emitNewMessage(senderId, receiverId, response);
 
       return ResponseHelper.success(response);
@@ -334,13 +324,11 @@ export class MessageService
         new ObjectId(userId),
       );
 
-      // ✅ MARQUAGE INSTANTANÉ des messages non lus
       const unreadMessageIds = messages
-        .filter((msg) => !msg.read && msg.receiver.toString() === userId)
+        .filter((msg) => !msg.read && msg.receiver?.toString() === userId)
         .map((msg) => msg._id!.toString());
 
       if (unreadMessageIds.length > 0) {
-        // Ne pas attendre la réponse
         setImmediate(() => {
           this.markAsRead(userId, unreadMessageIds).catch((err) =>
             console.error("Erreur marquage lecture:", err),
@@ -355,7 +343,7 @@ export class MessageService
       const userIds = new Set<string>();
       messages.forEach((m) => {
         userIds.add(m.sender.toString());
-        userIds.add(m.receiver.toString());
+        if (m.receiver) userIds.add(m.receiver.toString());
       });
 
       const users = await this.userRepo.findByIds(
@@ -368,16 +356,14 @@ export class MessageService
 
       const formattedMessages = messages.map((msg) => {
         const sender = userMap.get(msg.sender.toString());
-        const receiver = userMap.get(msg.receiver.toString());
-
-        if (!sender || !receiver) {
+        const receiver = msg.receiver
+          ? userMap.get(msg.receiver.toString())
+          : undefined;
+        if (!sender)
           throw new Error("Utilisateur introuvable lors du formatage");
-        }
-
-        return this.formatMessageResponse(msg, sender, receiver);
+        return this.formatMessageResponse(msg, sender, receiver!);
       });
 
-      // ✅ Émission que la conversation a été vue
       this.emitConversationViewed(userId, otherUserId);
 
       return ResponseHelper.success(formattedMessages);
@@ -393,7 +379,7 @@ export class MessageService
 
       const messages = await this.messageRepo.findMessagesByIds(objectIds);
       const unauthorized = messages.some(
-        (msg) => msg.receiver.toString() !== userId,
+        (msg) => msg.receiver?.toString() !== userId,
       );
       if (unauthorized) {
         return ResponseHelper.error(
@@ -402,29 +388,23 @@ export class MessageService
         );
       }
 
-      // ✅ MISE À JOUR INSTANTANÉE en base
       await this.messageRepo.markAsRead(objectIds);
-      console.log(`✅ [BD] ${messageIds.length} messages marqués lus en base`);
 
-      // ✅ Émission socket vers TOUS les participants
       const io = getIo();
       const event: MessagesReadEvent = {
         messageIds,
         readerId: userId,
       };
 
-      // Émettre à l'expéditeur pour qu'il voie que ses messages sont lus
       const uniqueSenders = new Set<string>();
       for (const message of messages) {
         const senderId = message.sender.toString();
         if (!uniqueSenders.has(senderId)) {
           uniqueSenders.add(senderId);
           io.to(`user:${senderId}`).emit("messages_read", event);
-          console.log(`📤 Émission messages_read vers user:${senderId}`);
         }
       }
 
-      // Émettre aussi au lecteur lui-même pour mettre à jour son UI
       io.to(`user:${userId}`).emit("messages_read", event);
 
       return ResponseHelper.success({
@@ -485,7 +465,6 @@ export class MessageService
         }
       }
 
-      // ✅ Émission INSTANTANÉE de la suppression
       this.emitMessageDeleted(message, userId);
 
       return ResponseHelper.success({ message: "Message supprimé" });
@@ -548,18 +527,19 @@ export class MessageService
       }
 
       const sender = await this.userRepo.findById(new ObjectId(userId));
-      const receiver = await this.userRepo.findById(updatedMessage.receiver);
-      if (!sender || !receiver) {
+      const receiver = updatedMessage.receiver
+        ? await this.userRepo.findById(updatedMessage.receiver)
+        : null;
+      if (!sender || (updatedMessage.receiver && !receiver)) {
         return ResponseHelper.error("Utilisateur introuvable", 404);
       }
 
       const response = this.formatMessageResponse(
         updatedMessage,
         sender,
-        receiver,
+        receiver!,
       );
 
-      // ✅ Émission INSTANTANÉE de la modification
       this.emitMessageUpdated(updatedMessage, response);
 
       return ResponseHelper.success(response);
@@ -591,16 +571,133 @@ export class MessageService
         new ObjectId(otherUserId),
       );
 
-      // ✅ Émission INSTANTANÉE de la suppression de conversation
       this.emitConversationDeleted(userId, otherUserId, count);
 
       return ResponseHelper.success({ deletedCount: count });
     } catch (err) {
-      console.error("❌ Error in deleteConversation:", err);
+      console.error(" Error in deleteConversation:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
+  async sendMediaGroupMessage(
+    senderId: string,
+    groupId: string,
+    formData: FormData,
+    mediaType: MessageType,
+  ): Promise<Response> {
+    try {
+      const sender = await this.userRepo.findById(new ObjectId(senderId));
+      if (!sender) return ResponseHelper.error("Expéditeur introuvable", 404);
 
+      const group = await this.friendGroupRepo.getFriendGroupById(
+        new ObjectId(groupId),
+      );
+      if (!group) return ResponseHelper.notFound("Groupe introuvable");
+
+      const isMember =
+        group.members.some((m) => m.toString() === senderId) ||
+        group.userId.toString() === senderId;
+      if (!isMember)
+        return ResponseHelper.forbidden("Vous n'êtes pas membre du groupe");
+
+      // Upload du fichier (réutilise ta logique existante)
+      const basePath = UPLOAD_PATHS.images.replace("./", "");
+      const storePath = `${basePath}-${senderId}/${UPLOAD_PATHS.messages}`;
+
+      const uploadResult = (await handleFileUpload(formData, {
+        fieldName: "file",
+        storePath,
+        fileName: `group-${groupId}-${Date.now()}`,
+        multiple: false,
+        writeToDisk: true,
+        userId: new ObjectId(senderId),
+      })) as UploadResult;
+
+      if (!uploadResult?.fileName) {
+        return ResponseHelper.error("Erreur lors de l'upload", 500);
+      }
+
+      const mimeType = this.getMimeTypeFromFileName(uploadResult.fileName);
+      const allowed = this.getAllowedMimeTypes(mediaType);
+      if (!allowed.includes(mimeType)) {
+        return ResponseHelper.error(
+          `Type de fichier non autorisé pour ${mediaType}`,
+          400,
+        );
+      }
+
+      const baseUrl =
+        process.env.BASE_URL || `http://localhost:${process.env.PORT || 9000}`;
+      const cleanPath = storePath.replace(/^\.\//, "");
+      const fileUrl = `${baseUrl}/${cleanPath}/${uploadResult.fileName}`;
+
+      const payload: MediaPayload = {
+        url: fileUrl,
+        mimeType,
+        size: uploadResult.size,
+        fileName: this.extractFileName(uploadResult.fileName),
+      };
+
+      const message: Message = {
+        _id: new ObjectId(),
+        sender: new ObjectId(senderId),
+        groupId: new ObjectId(groupId),
+        type: mediaType,
+        payload,
+        read: false,
+        readBy: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      await this.messageRepo.sendMessage(message);
+
+      const response = {
+        _id: message._id!.toString(),
+        sender: {
+          _id: sender._id!.toString(),
+          firstName: sender.firstName,
+          lastName: sender.lastName,
+          userName: sender.userName,
+          image: sender.image,
+        },
+        groupId,
+        type: message.type,
+        payload: message.payload,
+        read: false,
+        readBy: [senderId],
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt,
+      };
+
+      // Émettre à tous les membres
+      const io = getIo();
+      const memberIds = [...group.members, group.userId].map((id) =>
+        id.toString(),
+      );
+      for (const memberId of memberIds) {
+        io.to(`user:${memberId}`).emit("group_message", response);
+      }
+
+      if (this.transactionService) {
+        const coins = this.getCoinsForMessageType(mediaType);
+        await this.userRepo.addCoins(new ObjectId(senderId), coins);
+        await this.transactionService.addStandardEarning(
+          new ObjectId(senderId),
+          coins,
+          "group_message",
+          message._id!,
+          `Envoi d'un ${mediaType} dans un groupe`,
+          { groupId },
+        );
+      }
+
+      return ResponseHelper.success(response, 201);
+    } catch (err) {
+      console.error(" sendMediaGroupMessage error:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   async getRecentChats(userId: string): Promise<Response> {
     try {
       const currentUserId = new ObjectId(userId);
@@ -624,6 +721,9 @@ export class MessageService
       }> = [];
 
       for (const msg of messages) {
+        // Ignorer les messages de groupe (ils n'ont pas de receiver)
+        if (!msg.receiver) continue;
+
         const otherUserIdObj =
           msg.sender.toString() === userId ? msg.receiver : msg.sender;
 
@@ -680,7 +780,64 @@ export class MessageService
       return ResponseHelper.serverError(String(err));
     }
   }
+  async getGroupConversationsList(userId: string): Promise<Response> {
+    try {
+      const userObjectId = new ObjectId(userId);
+      const groups = await this.friendGroupRepo.getUserGroups(userObjectId);
+      const result = [];
 
+      for (const group of groups) {
+        const unreadCount = await this.messageRepo.countUnreadGroupMessages(
+          group._id!,
+          userObjectId,
+        );
+
+        // Récupérer le dernier message du groupe
+        const lastMessage = await this.messageRepo.getLastGroupMessage(
+          group._id!,
+          userObjectId,
+        );
+        let lastMessageData = null;
+        if (lastMessage) {
+          const sender = await this.userRepo.findById(lastMessage.sender);
+          let content = "";
+          if (lastMessage.type === MessageType.TEXT) {
+            content = (lastMessage.payload as TextPayload).text;
+          } else if (lastMessage.type === MessageType.IMAGE)
+            content = "📷 Image";
+          else if (lastMessage.type === MessageType.VIDEO) content = "🎥 Vidéo";
+          else content = "📎 Document";
+          if (content.length > 30) content = content.substring(0, 30) + "…";
+
+          lastMessageData = {
+            content,
+            time: lastMessage.createdAt,
+            senderName: sender
+              ? `${sender.firstName} ${sender.lastName}`
+              : "Ancien membre",
+            senderId: sender?._id?.toString(),
+            senderIsUser: sender?._id?.toString() === userId,
+          };
+        }
+
+        result.push({
+          id: group._id!.toString(),
+          name: group.name,
+          icon: group.icon,
+          color: group.color,
+          unreadCount,
+          lastMessage: lastMessageData,
+          membersCount: group.members.length + (group.userId ? 1 : 0),
+          ownerId: group.userId.toString(),
+        });
+      }
+
+      return ResponseHelper.success(result);
+    } catch (err) {
+      console.error("❌ getGroupConversationsList error:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   async deleteAllMessagesByUser(userId: string): Promise<Response> {
     try {
       const messages = await this.messageRepo.getRecentChats(
@@ -697,7 +854,6 @@ export class MessageService
         new ObjectId(userId),
       );
 
-      // ✅ Émission INSTANTANÉE
       this.emitAllMessagesDeleted(userId, count);
 
       return ResponseHelper.success({ deletedCount: count });
@@ -718,7 +874,6 @@ export class MessageService
         new ObjectId(userId),
       );
 
-      // ✅ Émission INSTANTANÉE
       this.emitConversationSoftDeleted(userId, otherUserId, count);
 
       return ResponseHelper.success({
@@ -745,7 +900,7 @@ export class MessageService
 
       if (
         message.sender.toString() !== userId &&
-        message.receiver.toString() !== userId
+        message.receiver?.toString() !== userId
       ) {
         return ResponseHelper.error(
           "Vous n'êtes pas concerné par ce message",
@@ -762,7 +917,6 @@ export class MessageService
         return ResponseHelper.error("Message déjà masqué ou introuvable", 400);
       }
 
-      // ✅ Émission INSTANTANÉE
       this.emitMessageSoftDeleted(userId, messageId);
 
       return ResponseHelper.success({ message: "Message masqué pour vous" });
@@ -792,7 +946,7 @@ export class MessageService
       const userIds = new Set<string>();
       messages.forEach((msg) => {
         userIds.add(msg.sender.toString());
-        userIds.add(msg.receiver.toString());
+        if (msg.receiver) userIds.add(msg.receiver.toString());
       });
 
       const users = await this.userRepo.findByIds(
@@ -805,21 +959,21 @@ export class MessageService
 
       const formattedMessages = messages.map((msg) => {
         const sender = userMap.get(msg.sender.toString());
-        const receiver = userMap.get(msg.receiver.toString());
-
-        if (!sender || !receiver) {
+        const receiver = msg.receiver
+          ? userMap.get(msg.receiver.toString())
+          : undefined;
+        if (!sender)
           throw new Error("Utilisateur introuvable lors du formatage");
-        }
-
-        return this.formatMessageResponse(msg, sender, receiver);
+        return this.formatMessageResponse(msg, sender, receiver!);
       });
 
       const conversations = new Map<string, SearchResultConversation>();
 
       for (const msg of formattedMessages) {
         const otherUserId =
-          msg.sender._id === userId ? msg.receiver._id : msg.sender._id;
-        const otherUser = msg.sender._id === userId ? msg.receiver : msg.sender;
+          msg.sender._id === userId ? msg.receiver!._id : msg.sender._id;
+        const otherUser =
+          msg.sender._id === userId ? msg.receiver! : msg.sender;
 
         if (!conversations.has(otherUserId)) {
           const fullName =
@@ -852,7 +1006,6 @@ export class MessageService
           a.lastMessage.createdAt!.getTime(),
       );
 
-      // ✅ Émission des résultats de recherche
       this.emitSearchResults(userId, result, query);
 
       return ResponseHelper.success({
@@ -866,7 +1019,188 @@ export class MessageService
     }
   }
 
-  // ------------------------- MÉTHODES D'ÉMISSION SOCKET -------------------------
+  // ===================== NOUVELLES MÉTHODES POUR LES GROUPES =====================
+
+  async sendGroupMessage(
+    senderId: string,
+    input: SendGroupMessageInput,
+  ): Promise<Response> {
+    try {
+      const sender = await this.userRepo.findById(new ObjectId(senderId));
+      if (!sender) {
+        return ResponseHelper.error("Expéditeur introuvable", 404);
+      }
+
+      const groupId = new ObjectId(input.groupId);
+      const group = await this.friendGroupRepo.getFriendGroupById(groupId);
+      if (!group) {
+        return ResponseHelper.notFound("Groupe introuvable");
+      }
+
+      // Vérifier que l'utilisateur est membre du groupe
+      const isMember =
+        group.members.some((m) => m.toString() === senderId) ||
+        group.userId.toString() === senderId;
+      if (!isMember) {
+        return ResponseHelper.forbidden("Vous n'êtes pas membre de ce groupe");
+      }
+
+      if (!input.text || input.text.trim() === "") {
+        return ResponseHelper.error("Le message ne peut pas être vide", 400);
+      }
+
+      const message: Message = {
+        _id: new ObjectId(),
+        sender: new ObjectId(senderId),
+        groupId: groupId,
+        type: MessageType.TEXT,
+        payload: { text: input.text.trim() },
+        read: false,
+        readBy: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      await this.messageRepo.sendMessage(message);
+
+      // Formatage de la réponse
+      const response = {
+        _id: message._id!.toString(),
+        sender: {
+          _id: sender._id!.toString(),
+          firstName: sender.firstName,
+          lastName: sender.lastName,
+          userName: sender.userName,
+          image: sender.image,
+        },
+        groupId: groupId.toString(),
+        type: message.type,
+        payload: message.payload,
+        read: false,
+        readBy: [senderId],
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt,
+      };
+
+      // Émettre le message à tous les membres du groupe via Socket.IO
+      const io = getIo();
+      const memberIds = [...group.members, group.userId].map((id) =>
+        id.toString(),
+      );
+      for (const memberId of memberIds) {
+        io.to(`user:${memberId}`).emit("group_message", response);
+      }
+
+      // Ajout des coins si transaction service présent
+      if (this.transactionService) {
+        try {
+          await this.userRepo.addCoins(
+            new ObjectId(senderId),
+            COINS_CONFIG.SEND_MESSAGE,
+          );
+          await this.transactionService.addStandardEarning(
+            new ObjectId(senderId),
+            COINS_CONFIG.SEND_MESSAGE,
+            "group_message",
+            message._id!,
+            "Envoi d'un message dans un groupe",
+            { groupId: groupId.toString() },
+          );
+        } catch (err) {
+          console.error("Erreur lors de l'ajout de coins:", err);
+        }
+      }
+
+      return ResponseHelper.success(response, 201);
+    } catch (err) {
+      console.error("❌ Error in sendGroupMessage:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async getGroupConversation(
+    userId: string,
+    groupId: string,
+  ): Promise<Response> {
+    try {
+      const group = await this.friendGroupRepo.getFriendGroupById(
+        new ObjectId(groupId),
+      );
+      if (!group) return ResponseHelper.notFound("Groupe introuvable");
+
+      const isMember =
+        group.members.some((m) => m.toString() === userId) ||
+        group.userId.toString() === userId;
+      if (!isMember)
+        return ResponseHelper.forbidden("Vous n'êtes pas membre de ce groupe");
+
+      const messages = await this.messageRepo.getGroupConversation(
+        new ObjectId(groupId),
+        new ObjectId(userId),
+      );
+
+      // Identifier les messages non lus (ceux que l'utilisateur n'a pas encore lus)
+      const unreadMessageIds = messages
+        .filter((msg) => !msg.read && msg.sender.toString() !== userId)
+        .map((msg) => msg._id!);
+
+      if (unreadMessageIds.length > 0) {
+        // Marquer comme lus dans la base de données
+        await this.messageRepo.markGroupMessagesAsRead(
+          new ObjectId(groupId),
+          new ObjectId(userId),
+        );
+
+        // Émettre un événement socket pour informer tous les membres du groupe
+        const io = getIo();
+        const event = {
+          messageIds: unreadMessageIds.map((id) => id.toString()),
+          readerId: userId,
+          groupId: groupId,
+        };
+        const memberIds = [...group.members, group.userId].map((id) =>
+          id.toString(),
+        );
+        for (const memberId of memberIds) {
+          io.to(`user:${memberId}`).emit("group_messages_read", event);
+        }
+      }
+
+      // Récupérer les informations des expéditeurs pour la réponse
+      const senderIds = [...new Set(messages.map((m) => m.sender.toString()))];
+      const users = await this.userRepo.findByIds(
+        senderIds.map((id) => new ObjectId(id)),
+      );
+      const userMap = new Map(users.map((u) => [u._id!.toString(), u]));
+
+      const formattedMessages = messages.map((msg) => {
+        const sender = userMap.get(msg.sender.toString());
+        if (!sender) throw new Error("Expéditeur introuvable");
+        return {
+          _id: msg._id!.toString(),
+          sender: {
+            _id: sender._id!.toString(),
+            firstName: sender.firstName,
+            lastName: sender.lastName,
+            userName: sender.userName,
+            image: sender.image,
+          },
+          groupId: groupId,
+          type: msg.type,
+          payload: msg.payload,
+          read: msg.read,
+          readBy: msg.readBy?.map((id) => id.toString()) || [],
+          createdAt: msg.createdAt,
+          updatedAt: msg.updatedAt,
+        };
+      });
+
+      return ResponseHelper.success(formattedMessages);
+    } catch (err) {
+      console.error("❌ Error in getGroupConversation:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 
   private emitNewMessage(
     senderId: string,
@@ -910,11 +1244,22 @@ export class MessageService
         deletedBy: userId,
       };
       console.log(`📤 Émission message_deleted pour le message ${message._id}`);
-      io.to(`user:${message.sender.toString()}`).emit("message_deleted", event);
-      io.to(`user:${message.receiver.toString()}`).emit(
-        "message_deleted",
-        event,
-      );
+      if (message.receiver) {
+        io.to(`user:${message.sender.toString()}`).emit(
+          "message_deleted",
+          event,
+        );
+        io.to(`user:${message.receiver.toString()}`).emit(
+          "message_deleted",
+          event,
+        );
+      } else if (message.groupId) {
+        // Pour les messages de groupe, on pourrait émettre à tout le groupe, mais on garde simple
+        io.to(`user:${message.sender.toString()}`).emit(
+          "message_deleted",
+          event,
+        );
+      }
     } catch (socketError) {
       console.error("⚠️ Erreur Socket.IO:", socketError);
     }
@@ -927,14 +1272,21 @@ export class MessageService
     try {
       const io = getIo();
       console.log(`📤 Émission message_updated pour le message ${message._id}`);
-      io.to(`user:${message.sender.toString()}`).emit(
-        "message_updated",
-        response,
-      );
-      io.to(`user:${message.receiver.toString()}`).emit(
-        "message_updated",
-        response,
-      );
+      if (message.receiver) {
+        io.to(`user:${message.sender.toString()}`).emit(
+          "message_updated",
+          response,
+        );
+        io.to(`user:${message.receiver.toString()}`).emit(
+          "message_updated",
+          response,
+        );
+      } else if (message.groupId) {
+        io.to(`user:${message.sender.toString()}`).emit(
+          "message_updated",
+          response,
+        );
+      }
     } catch (socketError) {
       console.error("⚠️ Erreur Socket.IO:", socketError);
     }
@@ -1098,18 +1450,10 @@ export class MessageService
         timestamp: new Date(),
         totalResults: results.length,
       };
-      console.log(`📤 Émission search_results pour l'utilisateur ${userId}`);
       io.to(`user:${userId}`).emit("search_results", event);
     } catch (socketError) {
-      console.error("⚠️ Erreur Socket.IO:", socketError);
+      console.error(" Erreur Socket.IO:", socketError);
     }
-  }
-
-  // ------------------------- MÉTHODES UTILITAIRES -------------------------
-
-  private getStorePath(messageType: MessageType, userId: string): string {
-    const basePath = UPLOAD_PATHS.images.replace("./", "");
-    return `${basePath}-${userId}/${UPLOAD_PATHS.messages}`;
   }
 
   private getAllowedMimeTypes(messageType: MessageType): string[] {
@@ -1286,5 +1630,38 @@ export class MessageService
       createdAt: message.createdAt,
       updatedAt: message.updatedAt,
     };
+  }
+  async softDeleteGroupConversationForUser(
+    userId: string,
+    groupId: string,
+  ): Promise<Response> {
+    try {
+      const groupObjectId = new ObjectId(groupId);
+      const userObjectId = new ObjectId(userId);
+
+      // Vérifier que l'utilisateur est membre du groupe
+      const group =
+        await this.friendGroupRepo.getFriendGroupById(groupObjectId);
+      if (!group) return ResponseHelper.notFound("Groupe introuvable");
+
+      const isMember =
+        group.members.some((m) => m.equals(userObjectId)) ||
+        group.userId.equals(userObjectId);
+      if (!isMember)
+        return ResponseHelper.forbidden("Vous n'êtes pas membre de ce groupe");
+
+      const modifiedCount =
+        await this.messageRepo.softDeleteGroupConversationForUser(
+          groupObjectId,
+          userObjectId,
+        );
+      return ResponseHelper.success({
+        modifiedCount,
+        message: "Conversation masquée pour vous",
+      });
+    } catch (err) {
+      console.error("Error in softDeleteGroupConversationForUser:", err);
+      return ResponseHelper.serverError(String(err));
+    }
   }
 }

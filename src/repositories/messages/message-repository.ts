@@ -55,9 +55,59 @@ export class MessageRepository implements IMessageRepository {
     });
     return result.deletedCount || 0;
   }
+  async getGroupConversation(
+    groupId: ObjectId,
+    currentUserId: ObjectId,
+  ): Promise<Message[]> {
+    return this.collection
+      .find({
+        groupId,
+        deletedFor: { $ne: currentUserId },
+      })
+      .sort({ createdAt: 1 })
+      .toArray();
+  }
+  async countUnreadGroupMessages(
+    groupId: ObjectId,
+    userId: ObjectId,
+  ): Promise<number> {
+    return this.collection.countDocuments({
+      groupId,
+      sender: { $ne: userId },
+      readBy: { $ne: userId },
+      deletedFor: { $ne: userId },
+    });
+  }
 
+  async getLastGroupMessage(
+    groupId: ObjectId,
+    userId: ObjectId,
+  ): Promise<Message | null> {
+    const messages = await this.collection
+      .find({ groupId, deletedFor: { $ne: userId } })
+      .sort({ createdAt: -1 })
+      .limit(1)
+      .toArray();
+
+    if (messages.length === 0) return null;
+    return messages[0] as unknown as Message;
+  }
+  async markGroupMessagesAsRead(
+    groupId: ObjectId,
+    userId: ObjectId,
+  ): Promise<void> {
+    await this.collection.updateMany(
+      {
+        groupId,
+        readBy: { $ne: userId },
+        sender: { $ne: userId },
+      },
+      {
+        $addToSet: { readBy: userId },
+      },
+    );
+  }
   async getRecentChats(userId: ObjectId): Promise<Message[]> {
-    // Une seule requête d'agrégation pour tout récupérer
     const pipeline = [
       {
         $match: {
@@ -179,5 +229,15 @@ export class MessageRepository implements IMessageRepository {
       })
       .sort({ createdAt: -1 })
       .toArray();
+  }
+  async softDeleteGroupConversationForUser(
+    groupId: ObjectId,
+    userId: ObjectId,
+  ): Promise<number> {
+    const result = await this.collection.updateMany(
+      { groupId, deletedFor: { $ne: userId } },
+      { $addToSet: { deletedFor: userId } },
+    );
+    return result.modifiedCount;
   }
 }

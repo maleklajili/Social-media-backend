@@ -11,9 +11,11 @@ repos:
         entry: bun
         args: ["run", "lints"]
         language: system
+        pass_filenames: false
 
       - id: bun-format
         name: bun format code
         entry: bun
         args: ["run", "format"]
         language: system
+        pass_filenames: false
