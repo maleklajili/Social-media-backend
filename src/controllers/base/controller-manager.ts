@@ -18,6 +18,12 @@ import { TechnicalSkillController } from "../skills/technical-skill-controller";
 import { TransactionController } from "../transaction-controller";
 import UserController from "../user-controller";
 import { FriendGroupController } from "../friend-group-controller";
+import { AiCvController } from "../ai-cv-controller";
+import { ManualCvController } from "../manual-cv-controller";
+import { JobMatchController } from "../job-match-controller";
+import { NotificationController } from "../notification-controller";
+import { ModerationController } from "../moderation-controller";
+import { PaymentController } from "../payment-controller";
 import AdminController from "../admin-controller";
 import { SearchController } from "../search-controller";
 import { ReportController } from "../report-controller";
@@ -45,6 +51,12 @@ export class ControllerManager {
       MessageController,
       ReviewController,
       FriendGroupController,
+      AiCvController,
+      ManualCvController,
+      JobMatchController,
+      NotificationController,
+      ModerationController,
+      PaymentController,
       AdminController,
       SearchController,
       ReportController,

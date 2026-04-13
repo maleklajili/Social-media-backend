@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="{{ lang|default('fr') }}">
+<head>
+<meta charset="UTF-8"/>
+<style>
+  @page { size: A4; margin: 0.75in; }
+  * { margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 10pt; color: #333; line-height: 1.4; }
+
+  /* Header */
+  .header { margin-bottom: 12pt; padding-bottom: 9pt; border-bottom: 2pt solid #1e3a8a; }
+  .name { font-size: 24pt; font-weight: bold; color: #1e3a8a; margin-bottom: 3pt; }
+  .title { font-size: 12pt; color: #475569; font-weight: 500; }
+  .contact-info { font-size: 10pt; color: #64748b; margin-top: 6pt; }
+  .contact-info span { margin-right: 12pt; }
+
+  /* Section */
+  .section { margin-bottom: 12pt; }
+  .section-title {
+    font-size: 11pt; font-weight: bold; color: white; background-color: #1e3a8a;
+    padding: 4pt 6pt; margin-bottom: 6pt; text-transform: uppercase; letter-spacing: 1pt;
+  }
+
+  /* Entry */
+  .entry { margin-bottom: 7pt; font-size: 10pt; }
+  .entry-table { width: 100%; }
+  .position { font-weight: 600; color: #1e3a8a; font-size: 10pt; }
+  .dates { color: #64748b; font-size: 9pt; text-align: right; }
+  .company-school { color: #475569; font-style: italic; font-size: 9.5pt; }
+  .description { color: #475569; margin-top: 2pt; font-size: 9.5pt; }
+
+  /* Summary */
+  .summary { color: #475569; font-size: 10pt; line-height: 1.4; }
+
+  /* Skills Grid */
+  .skills-table { width: 100%; font-size: 9.5pt; color: #475569; }
+  .skills-table td { vertical-align: top; padding: 3pt 4pt; width: 50%; }
+  .skill-item { padding: 3pt 0 3pt 5pt; border-left: 2pt solid #1e3a8a; margin-bottom: 4pt; font-size: 9.5pt; color: #475569; }
+
+  /* Items */
+  .item { font-size: 9.5pt; color: #475569; margin-bottom: 2pt; }
+</style>
+{% if primary_color %}
+<style>
+  .section-title { background-color: {{ primary_color }} !important; }
+  .name { color: {{ primary_color }} !important; }
+  .header { border-bottom-color: {{ primary_color }} !important; }
+  .skill-item { border-left-color: {{ primary_color }} !important; }
+  .position { color: {{ primary_color }} !important; }
+  .title { color: {{ primary_color }} !important; }
+  .company-school { color: {{ primary_color }} !important; }
+</style>
+{% endif %}
+{% if accent_color %}
+<style>
+  .position { color: {{ accent_color }} !important; }
+  .title { color: {{ accent_color }} !important; }
+</style>
+{% endif %}
+{% if font_family %}
+<style>
+  body { font-family: "{{ font_family }}", sans-serif !important; }
+</style>
+{% endif %}
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="name">{{ cv.name }}</div>
+  {% if cv.title %}<div class="title">{{ cv.title }}</div>{% endif %}
+  <div class="contact-info">
+    {% if cv.contact_info.location %}<span>{{ cv.contact_info.location }}</span>{% endif %}
+    {% if cv.contact_info.phone %}<span>{{ cv.contact_info.phone }}</span>{% endif %}
+    {% if cv.contact_info.email %}<span>{{ cv.contact_info.email }}</span>{% endif %}
+    {% if cv.contact_info.linkedin %}<span>{{ cv.contact_info.linkedin }}</span>{% endif %}
+    {% if cv.contact_info.website %}<span>{{ cv.contact_info.website }}</span>{% endif %}
+  </div>
+</div>
+
+<!-- Résumé -->
+{% if cv.summary %}
+<div class="section">
+  <div class="section-title">{{ t.profile }}</div>
+  <div class="summary">{{ cv.summary }}</div>
+</div>
+{% endif %}
+
+<!-- Expérience Professionnelle -->
+{% if cv.experience %}
+<div class="section">
+  <div class="section-title">{{ t.experience }}</div>
+  {% for exp in cv.experience %}
+  <div class="entry">
+    <table class="entry-table" cellpadding="0" cellspacing="0">
+    <tr>
+      <td><span class="position">{{ exp.post }}</span></td>
+      <td><span class="dates">{{ exp.dates }}</span></td>
+    </tr>
+    </table>
+    {% if exp.company %}<div class="company-school">{{ exp.company }}</div>{% endif %}
+    {% if exp.achievements %}
+    <div class="description">
+      {% for a in exp.achievements %}&bull; {{ a }}<br/>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Formation -->
+{% if cv.education %}
+<div class="section">
+  <div class="section-title">{{ t.education }}</div>
+  {% for edu in cv.education %}
+  <div class="entry">
+    <table class="entry-table" cellpadding="0" cellspacing="0">
+    <tr>
+      <td><span class="position">{{ edu.degree }}</span></td>
+      <td><span class="dates">{{ edu.dates }}</span></td>
+    </tr>
+    </table>
+    {% if edu.school %}<div class="company-school">{{ edu.school }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Compétences -->
+{% if cv.skills %}
+<div class="section">
+  <div class="section-title">{{ t.skills }}</div>
+  <table class="skills-table" cellpadding="0" cellspacing="0">
+  {% set ns = namespace(col=0) %}
+  {% for skill in cv.skills %}
+    {% if ns.col == 0 %}<tr>{% endif %}
+    <td><div class="skill-item">{{ skill.name }}{% if skill.level %} ({{ skill.level }}){% endif %}</div></td>
+    {% set ns.col = ns.col + 1 %}
+    {% if ns.col == 2 %}</tr>{% set ns.col = 0 %}{% endif %}
+  {% endfor %}
+  {% if ns.col == 1 %}<td></td></tr>{% endif %}
+  </table>
+</div>
+{% endif %}
+
+<!-- Projets -->
+{% if cv.projects %}
+<div class="section">
+  <div class="section-title">{{ t.projects }}</div>
+  {% for p in cv.projects %}
+  <div class="entry">
+    <span class="position">{{ p.title }}</span>
+    {% if p.description %}<div class="description">{{ p.description }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Langues -->
+{% if cv.languages %}
+<div class="section">
+  <div class="section-title">{{ t.languages }}</div>
+  {% for lang in cv.languages %}
+<div class="item">&bull; {{ lang.name }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Certifications -->
+{% if cv.certifications %}
+<div class="section">
+  <div class="section-title">{{ t.certifications }}</div>
+  {% for cert in cv.certifications %}
+  <div class="item">
+    <strong>{{ cert.title if cert.title is defined else cert }}</strong>
+    {% if cert.organization is defined and cert.organization %} &mdash; {{ cert.organization }}{% endif %}
+    {% if cert.date is defined and cert.date %} ({{ cert.date }}){% endif %}
+    {% if cert.description is defined and cert.description %}
+    <div>{{ cert.description }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Intérêts -->
+{% if cv.interests %}
+<div class="section">
+  <div class="section-title">{{ t.interests }}</div>
+  <div class="item">{{ cv.interests|join(' &bull; ') }}</div>
+</div>
+{% endif %}
+
+</body>
+</html>

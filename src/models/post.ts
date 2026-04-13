@@ -95,4 +95,17 @@ export interface Post extends BaseModel {
   // Timestamps
   publishedAt?: Date;
   lastActivityAt: Date;
+
+  // Moderation (auto-AI)
+  flagged?: boolean;
+  toxicityScore?: number;
+  toxicityCategories?: string[];
+  moderationStatus?: "pending" | "approved" | "rejected" | "flagged";
+  moderationReason?: string;
+  reports?: {
+    userId: ObjectId;
+    reason: string;
+    createdAt: Date;
+  }[];
+  reportCount?: number;
 }

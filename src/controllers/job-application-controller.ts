@@ -51,17 +51,41 @@ export class JobApplicationController extends BaseController<
       }
 
       const jobId = new ObjectId(req.params.jobId);
+      console.log(
+        "[JobApplication] apply jobId:",
+        jobId,
+        "userId:",
+        req.user._id,
+      );
 
       const { cvData } = await cvUploadMiddleware(req, req.user._id.toString());
+      console.log("[JobApplication] cvData:", JSON.stringify(cvData));
 
       const applicationData: Partial<JobApplication> = {
         coverLetter: cvData.coverLetter,
         cvFileName: cvData.cvFile?.name,
       };
 
-      return this.service.applyForJob(req.user._id, jobId, applicationData);
+      const result = await this.service.applyForJob(
+        req.user._id,
+        jobId,
+        applicationData,
+      );
+      if (result.status >= 400) {
+        const body = (await result.clone().json()) as Record<string, unknown>;
+        console.error(
+          "[JobApplication] service error:",
+          result.status,
+          body.message || JSON.stringify(body),
+        );
+      }
+      return result;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("[JobApplication] apply CATCH error:", errorMessage);
+      if (err instanceof Error && err.stack) {
+        console.error("[JobApplication] stack:", err.stack);
+      }
       return ResponseHelper.error(errorMessage, 400);
     }
   }
@@ -74,6 +98,18 @@ export class JobApplicationController extends BaseController<
       const limit = parseInt(req.query?.limit as string) || 10;
 
       return this.service.getApplicationsForJob(jobId, page, limit);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  /** GET /job-applications/job/:jobId/ranked-candidates
+   *  Returns applicants sorted by NLP TF-IDF match score (descending). */
+  @Get("/job/:jobId/ranked-candidates", [authMiddleware])
+  async getRankedCandidates(req: ServerRequest): Promise<Response> {
+    try {
+      const jobId = new ObjectId(req.params.jobId);
+      return this.service.getRankedCandidates(jobId);
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

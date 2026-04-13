@@ -40,11 +40,25 @@ export async function cvUploadMiddleware(
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       ];
 
-      if (!allowedMimeTypes.includes(cvFile.type)) {
+      const allowedExtensions = [".pdf", ".doc", ".docx"];
+      const fileName = cvFile.name || "";
+      const ext = fileName.includes(".")
+        ? fileName.substring(fileName.lastIndexOf(".")).toLowerCase()
+        : "";
+
+      if (
+        !allowedMimeTypes.includes(cvFile.type) &&
+        !allowedExtensions.includes(ext)
+      ) {
         throw new Error(
           "Invalid file type. Only PDF, DOC, and DOCX files are allowed.",
         );
       }
+
+      // Resolve MIME from extension if the client sent a generic type
+      const resolvedMime = allowedMimeTypes.includes(cvFile.type)
+        ? cvFile.type
+        : (extToMime(ext) ?? cvFile.type);
 
       // Validate file size (max 5MB)
       const maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
@@ -56,7 +70,7 @@ export async function cvUploadMiddleware(
 
       // Generate unique filename
       const timestamp = Date.now();
-      const extension = getFileExtension(cvFile.type);
+      const extension = getFileExtension(resolvedMime);
       const filename = `cv-${timestamp}${extension}`;
       const uploadDir = `./uploads/images-${userId}/cv`;
       const filepath = join(uploadDir, filename);
@@ -98,6 +112,19 @@ function getFileExtension(mimeType: string): string {
       ".docx",
   };
   return extensions[mimeType] || ".pdf";
+}
+
+/**
+ * Resolve MIME type from file extension
+ */
+function extToMime(ext: string): string | null {
+  const map: Record<string, string> = {
+    ".pdf": "application/pdf",
+    ".doc": "application/msword",
+    ".docx":
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  };
+  return map[ext] ?? null;
 }
 
 /**
