@@ -52,7 +52,10 @@ export class PostController extends BaseController<Post, PostServices> {
       return ResponseHelper.serverError(String(err));
     }
   }
-
+  @Get("/stats", [authMiddleware])
+  async getPostStats(_req: ServerRequest): Promise<Response> {
+    return this.service.getStats();
+  }
   @PostMethod("/create", [authMiddleware])
   async createPost(req: ServerRequest): Promise<Response> {
     try {

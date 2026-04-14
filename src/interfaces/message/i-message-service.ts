@@ -38,4 +38,5 @@ export interface IMessageService {
     groupId: string,
   ): Promise<Response>;
   getGroupConversationsList(userId: string): Promise<Response>;
+  leaveGroup(userId: string, groupId: string): Promise<Response>;
 }

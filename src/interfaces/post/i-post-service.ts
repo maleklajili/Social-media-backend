@@ -65,4 +65,5 @@ export interface IPostService {
   savePost(userId: ObjectId, postId: ObjectId): Promise<Response>;
   unsavePost(userId: ObjectId, postId: ObjectId): Promise<Response>;
   getTrendingPosts(limit?: number): Promise<Response>;
+  getStats(): Promise<Response>;
 }

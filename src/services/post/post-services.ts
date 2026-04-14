@@ -35,15 +35,51 @@ export class PostServices extends BaseService<Post> implements IPostService {
     this.communityRepository = communityRepository || new CommunityRepository();
     this.notificationHandler = new NotificationEventHandler();
   }
-  async getAllPosts(page: number = 1, limit: number = 10): Promise<Post[]> {
+  async getAllPosts(page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
 
-    return await this.collection
+    // 🔹 posts paginés
+    const posts = await this.collection
       .find({})
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .toArray();
+
+    // 🔹 total réel
+    const totalPosts = await this.collection.countDocuments();
+
+    // 🔹 posts publiés
+    const publishedPosts = await this.collection.countDocuments({
+      status: "published",
+    });
+
+    // 🔹 posts signalés
+    const flaggedPosts = await this.collection.countDocuments({
+      status: "flagged",
+    });
+
+    // 🔹 total views
+    const viewsAgg = await this.collection
+      .aggregate([
+        {
+          $group: {
+            _id: null,
+            totalViews: { $sum: "$views" },
+          },
+        },
+      ])
+      .toArray();
+
+    const totalViews = viewsAgg[0]?.totalViews || 0;
+
+    return {
+      posts,
+      totalPosts,
+      publishedPosts,
+      flaggedPosts,
+      totalViews,
+    };
   }
   async createPost(
     userId: ObjectId,
@@ -241,7 +277,29 @@ export class PostServices extends BaseService<Post> implements IPostService {
       return ResponseHelper.serverError(String(err));
     }
   }
-
+  async getStats(): Promise<Response> {
+    try {
+      const totalPosts = await this.collection.countDocuments();
+      const publishedPosts = await this.collection.countDocuments({
+        status: "published",
+      });
+      const flaggedPosts = await this.collection.countDocuments({
+        status: "flagged",
+      });
+      const viewsAgg = await this.collection
+        .aggregate([{ $group: { _id: null, totalViews: { $sum: "$views" } } }])
+        .toArray();
+      const totalViews = viewsAgg[0]?.totalViews || 0;
+      return ResponseHelper.success({
+        totalPosts,
+        publishedPosts,
+        flaggedPosts,
+        totalViews,
+      });
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   async deletePost(userId: ObjectId, postId: ObjectId): Promise<Response> {
     try {
       const existingPost = await this.collection.findOne({
