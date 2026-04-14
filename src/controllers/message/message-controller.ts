@@ -130,6 +130,23 @@ export class MessageController extends BaseController<Message, MessageService> {
     }
   }
 
+  @Post("/groups/:groupId/leave", [authMiddleware])
+  async leaveGroup(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      if (!userId) return ResponseHelper.error("Non authentifié", 401);
+
+      const groupId = req.params.groupId;
+      if (!groupId || !ObjectId.isValid(groupId)) {
+        return ResponseHelper.error("ID de groupe invalide", 400);
+      }
+
+      return await this.service.leaveGroup(userId.toString(), groupId);
+    } catch (err) {
+      console.error("❌ Error in leaveGroup:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   @Patch("/read", [authMiddleware])
   async markAsRead(req: ServerRequest): Promise<Response> {
     try {

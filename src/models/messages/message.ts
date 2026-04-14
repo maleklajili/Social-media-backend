@@ -6,6 +6,7 @@ export enum MessageType {
   IMAGE = "image",
   VIDEO = "video",
   DOCUMENT = "document",
+  SYSTEM = "system",
 }
 
 export interface TextPayload {

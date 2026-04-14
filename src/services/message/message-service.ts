@@ -122,7 +122,132 @@ export class MessageService
     super(CollectionsManager.messageCollection);
     this.friendGroupRepo = new FriendGroupRepository();
   }
+  // MessageService.ts (backend)
 
+  async leaveGroup(userId: string, groupId: string): Promise<Response> {
+    try {
+      const userObjectId = new ObjectId(userId);
+      const groupObjectId = new ObjectId(groupId);
+
+      // 1. Récupérer le groupe
+      const group =
+        await this.friendGroupRepo.getFriendGroupById(groupObjectId);
+      if (!group) {
+        return ResponseHelper.notFound("Groupe introuvable");
+      }
+
+      // 2. Vérifier que l'utilisateur est membre
+      const isMember = group.members.some((m) => m.equals(userObjectId));
+      if (!isMember) {
+        return ResponseHelper.forbidden("Vous n'êtes pas membre de ce groupe");
+      }
+
+      // 3. Gestion du propriétaire
+      if (group.userId.equals(userObjectId)) {
+        const remainingMembers = group.members.filter(
+          (m) => !m.equals(userObjectId),
+        );
+        if (remainingMembers.length === 0) {
+          // Dernier membre : supprimer le groupe
+          await this.friendGroupRepo.deleteFriendGroup(groupObjectId);
+          await this.messageRepo.deleteAllGroupMessages(groupObjectId);
+          const io = getIo();
+          io.emit("group_deleted", { groupId: groupObjectId.toString() });
+          return ResponseHelper.success({
+            message: "Groupe supprimé car vous étiez le seul membre",
+          });
+        } else {
+          return ResponseHelper.forbidden(
+            "Vous êtes le propriétaire. Transférez d'abord la propriété à un autre membre ou supprimez le groupe.",
+          );
+        }
+      }
+
+      // 4. Récupérer le nom de l'utilisateur qui quitte
+      const leavingUser = await this.userRepo.findById(userObjectId);
+      if (!leavingUser) {
+        return ResponseHelper.error("Utilisateur introuvable", 404);
+      }
+      const userName =
+        `${leavingUser.firstName} ${leavingUser.lastName}`.trim() ||
+        leavingUser.userName;
+
+      // 5. Créer un message système persistant
+      const systemMessage: Message = {
+        _id: new ObjectId(),
+        groupId: groupObjectId,
+        type: MessageType.SYSTEM,
+        payload: { text: `${userName} a quitté le groupe` },
+        sender: userObjectId,
+        read: false,
+        readBy: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      await this.messageRepo.sendMessage(systemMessage);
+
+      // 6. Soft delete la conversation pour l'utilisateur qui quitte
+      await this.messageRepo.softDeleteGroupConversationForUser(
+        groupObjectId,
+        userObjectId,
+      );
+
+      // 7. Retirer l'utilisateur du groupe
+      const removed = await this.friendGroupRepo.removeMemberFromGroup(
+        groupObjectId,
+        userObjectId,
+      );
+      if (!removed) {
+        return ResponseHelper.error("Échec du retrait du groupe", 500);
+      }
+
+      // 8. Émettre le message système à tous les membres restants (temps réel)
+      const io = getIo();
+      const remainingMemberIds = [...group.members, group.userId]
+        .filter((id) => !id.equals(userObjectId))
+        .map((id) => id.toString());
+
+      // Vérification que l'ID du message système existe
+      if (!systemMessage._id) {
+        return ResponseHelper.error(
+          "Erreur lors de la création du message système",
+          500,
+        );
+      }
+
+      const systemMessageResponse = {
+        _id: systemMessage._id.toString(),
+        sender: {
+          _id: leavingUser._id!.toString(),
+          firstName: leavingUser.firstName,
+          lastName: leavingUser.lastName,
+          userName: leavingUser.userName,
+          image: leavingUser.image,
+        },
+        groupId: groupObjectId.toString(),
+        type: MessageType.SYSTEM,
+        payload: systemMessage.payload,
+        read: false,
+        readBy: [],
+        createdAt: systemMessage.createdAt,
+        updatedAt: systemMessage.updatedAt,
+      };
+
+      for (const memberId of remainingMemberIds) {
+        io.to(`user:${memberId}`).emit("group_message", systemMessageResponse);
+        io.to(`user:${memberId}`).emit("group_member_left", {
+          groupId: groupObjectId.toString(),
+          userId: userId,
+          leftAt: new Date(),
+        });
+      }
+
+      return ResponseHelper.success({ message: "Vous avez quitté le groupe" });
+    } catch (err) {
+      console.error("❌ Error in leaveGroup:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   async sendMessage(
     senderId: string,
     input: SendMessageInput,

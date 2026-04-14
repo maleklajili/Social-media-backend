@@ -10,6 +10,10 @@ export class MessageRepository implements IMessageRepository {
     await this.collection.insertOne(message);
   }
 
+  async deleteAllGroupMessages(groupId: ObjectId): Promise<number> {
+    const result = await this.collection.deleteMany({ groupId });
+    return result.deletedCount || 0;
+  }
   async getConversation(
     user1Id: ObjectId,
     user2Id: ObjectId,
@@ -239,5 +243,12 @@ export class MessageRepository implements IMessageRepository {
       { $addToSet: { deletedFor: userId } },
     );
     return result.modifiedCount;
+  }
+  async removeMember(groupId: ObjectId, userId: ObjectId): Promise<boolean> {
+    const result = await this.collection.updateOne(
+      { _id: groupId },
+      { $pull: { members: userId } },
+    );
+    return result.modifiedCount > 0;
   }
 }
