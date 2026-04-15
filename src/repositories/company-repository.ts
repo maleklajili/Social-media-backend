@@ -41,7 +41,20 @@ export class CompanyRepository implements ICompanyRepository {
     const locations = await this.collection.distinct("location");
     return locations.length;
   }
+  async incrementViews(companyId: ObjectId): Promise<void> {
+    await this.collection.updateOne(
+      { _id: companyId },
+      { $inc: { "stats.views": 1 } },
+    );
+  }
 
+  async getViewCount(companyId: ObjectId): Promise<number> {
+    const company = await this.collection.findOne(
+      { _id: companyId },
+      { projection: { "stats.views": 1 } },
+    );
+    return company?.stats?.views || 0;
+  }
   async addJobToCompany(companyId: ObjectId, jobId: ObjectId): Promise<void> {
     await this.collection.updateOne(
       { _id: companyId },
