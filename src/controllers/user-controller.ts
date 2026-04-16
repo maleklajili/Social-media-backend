@@ -31,7 +31,22 @@ class UserController extends BaseController<User, UserService> {
   protected initializeCollection(): Collection<User> {
     return CollectionsManager.userCollection;
   }
+  @Post("/admin/add-user")
+  async addUser(req: ServerRequest): Promise<Response> {
+    try {
+      const body = await this.parseRequestBody<{
+        firstName: string;
+        lastName: string;
+        email: string;
+        password: string;
+        isAdmin?: boolean;
+      }>(req);
 
+      return this.service.addUser(body);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   @Get("/getAll", [authMiddleware, paginationMiddleware])
   async getAll(req: RequestWithPagination): Promise<Response> {
     try {

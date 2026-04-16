@@ -30,6 +30,49 @@ export class UserService extends BaseService<User> implements IUserService {
     super(CollectionsManager.userCollection);
     this.notificationHandler = new NotificationEventHandler();
   }
+  async addUser(data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    isAdmin?: boolean;
+  }): Promise<Response> {
+    try {
+      const existingUser = await this.userRepository.findByEmail(data.email);
+      if (existingUser) {
+        return ResponseHelper.error("Email already exists", 400);
+      }
+
+      const userName = `${data.firstName}.${data.lastName}`.toLowerCase();
+      const hashedPassword = await Bun.password.hash(data.password);
+
+      const newUser: User = {
+        ...data,
+        userName,
+        password: hashedPassword,
+        isAdmin: data.isAdmin || false,
+        birthday: new Date(),
+        bio: "",
+        city: "",
+        adress: "",
+        professionalTitle: "",
+        postalCode: 0,
+        phone: "",
+        website: "",
+        location: "",
+        fullName: `${data.firstName} ${data.lastName}`,
+        coins: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const created = await this.userRepository.create(newUser);
+
+      return ResponseHelper.success(created);
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
 
   async findUserById(userId: ObjectId | undefined): Promise<Response> {
     if (!userId || !ObjectId.isValid(userId)) {

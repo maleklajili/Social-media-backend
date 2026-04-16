@@ -8,6 +8,14 @@ export class userRepository implements IUserRepository {
   private collection = CollectionsManager.userCollection;
   private postCollection = CollectionsManager.postCollection;
   private commentCollection = CollectionsManager.commentCollection;
+  async create(user: OptionalUnlessRequiredId<User>): Promise<User> {
+    const result = await this.collection.insertOne(user);
+
+    return {
+      ...user,
+      _id: result.insertedId,
+    } as User;
+  }
 
   async findById(
     userId: ObjectId,
@@ -31,9 +39,9 @@ export class userRepository implements IUserRepository {
     return this.collection.findOne(query);
   }
 
-  async create(user: OptionalUnlessRequiredId<User>): Promise<void> {
-    await this.collection.insertOne(user);
-  }
+  // async create(user: OptionalUnlessRequiredId<User>): Promise<void> {
+  //   await this.collection.insertOne(user);
+  // }
 
   async findByEmail(email: string): Promise<User | null> {
     return this.collection.findOne({ email });
