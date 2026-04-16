@@ -9,7 +9,7 @@ export interface IUserRepository {
   // Fetch multiple users by their ObjectId values (password excluded)
   findByIds(userIds: ObjectId[]): Promise<User[]>;
   findByIdentifier(identifier: string): Promise<User | null>;
-
+  create(user: User): Promise<User>;
   findByEmail(email: string): Promise<User | null>;
   findByUsername(username: string): Promise<User | null>;
   changePassword(
