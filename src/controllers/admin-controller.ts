@@ -163,7 +163,7 @@ class AdminController extends BaseController<User, BaseService<User>> {
 
   /**
    * GET /admin/activity
-   * Get activity data for charts
+   * Get activity data for charts (users, posts, companies)
    */
   @Get("/activity", [authMiddleware])
   async getActivityData(req: ServerRequest): Promise<Response> {
@@ -181,6 +181,7 @@ class AdminController extends BaseController<User, BaseService<User>> {
 
       const userCollection = CollectionsManager.userCollection;
       const postCollection = CollectionsManager.postCollection;
+      const companyCollection = CollectionsManager.companyCollection;
       const transactionCollection = CollectionsManager.transactionCollection;
 
       // Get activity for last 7 days
@@ -195,11 +196,15 @@ class AdminController extends BaseController<User, BaseService<User>> {
         const nextDate = new Date(date);
         nextDate.setDate(nextDate.getDate() + 1);
 
-        const [users, posts, revenueData] = await Promise.all([
+        // Correct destructuring: users, posts, companies, revenueData
+        const [users, posts, companies, revenueData] = await Promise.all([
           userCollection.countDocuments({
             createdAt: { $gte: date, $lt: nextDate },
           }),
           postCollection.countDocuments({
+            createdAt: { $gte: date, $lt: nextDate },
+          }),
+          companyCollection.countDocuments({
             createdAt: { $gte: date, $lt: nextDate },
           }),
           transactionCollection
@@ -226,6 +231,7 @@ class AdminController extends BaseController<User, BaseService<User>> {
           date: dayName,
           users,
           posts,
+          companies,
           revenue: revenueData?.length > 0 ? (revenueData[0]?.total ?? 0) : 0,
         });
       }

@@ -18,6 +18,7 @@ export interface Company extends BaseModel {
   coverImage: string;
   jobs?: ObjectId[];
   followersId?: ObjectId[];
+  posts?: ObjectId[];
   averageRating?: number;
   reviewCount?: number;
   reviewIds?: ObjectId[];

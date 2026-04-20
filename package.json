@@ -35,7 +35,7 @@
     "dev": "bun --watch ./src/server.ts",
     "format": "bun prettier --write ./src",
     "lints": "bun eslint ./src --ext .ts,.js",
-    "predev": "bun scripts/check-pre-commit.ts",
+   "predev": "bun scripts/check-pre-commit.ts",
     "update-storage": "bun run scripts/update-user-storage.ts"
   },
   "type": "module"

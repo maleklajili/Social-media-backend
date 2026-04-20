@@ -56,22 +56,41 @@ export class PostController extends BaseController<Post, PostServices> {
   async getPostStats(_req: ServerRequest): Promise<Response> {
     return this.service.getStats();
   }
-  @PostMethod("/create", [authMiddleware])
-  async createPost(req: ServerRequest): Promise<Response> {
+
+  @Get("/owner/:ownerType/:ownerId", [authMiddleware])
+  async getPostsByOwner(req: ServerRequest): Promise<Response> {
     try {
-      if (!req.user?._id) {
-        return ResponseHelper.error("User not authenticated");
+      const { ownerType, ownerId } = req.params;
+
+      if (!ownerId || !ObjectId.isValid(ownerId)) {
+        return ResponseHelper.error("Invalid owner ID");
       }
 
-      const formData = (await req.formData()) as FormData;
-      const body = await this.parseFormData<Post>(formData);
+      if (ownerType !== "user" && ownerType !== "company") {
+        return ResponseHelper.error("Owner type must be 'user' or 'company'");
+      }
 
-      return this.service.createPost(req.user._id, body, formData);
+      return this.service.getPostsByOwner(
+        new ObjectId(ownerId),
+        ownerType as "user" | "company",
+      );
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }
   }
 
+  @Get("/company/:companyId", [authMiddleware])
+  async getPostsByCompany(req: ServerRequest): Promise<Response> {
+    try {
+      const { companyId } = req.params;
+      if (!companyId || !ObjectId.isValid(companyId)) {
+        return ResponseHelper.error("ID company invalide");
+      }
+      return this.service.getPostsByOwner(new ObjectId(companyId), "company");
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   @Get("/:id", [authMiddleware])
   async getPost(req: ServerRequest): Promise<Response> {
     try {
@@ -108,6 +127,35 @@ export class PostController extends BaseController<Post, PostServices> {
         new ObjectId(id),
         body,
         formData,
+      );
+    } catch (err) {
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+  @PostMethod("/create", [authMiddleware])
+  async createPost(req: ServerRequest): Promise<Response> {
+    try {
+      if (!req.user?._id) {
+        return ResponseHelper.error("User not authenticated");
+      }
+
+      const formData = (await req.formData()) as FormData;
+      const body = await this.parseFormData<Post>(formData);
+
+      const ownerType = (formData.get("ownerType") as string) || "user";
+      const ownerId = formData.get("ownerId") as string;
+
+      let ownerObjectId: ObjectId | undefined;
+      if (ownerId && ObjectId.isValid(ownerId)) {
+        ownerObjectId = new ObjectId(ownerId);
+      }
+
+      return this.service.createPost(
+        req.user._id,
+        body,
+        formData,
+        ownerType as "user" | "company",
+        ownerObjectId,
       );
     } catch (err) {
       return ResponseHelper.serverError(String(err));
@@ -210,10 +258,13 @@ export class PostController extends BaseController<Post, PostServices> {
         return ResponseHelper.error("User not authenticated");
       }
 
-      const { content, parentCommentId } = (await req.json()) as {
-        content: string;
-        parentCommentId?: string;
-      };
+      const { content, parentCommentId, ownerType, ownerId } =
+        (await req.json()) as {
+          content: string;
+          parentCommentId?: string;
+          ownerType?: "user" | "company";
+          ownerId?: string;
+        };
 
       if (!content || typeof content !== "string") {
         return ResponseHelper.error("Comment content is required");
@@ -224,11 +275,19 @@ export class PostController extends BaseController<Post, PostServices> {
           ? new ObjectId(parentCommentId)
           : undefined;
 
+      let ownerObjectId: ObjectId | undefined;
+      if (ownerId && ObjectId.isValid(ownerId)) {
+        ownerObjectId = new ObjectId(ownerId);
+      }
+
+      // 👇 PASSER ownerType ET ownerId AU SERVICE
       return this.service.commentPost(
         req.user._id,
         new ObjectId(id),
         content,
         parentId,
+        ownerType as "user" | "company",
+        ownerObjectId,
       );
     } catch (err) {
       return ResponseHelper.serverError(String(err));
@@ -375,6 +434,7 @@ export class PostController extends BaseController<Post, PostServices> {
       return ResponseHelper.serverError(String(err));
     }
   }
+  // Keep old routes for backward compatibility
   @Get("/user/:userId", [authMiddleware])
   async getPostsByUser(req: ServerRequest): Promise<Response> {
     try {
@@ -382,7 +442,7 @@ export class PostController extends BaseController<Post, PostServices> {
       if (!userId || !ObjectId.isValid(userId)) {
         return ResponseHelper.error("ID utilisateur invalide");
       }
-      return this.service.getPostsByUserId(new ObjectId(userId));
+      return this.service.getPostsByOwner(new ObjectId(userId), "user");
     } catch (err) {
       return ResponseHelper.serverError(String(err));
     }

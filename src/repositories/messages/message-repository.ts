@@ -1,6 +1,10 @@
 import { ObjectId } from "mongodb";
 import { CollectionsManager } from "../../models/base/collection-manager";
-import type { Message, MessagePayload } from "../../models/messages/message";
+import type {
+  CallPayload,
+  Message,
+  MessagePayload,
+} from "../../models/messages/message";
 import type { IMessageRepository } from "../../interfaces/message/i-message-repository";
 
 export class MessageRepository implements IMessageRepository {
@@ -170,6 +174,16 @@ export class MessageRepository implements IMessageRepository {
   ): Promise<boolean> {
     const result = await this.collection.updateOne(
       { _id: messageId, sender: userId },
+      { $set: { payload, updatedAt: new Date() } },
+    );
+    return result.modifiedCount === 1;
+  }
+  async updateCallPayload(
+    messageId: ObjectId,
+    payload: CallPayload,
+  ): Promise<boolean> {
+    const result = await this.collection.updateOne(
+      { _id: messageId },
       { $set: { payload, updatedAt: new Date() } },
     );
     return result.modifiedCount === 1;

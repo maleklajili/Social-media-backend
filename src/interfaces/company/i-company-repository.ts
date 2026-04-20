@@ -23,4 +23,9 @@ export interface ICompanyRepository {
     companyId: ObjectId,
     stats: { averageRating: number; reviewCount: number },
   ): Promise<void>;
+  incrementViews(companyId: ObjectId): Promise<void>;
+  getViewCount(companyId: ObjectId): Promise<number>;
+  addPostToCompany(companyId: ObjectId, postId: ObjectId): Promise<void>;
+  removePostFromCompany(companyId: ObjectId, postId: ObjectId): Promise<void>;
+  getCompanyPosts(companyId: ObjectId): Promise<ObjectId[]>;
 }

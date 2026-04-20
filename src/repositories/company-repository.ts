@@ -41,7 +41,45 @@ export class CompanyRepository implements ICompanyRepository {
     const locations = await this.collection.distinct("location");
     return locations.length;
   }
+  async incrementViews(companyId: ObjectId): Promise<void> {
+    await this.collection.updateOne(
+      { _id: companyId },
+      { $inc: { "stats.views": 1 } },
+    );
+  }
+  // company-repository.ts
+  async addPostToCompany(companyId: ObjectId, postId: ObjectId): Promise<void> {
+    await this.collection.updateOne(
+      // ← collection mta3 companies
+      { _id: companyId },
+      { $addToSet: { posts: postId } },
+    );
+  }
 
+  async removePostFromCompany(
+    companyId: ObjectId,
+    postId: ObjectId,
+  ): Promise<void> {
+    await this.collection.updateOne(
+      { _id: companyId },
+      { $pull: { posts: postId } },
+    );
+  }
+
+  async getCompanyPosts(companyId: ObjectId): Promise<ObjectId[]> {
+    const company = await this.collection.findOne(
+      { _id: companyId },
+      { projection: { posts: 1 } },
+    );
+    return company?.posts || [];
+  }
+  async getViewCount(companyId: ObjectId): Promise<number> {
+    const company = await this.collection.findOne(
+      { _id: companyId },
+      { projection: { "stats.views": 1 } },
+    );
+    return company?.stats?.views || 0;
+  }
   async addJobToCompany(companyId: ObjectId, jobId: ObjectId): Promise<void> {
     await this.collection.updateOne(
       { _id: companyId },

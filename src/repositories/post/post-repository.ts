@@ -1,14 +1,14 @@
-import { ObjectId } from "mongodb";
+import { ObjectId, type Filter } from "mongodb";
 import { CollectionsManager } from "../../models/base/collection-manager";
 import type { Post } from "../../models/post";
 import type { IPostRepository } from "../../interfaces/post/i-post-repository";
 
 export class PostRepository implements IPostRepository {
   private collection = CollectionsManager.postCollection;
-  // In your PostRepository class
+  private userCollection = CollectionsManager.userCollection; // Déclaré une seule fois ici
+
   async getAllPosts(page: number = 1, limit: number = 10): Promise<Post[]> {
     const skip = (page - 1) * limit;
-
     return await this.collection
       .find({})
       .sort({ createdAt: -1 })
@@ -16,8 +16,26 @@ export class PostRepository implements IPostRepository {
       .limit(limit)
       .toArray();
   }
+
+  async getAllPostsCount(): Promise<number> {
+    return this.collection.countDocuments();
+  }
+
   async addPost(post: Post): Promise<void> {
     await this.collection.insertOne(post);
+  }
+
+  async getPostsByOwner(
+    ownerId: ObjectId,
+    ownerType: "user" | "company",
+  ): Promise<Post[]> {
+    return this.collection
+      .find({
+        ownerId: ownerId,
+        ownerType: ownerType,
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
   }
 
   async updatePost(post: Post): Promise<void> {
@@ -38,12 +56,10 @@ export class PostRepository implements IPostRepository {
     return this.collection
       .find({
         $or: [
-          // Mes posts **NON partagés par d'autres**
           {
             userId,
             $or: [{ sharedBy: { $exists: false } }, { sharedBy: { $size: 0 } }],
           },
-          // Mes reposts (posts que j'ai partagés)
           { sharedBy: userId },
         ],
       })
@@ -68,33 +84,72 @@ export class PostRepository implements IPostRepository {
   ): Promise<Post[]> {
     const skip = (page - 1) * limit;
 
-    // Get communities as strings
-    const communityStrings = await this.getUserCommunities(userId);
+    const user = await this.userCollection.findOne({ _id: userId });
+    const followedUsers = user?.following || [];
+    const followedCompanies = user?.followingCompanies || [];
 
-    // Convert strings to ObjectId
-    const communityObjectIds = communityStrings
-      .filter((id) => ObjectId.isValid(id))
-      .map((id) => new ObjectId(id));
-
-    // Build query
-    //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const query: any = {};
-
-    if (communityObjectIds.length > 0) {
-      query.$or = [
-        { userId: userId },
-        { community: { $in: communityObjectIds } },
-      ];
-    } else {
-      query.userId = userId;
+    // Si aucun abonnement, retourner un tableau vide
+    if (followedUsers.length === 0 && followedCompanies.length === 0) {
+      return [];
     }
+
+    const conditions: Filter<Post>[] = [];
+    if (followedUsers.length > 0) {
+      conditions.push({
+        ownerId: { $in: followedUsers },
+        ownerType: "user" as const,
+      });
+    }
+
+    if (followedCompanies.length > 0) {
+      conditions.push({
+        ownerId: { $in: followedCompanies },
+        ownerType: "company" as const,
+      });
+    }
+
+    // Ajouter les posts de l'utilisateur lui-même
+    conditions.push({ ownerId: userId, ownerType: "user" as const });
+
+    const query = { $or: conditions };
 
     return this.collection
       .find(query)
-      .sort({ trendingScore: -1, createdAt: -1 })
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .toArray();
+  }
+
+  async countFeedPosts(userId: ObjectId): Promise<number> {
+    const user = await this.userCollection.findOne({ _id: userId });
+    const followedUsers = user?.following || [];
+    const followedCompanies = user?.followingCompanies || [];
+
+    if (followedUsers.length === 0 && followedCompanies.length === 0) {
+      return 0;
+    }
+
+    const conditions: Filter<Post>[] = [];
+    if (followedUsers.length > 0) {
+      conditions.push({
+        ownerId: { $in: followedUsers },
+        ownerType: "user" as const,
+      });
+    }
+
+    if (followedCompanies.length > 0) {
+      conditions.push({
+        ownerId: { $in: followedCompanies },
+        ownerType: "company" as const,
+      });
+    }
+
+    conditions.push({ ownerId: userId, ownerType: "user" as const });
+
+    const query = { $or: conditions };
+
+    return this.collection.countDocuments(query);
   }
 
   async incrementVotes(postId: ObjectId, increment: number): Promise<void> {
@@ -138,13 +193,6 @@ export class PostRepository implements IPostRepository {
     );
   }
 
-  async getSavedPosts(userId: ObjectId): Promise<Post[]> {
-    return this.collection
-      .find({ savedBy: userId })
-      .sort({ createdAt: -1 })
-      .toArray();
-  }
-
   async getTrendingPosts(limit: number = 10): Promise<Post[]> {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -158,7 +206,33 @@ export class PostRepository implements IPostRepository {
       .limit(limit)
       .toArray();
   }
+  async getSavedPosts(
+    userId: ObjectId,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<Post[]> {
+    const skip = (page - 1) * limit;
+    return this.collection
+      .find({ savedBy: userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+  }
 
+  async countSavedPosts(userId: ObjectId): Promise<number> {
+    return this.collection.countDocuments({ savedBy: userId });
+  }
+
+  async getNewPosts(page: number = 1, limit: number = 10): Promise<Post[]> {
+    const skip = (page - 1) * limit;
+    return this.collection
+      .find({})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+  }
   async updateLastComment(
     postId: ObjectId,
     lastComment: Post["lastComment"],
@@ -168,9 +242,9 @@ export class PostRepository implements IPostRepository {
 
   private async getUserCommunities(userId: ObjectId): Promise<string[]> {
     console.log(userId);
-    // TODO: Récupérer les communautés de l'utilisateur
     return [];
   }
+
   async incrementShares(postId: ObjectId, increment: number): Promise<void> {
     await this.collection.updateOne(
       { _id: postId },
@@ -232,14 +306,11 @@ export class PostRepository implements IPostRepository {
       updatedAt: new Date(),
       lastActivityAt: new Date(),
       sharedBy: [userId],
-      // Clear user-specific data
       userVotes: [],
       savedBy: [],
     };
 
     await this.collection.insertOne(sharePost);
-
-    // Increment share count on original post
     await this.incrementShares(originalPostId, 1);
 
     return sharePost;

@@ -38,4 +38,12 @@ export interface Comment extends BaseModel {
     url: string;
     thumbnail?: string;
   }[];
+  ownerType?: "user" | "company";
+  ownerId?: ObjectId;
+  ownerData?: {
+    _id: ObjectId;
+    name: string;
+    logo?: string;
+    userId?: string;
+  };
 }

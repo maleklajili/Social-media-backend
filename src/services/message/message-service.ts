@@ -244,7 +244,7 @@ export class MessageService
 
       return ResponseHelper.success({ message: "Vous avez quitté le groupe" });
     } catch (err) {
-      console.error("❌ Error in leaveGroup:", err);
+      console.error(" Error in leaveGroup:", err);
       return ResponseHelper.serverError(String(err));
     }
   }
@@ -541,7 +541,230 @@ export class MessageService
       return ResponseHelper.serverError(String(err));
     }
   }
+  // Dans message-service.ts, ajoutez ces méthodes :
 
+  async deleteGroupMessage(
+    userId: string,
+    messageId: string,
+  ): Promise<Response> {
+    try {
+      const message = await this.messageRepo.getMessageById(
+        new ObjectId(messageId),
+      );
+
+      if (!message) {
+        return ResponseHelper.error("Message introuvable", 404);
+      }
+
+      // Vérifier que l'utilisateur est l'expéditeur du message
+      if (message.sender.toString() !== userId) {
+        return ResponseHelper.error(
+          "Vous n'êtes pas l'expéditeur de ce message",
+          403,
+        );
+      }
+
+      // Vérifier que c'est bien un message de groupe
+      if (!message.groupId) {
+        return ResponseHelper.error("Ce n'est pas un message de groupe", 400);
+      }
+
+      // Supprimer le fichier si nécessaire
+      if (message.type !== MessageType.TEXT && "url" in message.payload) {
+        await this.deleteMessageFile(message);
+      }
+
+      const deleted = await this.messageRepo.deleteMessage(
+        new ObjectId(messageId),
+        new ObjectId(userId),
+      );
+
+      if (!deleted) {
+        return ResponseHelper.error("Échec de la suppression", 500);
+      }
+
+      // Émettre l'événement à tous les membres du groupe
+      const io = getIo();
+      const group = await this.friendGroupRepo.getFriendGroupById(
+        message.groupId,
+      );
+      if (group) {
+        const memberIds = [...group.members, group.userId].map((id) =>
+          id.toString(),
+        );
+        for (const memberId of memberIds) {
+          io.to(`user:${memberId}`).emit("group_message_deleted", {
+            messageId: messageId,
+            deletedBy: userId,
+            groupId: message.groupId.toString(),
+          });
+        }
+      }
+
+      return ResponseHelper.success({ message: "Message supprimé du groupe" });
+    } catch (err) {
+      console.error("❌ Error in deleteGroupMessage:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async updateGroupMessage(
+    userId: string,
+    messageId: string,
+    input: UpdateMessageInput,
+  ): Promise<Response> {
+    try {
+      const message = await this.messageRepo.getMessageById(
+        new ObjectId(messageId),
+      );
+
+      if (!message) {
+        return ResponseHelper.error("Message introuvable", 404);
+      }
+
+      if (message.sender.toString() !== userId) {
+        return ResponseHelper.error(
+          "Vous n'êtes pas l'auteur de ce message",
+          403,
+        );
+      }
+
+      if (!message.groupId) {
+        return ResponseHelper.error("Ce n'est pas un message de groupe", 400);
+      }
+
+      // Vérifier que c'est un message texte
+      if (message.type !== MessageType.TEXT) {
+        return ResponseHelper.error(
+          "Seuls les messages texte peuvent être modifiés",
+          403,
+        );
+      }
+
+      const validationError = this.validatePayload(message.type, input.payload);
+      if (validationError) {
+        return ResponseHelper.error(validationError, 400);
+      }
+
+      const updated = await this.messageRepo.updateMessage(
+        new ObjectId(messageId),
+        new ObjectId(userId),
+        input.payload,
+      );
+
+      if (!updated) {
+        return ResponseHelper.error("Échec de la mise à jour", 500);
+      }
+
+      const updatedMessage = await this.messageRepo.getMessageById(
+        new ObjectId(messageId),
+      );
+      if (!updatedMessage) {
+        return ResponseHelper.error(
+          "Message introuvable après mise à jour",
+          404,
+        );
+      }
+
+      const sender = await this.userRepo.findById(new ObjectId(userId));
+      if (!sender) {
+        return ResponseHelper.error("Utilisateur introuvable", 404);
+      }
+
+      const response = {
+        _id: updatedMessage._id!.toString(),
+        sender: {
+          _id: sender._id!.toString(),
+          firstName: sender.firstName,
+          lastName: sender.lastName,
+          userName: sender.userName,
+          image: sender.image,
+        },
+        groupId: updatedMessage.groupId!.toString(),
+        type: updatedMessage.type,
+        payload: updatedMessage.payload,
+        read: updatedMessage.read,
+        readBy: updatedMessage.readBy?.map((id) => id.toString()) || [],
+        createdAt: updatedMessage.createdAt,
+        updatedAt: updatedMessage.updatedAt,
+      };
+
+      // Émettre à tous les membres du groupe
+      const io = getIo();
+      const group = await this.friendGroupRepo.getFriendGroupById(
+        updatedMessage.groupId!,
+      );
+      if (group) {
+        const memberIds = [...group.members, group.userId].map((id) =>
+          id.toString(),
+        );
+        for (const memberId of memberIds) {
+          io.to(`user:${memberId}`).emit("group_message_updated", response);
+        }
+      }
+
+      return ResponseHelper.success(response);
+    } catch (err) {
+      console.error("❌ Error in updateGroupMessage:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  async softDeleteGroupMessage(
+    userId: string,
+    messageId: string,
+  ): Promise<Response> {
+    try {
+      const message = await this.messageRepo.getMessageById(
+        new ObjectId(messageId),
+      );
+
+      if (!message) {
+        return ResponseHelper.error("Message introuvable", 404);
+      }
+
+      if (!message.groupId) {
+        return ResponseHelper.error("Ce n'est pas un message de groupe", 400);
+      }
+
+      // Vérifier que l'utilisateur est membre du groupe
+      const group = await this.friendGroupRepo.getFriendGroupById(
+        message.groupId,
+      );
+      if (!group) {
+        return ResponseHelper.error("Groupe introuvable", 404);
+      }
+
+      const isMember =
+        group.members.some((m) => m.toString() === userId) ||
+        group.userId.toString() === userId;
+      if (!isMember) {
+        return ResponseHelper.error("Vous n'êtes pas membre de ce groupe", 403);
+      }
+
+      const updated = await this.messageRepo.softDeleteMessage(
+        new ObjectId(messageId),
+        new ObjectId(userId),
+      );
+
+      if (!updated) {
+        return ResponseHelper.error("Message déjà masqué ou introuvable", 400);
+      }
+
+      // Émettre l'événement à l'utilisateur uniquement (soft delete est personnel)
+      const io = getIo();
+      io.to(`user:${userId}`).emit("group_message_soft_deleted", {
+        messageId: messageId,
+        userId: userId,
+        groupId: message.groupId.toString(),
+      });
+
+      return ResponseHelper.success({ message: "Message masqué pour vous" });
+    } catch (err) {
+      console.error("❌ Error in softDeleteGroupMessage:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   async deleteMessage(userId: string, messageId: string): Promise<Response> {
     try {
       const message = await this.messageRepo.getMessageById(
@@ -1144,8 +1367,6 @@ export class MessageService
     }
   }
 
-  // ===================== NOUVELLES MÉTHODES POUR LES GROUPES =====================
-
   async sendGroupMessage(
     senderId: string,
     input: SendGroupMessageInput,
@@ -1481,7 +1702,7 @@ export class MessageService
       };
 
       console.log(
-        `📤 Émission recent_chats_updated pour l'utilisateur ${userId}`,
+        ` Émission recent_chats_updated pour l'utilisateur ${userId}`,
       );
       io.to(`user:${userId}`).emit("recent_chats_updated", event);
 
@@ -1509,7 +1730,7 @@ export class MessageService
       };
       io.to(`user:${userId}`).emit("recent_chats_error", event);
     } catch (socketError) {
-      console.error("⚠️ Erreur Socket.IO:", socketError);
+      console.error(" Erreur Socket.IO:", socketError);
     }
   }
 
@@ -1522,11 +1743,11 @@ export class MessageService
         timestamp: new Date(),
       };
       console.log(
-        `📤 Émission all_messages_deleted pour l'utilisateur ${userId}`,
+        ` Émission all_messages_deleted pour l'utilisateur ${userId}`,
       );
       io.to(`user:${userId}`).emit("all_messages_deleted", event);
     } catch (socketError) {
-      console.error("⚠️ Erreur Socket.IO:", socketError);
+      console.error(" Erreur Socket.IO:", socketError);
     }
   }
 
@@ -1541,10 +1762,10 @@ export class MessageService
         otherUserId,
         modifiedCount: count,
       };
-      console.log(`📤 Émission conversation_soft_deleted pour ${userId}`);
+      console.log(` Émission conversation_soft_deleted pour ${userId}`);
       io.to(`user:${userId}`).emit("conversation_soft_deleted", event);
     } catch (socketError) {
-      console.error("⚠️ Erreur Socket.IO:", socketError);
+      console.error(" Erreur Socket.IO:", socketError);
     }
   }
 
@@ -1555,10 +1776,10 @@ export class MessageService
         messageId,
         userId,
       };
-      console.log(`📤 Émission message_soft_deleted pour ${messageId}`);
+      console.log(` Émission message_soft_deleted pour ${messageId}`);
       io.to(`user:${userId}`).emit("message_soft_deleted", event);
     } catch (socketError) {
-      console.error("⚠️ Erreur Socket.IO:", socketError);
+      console.error(" Erreur Socket.IO:", socketError);
     }
   }
 

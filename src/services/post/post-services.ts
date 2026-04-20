@@ -19,26 +19,32 @@ import type { ICommunityRepository } from "../../interfaces/community/i-communit
 import { CommunityRepository } from "../../repositories/community-repository";
 import { NotificationEventHandler } from "../notification-event-handler";
 import { ContentModeratorClient } from "../../utils/content-moderator-client";
+import type { ICompanyRepository } from "../../interfaces/company/i-company-repository";
+import { CompanyRepository } from "../../repositories/company-repository";
 export class PostServices extends BaseService<Post> implements IPostService {
   private commentRepository: ICommentRepository;
   private communityRepository: ICommunityRepository;
+  private companyRepository: ICompanyRepository;
   private notificationHandler: NotificationEventHandler;
   constructor(
     private postRepository: IPostRepository,
     private userRepository: IUserRepository,
     private transactionService: TransactionService,
+
     commentRepository?: ICommentRepository,
     communityRepository?: ICommunityRepository,
+    companyRepository?: ICompanyRepository,
   ) {
     super(CollectionsManager.postCollection);
     this.commentRepository = commentRepository || new CommentRepository();
     this.communityRepository = communityRepository || new CommunityRepository();
+    this.companyRepository = companyRepository || new CompanyRepository();
+
     this.notificationHandler = new NotificationEventHandler();
   }
   async getAllPosts(page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
 
-    // 🔹 posts paginés
     const posts = await this.collection
       .find({})
       .sort({ createdAt: -1 })
@@ -46,31 +52,45 @@ export class PostServices extends BaseService<Post> implements IPostService {
       .limit(limit)
       .toArray();
 
-    // 🔹 total réel
-    const totalPosts = await this.collection.countDocuments();
+    // Populate userId
+    try {
+      await populateReferences(posts, this.userRepository, "userId");
+    } catch (err) {
+      console.error("Failed to populate users for posts:", err);
+    }
 
-    // 🔹 posts publiés
+    // Ajouter ownerData pour les posts d'entreprise
+    for (const post of posts) {
+      if (post.ownerType === "company" && post.ownerId) {
+        try {
+          const company = await this.companyRepository.getCompanyById(
+            post.ownerId,
+          );
+          if (company && company._id) {
+            post.ownerData = {
+              _id: company._id,
+              name: company.name || "",
+              logo: company.logo || "",
+              userId: company.userId || "",
+            };
+          }
+        } catch (err) {
+          console.error("Failed to populate company data for post:", err);
+        }
+      }
+    }
+
+    const totalPosts = await this.collection.countDocuments();
     const publishedPosts = await this.collection.countDocuments({
       status: "published",
     });
-
-    // 🔹 posts signalés
     const flaggedPosts = await this.collection.countDocuments({
       status: "flagged",
     });
 
-    // 🔹 total views
     const viewsAgg = await this.collection
-      .aggregate([
-        {
-          $group: {
-            _id: null,
-            totalViews: { $sum: "$views" },
-          },
-        },
-      ])
+      .aggregate([{ $group: { _id: null, totalViews: { $sum: "$views" } } }])
       .toArray();
-
     const totalViews = viewsAgg[0]?.totalViews || 0;
 
     return {
@@ -85,22 +105,50 @@ export class PostServices extends BaseService<Post> implements IPostService {
     userId: ObjectId,
     post: Post,
     formData: FormData,
+    ownerType: "user" | "company" = "user",
+    ownerId?: ObjectId,
   ): Promise<Response> {
     try {
       if (!post.title) {
         return ResponseHelper.error("Title is required");
       }
-      const privacyValue = formData.get("privacy") as string;
 
+      // Set owner information
+      post.ownerType = ownerType;
+      post.userId = userId; // logged user (creator)
+
+      if (ownerType === "company" && ownerId) {
+        // Check if user owns this company
+        const company = await this.companyRepository.getCompanyById(ownerId);
+        if (!company) {
+          return ResponseHelper.error("Company not found");
+        }
+
+        // Check if user is admin of this company
+        const isAdmin = company.userId.equals(userId);
+        if (!isAdmin) {
+          return ResponseHelper.error(
+            "You don't have permission to post as this company",
+          );
+        }
+
+        post.ownerId = ownerId;
+      } else {
+        post.ownerType = "user";
+        post.ownerId = userId;
+      }
+
+      // Rest of the existing code...
+      const privacyValue = formData.get("privacy") as string;
       if (
         privacyValue &&
         ["public", "friends", "private"].includes(privacyValue)
       ) {
         post.privacy = privacyValue as "public" | "friends" | "private";
       } else {
-        post.privacy = "friends"; // Valeur par défaut
+        post.privacy = "friends";
       }
-      post.userId = userId;
+
       post.votes = 0;
       post.commentsCount = 0;
       post.views = 0;
@@ -118,6 +166,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
         }
       }
 
+      // Handle media based on type
       switch (post.type) {
         case "image":
           await this.handleImagePost(post, formData, userId);
@@ -137,7 +186,7 @@ export class PostServices extends BaseService<Post> implements IPostService {
 
       post.trendingScore = this.calculateTrendingScore(post);
 
-      // ── AI Moderation: check toxicity ──────────────────────────────────
+      // AI Moderation
       try {
         const textToCheck = `${post.title || ""} ${post.content || ""}`.trim();
         if (textToCheck) {
@@ -156,11 +205,15 @@ export class PostServices extends BaseService<Post> implements IPostService {
           }
         }
       } catch (err) {
-        console.error("AI moderation check failed (post created anyway):", err);
+        console.error("AI moderation check failed:", err);
         post.moderationStatus = "pending";
       }
 
       await this.postRepository.addPost(post);
+
+      if (ownerType === "company" && ownerId && post._id) {
+        await this.companyRepository.addPostToCompany(ownerId, post._id);
+      }
 
       try {
         await this.userRepository.addCoins(userId, COINS_CONFIG.CREATE_POST);
@@ -169,10 +222,11 @@ export class PostServices extends BaseService<Post> implements IPostService {
           COINS_CONFIG.CREATE_POST,
           "post",
           post._id!,
-          "Création d'un post",
+          `Création d'un post (${ownerType})`,
           {
             title: post.title,
             type: post.type,
+            ownerType: ownerType,
             community: post.community,
           },
         );
@@ -186,7 +240,44 @@ export class PostServices extends BaseService<Post> implements IPostService {
       return ResponseHelper.serverError(String(err));
     }
   }
+  async getPostsByOwner(
+    ownerId: ObjectId,
+    ownerType: "user" | "company",
+  ): Promise<Response> {
+    try {
+      const posts = await this.postRepository.getPostsByOwner(
+        ownerId,
+        ownerType,
+      );
 
+      // Populate creator (userId)
+      try {
+        await populateReferences(posts, this.userRepository, "userId");
+      } catch (err) {
+        console.error("Failed to populate user for posts:", err);
+      }
+
+      // Populate owner info based on type
+      if (ownerType === "company") {
+        const company = await this.companyRepository.getCompanyById(ownerId);
+        if (company && company._id) {
+          posts.forEach((post) => {
+            post.ownerData = {
+              _id: company._id as ObjectId, // ← Assertion de type
+              name: company.name || "",
+              logo: company.logo || "",
+              userId: company.userId || "",
+            };
+          });
+        }
+      }
+
+      return ResponseHelper.success(posts);
+    } catch (err) {
+      console.error("Error getting posts by owner:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
   async updatePost(
     userId: ObjectId,
     postId: ObjectId,
@@ -349,12 +440,14 @@ export class PostServices extends BaseService<Post> implements IPostService {
       if (!post) {
         return ResponseHelper.error("Post not found");
       }
+
       // Populate userId with public user fields using generic helper
       try {
         await populateReferences([post], this.userRepository, "userId");
       } catch (err) {
         console.error("Failed to populate user for post:", err);
       }
+
       // Populate community field
       try {
         await populateReferences(
@@ -376,6 +469,25 @@ export class PostServices extends BaseService<Post> implements IPostService {
       } catch (err) {
         console.error("Failed to populate community for posts:", err);
       }
+
+      if (post.ownerType === "company" && post.ownerId) {
+        try {
+          const company = await this.companyRepository.getCompanyById(
+            post.ownerId,
+          );
+          if (company && company._id) {
+            post.ownerData = {
+              _id: company._id,
+              name: company.name || "",
+              logo: company.logo || "",
+              userId: company.userId,
+            };
+          }
+        } catch (err) {
+          console.error("Failed to populate company data for post:", err);
+        }
+      }
+
       await this.postRepository.incrementViews(postId);
       return ResponseHelper.success(post);
     } catch (err) {
@@ -395,80 +507,147 @@ export class PostServices extends BaseService<Post> implements IPostService {
   }
   async getFeed(
     userId: ObjectId,
-    page: number = 1,
-    limit: number = 10,
-    filter: string = "popular",
+    page: number,
+    limit: number,
+    filter: string = "following",
   ): Promise<Response> {
     try {
       let posts: Post[] = [];
+      let total = 0;
 
-      switch (filter) {
-        case "all":
-          posts = await this.postRepository.getAllPosts(page, limit);
-          break;
-        case "popular":
-          posts = await this.postRepository.getTrendingPosts(limit);
-          break;
-        case "new":
-          posts = await this.postRepository.getPostsByUserId(userId);
-          break;
-        case "saved":
-          posts = await this.postRepository.getSavedPosts(userId);
-          break;
-        default:
-          posts = await this.postRepository.getFeedPosts(userId, page, limit);
+      if (filter === "following") {
+        posts = await this.postRepository.getFeedPosts(userId, page, limit);
+        total = await this.postRepository.countFeedPosts(userId);
+      } else if (filter === "popular") {
+        posts = await this.postRepository.getTrendingPosts(limit);
+        total = posts.length;
+      } else if (filter === "saved") {
+        posts = await this.postRepository.getSavedPosts(userId, page, limit);
+        total = await this.postRepository.countSavedPosts(userId);
+      } else if (filter === "new") {
+        posts = await this.postRepository.getNewPosts(page, limit);
+        total = await this.postRepository.getAllPostsCount();
+      } else {
+        posts = await this.postRepository.getAllPosts(page, limit);
+        total = await this.postRepository.getAllPostsCount();
       }
 
-      // Populate userId with public user fields using generic helper
-      try {
-        await populateReferences(posts, this.userRepository, "userId");
-      } catch (err) {
-        console.error("Failed to populate users for posts:", err);
+      for (const post of posts) {
+        if (!post.ownerType) {
+          post.ownerType = "user";
+        }
+        if (!post.ownerId && post.userId) {
+          if (post.userId instanceof ObjectId) {
+            post.ownerId = post.userId;
+          } else if (typeof post.userId === "object" && post.userId._id) {
+            post.ownerId = post.userId._id;
+          } else if (typeof post.userId === "string") {
+            post.ownerId = new ObjectId(post.userId);
+          }
+        }
       }
-      // Populate sharedBy array with public user fields
-      try {
-        await populateReferences(
-          posts,
-          this.userRepository,
-          "sharedBy",
-          "sharedBy",
-          ["_id", "firstName", "lastName", "image"],
-          true, // This tells the function to handle it as an array
-        );
-      } catch (err) {
-        console.error("Failed to populate sharedBy users for posts:", err);
-      }
-      // Populate community field
-      try {
-        await populateReferences(
-          posts,
-          this.communityRepository,
-          "community",
-          "community",
-          [
-            "_id",
-            "name",
-            "banner",
-            "privacy",
-            "membersCount",
-            "description",
-            "icon",
-          ],
-          false,
-        );
-      } catch (err) {
-        console.error("Failed to populate community for posts:", err);
-      }
+
+      const enrichedPosts = await this.enrichPosts(posts, userId);
+
       return ResponseHelper.success({
-        posts,
-        page,
-        limit,
-        total: posts.length,
+        data: enrichedPosts,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
       });
     } catch (err) {
-      console.error("Error getting feed:", err);
+      console.error("Error in getFeed:", err);
       return ResponseHelper.serverError(String(err));
     }
+  }
+
+  private async enrichPosts(
+    posts: Post[],
+    currentUserId: ObjectId,
+  ): Promise<Post[]> {
+    const enriched: Post[] = [];
+
+    for (const post of posts) {
+      let ownerData = undefined;
+      let finalOwnerType = post.ownerType;
+      let finalOwnerId = post.ownerId;
+
+      if (!finalOwnerType) {
+        finalOwnerType = "user";
+        if (post.userId) {
+          if (post.userId instanceof ObjectId) {
+            finalOwnerId = post.userId;
+          } else if (typeof post.userId === "object" && post.userId._id) {
+            finalOwnerId = post.userId._id;
+          } else if (typeof post.userId === "string") {
+            finalOwnerId = new ObjectId(post.userId);
+          }
+        }
+      }
+
+      if (finalOwnerType === "user" && finalOwnerId) {
+        const ownerIdObj =
+          finalOwnerId instanceof ObjectId
+            ? finalOwnerId
+            : new ObjectId(finalOwnerId);
+        const user = await this.userRepository.findById(ownerIdObj, 0);
+        if (user) {
+          ownerData = {
+            _id: user._id,
+            name:
+              `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+              user.userName ||
+              "Utilisateur",
+            logo: user.image || "",
+            userId: user._id,
+          };
+        }
+      } else if (finalOwnerType === "company" && finalOwnerId) {
+        const ownerIdObj =
+          finalOwnerId instanceof ObjectId
+            ? finalOwnerId
+            : new ObjectId(finalOwnerId);
+        const company = await this.companyRepository.getCompanyById(ownerIdObj);
+        if (company) {
+          ownerData = {
+            _id: company._id,
+            name: company.name || "Entreprise",
+            logo: company.logo || "",
+            userId: company.userId,
+          };
+        }
+      }
+
+      const userVote = post.userVotes?.find(
+        (v) => v.userId.toString() === currentUserId.toString(),
+      );
+
+      // Créer l'objet post enrichi
+      const enrichedPost: Post = {
+        ...post,
+        ownerType: finalOwnerType,
+        ownerId: finalOwnerId,
+        ownerData: ownerData,
+      };
+
+      // Ajouter les propriétés supplémentaires directement sur l'objet
+      (
+        enrichedPost as { userVote?: string | null; isSaved?: boolean }
+      ).userVote = userVote?.vote || null;
+      (
+        enrichedPost as { userVote?: string | null; isSaved?: boolean }
+      ).isSaved =
+        post.savedBy?.some(
+          (id) => id.toString() === currentUserId.toString(),
+        ) || false;
+
+      enriched.push(enrichedPost);
+    }
+
+    return enriched;
   }
   async getPostsByCommunity(
     communityId: ObjectId,
@@ -554,7 +733,6 @@ export class PostServices extends BaseService<Post> implements IPostService {
         });
       }
 
-      // Handle voting (up or down)
       if (existingVote) {
         await this.collection.updateOne(
           { _id: postId, "userVotes.userId": userId },
@@ -580,14 +758,13 @@ export class PostServices extends BaseService<Post> implements IPostService {
         if (!targetUserId) {
           throw new Error("Invalid post.userId: missing _id");
         }
-        // 🔔 NOTIFIER LE PROPRIÉTAIRE DU POST DU LIKE (seulement pour les nouveaux votes up)
         if (vote === "up" && !userId.equals(targetUserId)) {
           try {
             await this.notificationHandler.handleNewLike(
-              userId, // Celui qui like
-              postId, // Le post liké
-              targetUserId, // Le propriétaire du post
-              "post", // Type de contenu
+              userId,
+              postId,
+              targetUserId,
+              "post",
             );
           } catch (err) {
             console.error("Error sending like notification:", err);
@@ -616,6 +793,8 @@ export class PostServices extends BaseService<Post> implements IPostService {
     postId: ObjectId,
     content: string,
     parentCommentId?: ObjectId,
+    requestedOwnerType?: "user" | "company",
+    requestedOwnerId?: ObjectId,
   ): Promise<Response> {
     try {
       if (!content.trim()) {
@@ -625,6 +804,18 @@ export class PostServices extends BaseService<Post> implements IPostService {
       const post = await this.postRepository.getPostById(postId);
       if (!post) {
         return ResponseHelper.error("Post not found");
+      }
+
+      let finalOwnerType: "user" | "company" = "user";
+      let finalOwnerId: ObjectId = userId;
+
+      if (requestedOwnerType === "company" && requestedOwnerId) {
+        const company =
+          await this.companyRepository.getCompanyById(requestedOwnerId);
+        if (company && company.userId.equals(userId)) {
+          finalOwnerType = "company";
+          finalOwnerId = requestedOwnerId;
+        }
       }
 
       const comment: Comment = {
@@ -637,6 +828,8 @@ export class PostServices extends BaseService<Post> implements IPostService {
         isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        ownerType: finalOwnerType,
+        ownerId: finalOwnerId,
       };
 
       const savedComment = await this.commentRepository.createComment(comment);
@@ -679,31 +872,30 @@ export class PostServices extends BaseService<Post> implements IPostService {
       } catch (err) {
         console.error("Error adding coins for comment:", err);
       }
+
       const targetUserId =
         post.userId instanceof ObjectId ? post.userId : post.userId._id;
 
       if (!targetUserId) {
         throw new Error("Invalid post.userId: missing _id");
       }
-      // 🔔 NOTIFIER LE PROPRIÉTAIRE DU POST DU COMMENTAIRE
+
       if (!userId.equals(targetUserId)) {
         try {
           const commentPreview =
             content.length > 100 ? content.substring(0, 100) + "..." : content;
-
           await this.notificationHandler.handleNewComment(
-            userId, // Celui qui commente
-            postId, // Le post commenté
-            targetUserId, // Le propriétaire du post
-            savedComment._id!, // L'ID du commentaire
-            commentPreview, // Aperçu du commentaire
+            userId,
+            postId,
+            targetUserId,
+            savedComment._id!,
+            commentPreview,
           );
         } catch (err) {
           console.error("Error sending comment notification:", err);
         }
       }
 
-      // 🔔 NOTIFIER SI C'EST UNE RÉPONSE À UN COMMENTAIRE
       return ResponseHelper.success({
         message: "Comment added",
         comment: savedComment,
@@ -727,11 +919,35 @@ export class PostServices extends BaseService<Post> implements IPostService {
         limit,
         sort,
       );
-      // Populate userId with public user fields using generic helper
+
       try {
         await populateReferences(comments, this.userRepository, "userId");
       } catch (err) {
-        console.error("Failed to populate users for posts:", err);
+        console.error("Failed to populate users for comments:", err);
+      }
+
+      for (const comment of comments) {
+        if (comment.ownerType === "company" && comment.ownerId) {
+          try {
+            const company = await this.companyRepository.getCompanyById(
+              comment.ownerId,
+            );
+            if (company && company._id) {
+              comment.ownerData = {
+                _id: company._id,
+                name: company.name || "",
+                logo: company.logo || "",
+                userId: company.userId
+                  ? company.userId instanceof ObjectId
+                    ? company.userId.toString()
+                    : company.userId
+                  : "",
+              };
+            }
+          } catch (err) {
+            console.error("Failed to populate company data for comment:", err);
+          }
+        }
       }
 
       const total = await this.commentRepository.getCommentsCount(postId);
@@ -760,11 +976,39 @@ export class PostServices extends BaseService<Post> implements IPostService {
         page,
         limit,
       );
-      // Populate userId with public user fields using generic helper
+
       try {
         await populateReferences(replies, this.userRepository, "userId");
       } catch (err) {
-        console.error("Failed to populate users for posts:", err);
+        console.error("Failed to populate users for replies:", err);
+      }
+
+      for (const reply of replies) {
+        if (reply.ownerType === "company" && reply.ownerId) {
+          try {
+            const ownerIdObj =
+              reply.ownerId instanceof ObjectId
+                ? reply.ownerId
+                : new ObjectId(String(reply.ownerId));
+
+            const company =
+              await this.companyRepository.getCompanyById(ownerIdObj);
+            if (company && company._id) {
+              reply.ownerData = {
+                _id: company._id,
+                name: company.name || "",
+                logo: company.logo || "",
+                userId: company.userId
+                  ? company.userId instanceof ObjectId
+                    ? company.userId.toString()
+                    : company.userId
+                  : "",
+              };
+            }
+          } catch (err) {
+            console.error("Failed to populate company data for reply:", err);
+          }
+        }
       }
 
       return ResponseHelper.success({
