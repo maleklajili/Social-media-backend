@@ -35,11 +35,19 @@ export interface Post extends BaseModel {
   userId: ObjectId | User;
   title: string;
   content: string;
+  ownerType: "user" | "company";
+  ownerId: ObjectId;
   avis?: string;
   type: PostType;
   community: string | ObjectId;
   communityIcon?: string;
   privacy?: "public" | "friends" | "private";
+  ownerData?: {
+    _id: ObjectId;
+    name: string;
+    logo?: string;
+    userId?: ObjectId;
+  };
   // Media
   media?: PostMedia[];
   url?: string;

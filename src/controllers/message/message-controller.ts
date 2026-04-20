@@ -147,6 +147,83 @@ export class MessageController extends BaseController<Message, MessageService> {
       return ResponseHelper.serverError(String(err));
     }
   }
+  // Dans MessageController.ts, ajoutez ces méthodes :
+
+  @Delete("/groups/:groupId/messages/:messageId", [authMiddleware])
+  async deleteGroupMessage(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      if (!userId) {
+        return ResponseHelper.error("Non authentifié", 401);
+      }
+
+      const messageId = req.params.messageId;
+      if (!messageId || !ObjectId.isValid(messageId)) {
+        return ResponseHelper.error("ID de message invalide", 400);
+      }
+
+      return await this.service.deleteGroupMessage(
+        userId.toString(),
+        messageId,
+      );
+    } catch (err) {
+      console.error("❌ Error in deleteGroupMessage:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Patch("/groups/:groupId/messages/:messageId", [authMiddleware])
+  async updateGroupMessage(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      if (!userId) {
+        return ResponseHelper.error("Non authentifié", 401);
+      }
+
+      const messageId = req.params.messageId;
+      if (!messageId || !ObjectId.isValid(messageId)) {
+        return ResponseHelper.error("ID de message invalide", 400);
+      }
+
+      const body = (await req.json()) as UpdateMessageInput;
+      if (!body.payload) {
+        return ResponseHelper.error("Payload manquant", 400);
+      }
+
+      return await this.service.updateGroupMessage(
+        userId.toString(),
+        messageId,
+        body,
+      );
+    } catch (err) {
+      console.error("❌ Error in updateGroupMessage:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
+  @Delete("/groups/:groupId/messages/:messageId/self", [authMiddleware])
+  async softDeleteGroupMessage(req: ServerRequest): Promise<Response> {
+    try {
+      const userId = req.user?._id;
+      if (!userId) {
+        return ResponseHelper.error("Non authentifié", 401);
+      }
+
+      const messageId = req.params.messageId;
+      if (!messageId || !ObjectId.isValid(messageId)) {
+        return ResponseHelper.error("ID de message invalide", 400);
+      }
+
+      return await this.service.softDeleteGroupMessage(
+        userId.toString(),
+        messageId,
+      );
+    } catch (err) {
+      console.error("❌ Error in softDeleteGroupMessage:", err);
+      return ResponseHelper.serverError(String(err));
+    }
+  }
+
   @Patch("/read", [authMiddleware])
   async markAsRead(req: ServerRequest): Promise<Response> {
     try {

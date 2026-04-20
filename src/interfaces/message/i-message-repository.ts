@@ -1,5 +1,9 @@
 import { ObjectId } from "mongodb";
-import type { Message, MessagePayload } from "../../models/messages/message";
+import type {
+  CallPayload,
+  Message,
+  MessagePayload,
+} from "../../models/messages/message";
 
 export interface IMessageRepository {
   sendMessage(message: Message): Promise<void>;
@@ -29,6 +33,10 @@ export interface IMessageRepository {
   softDeleteMessage(messageId: ObjectId, userId: ObjectId): Promise<boolean>;
   getMessageMediaUrl(messageId: ObjectId): Promise<string | null>;
   searchMessages(userId: ObjectId, query: string): Promise<Message[]>;
+  updateCallPayload(
+    messageId: ObjectId,
+    payload: CallPayload,
+  ): Promise<boolean>;
 
   getGroupConversation(
     groupId: ObjectId,

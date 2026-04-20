@@ -31,4 +31,13 @@ export interface IPostRepository {
     userId: ObjectId,
     avis?: string,
   ): Promise<Post>;
+  countFeedPosts(userId: ObjectId): Promise<number>;
+  getPostsByOwner(
+    ownerId: ObjectId,
+    ownerType: "user" | "company",
+  ): Promise<Post[]>;
+  getAllPostsCount(): Promise<number>;
+  getSavedPosts(userId: ObjectId, page: number, limit: number): Promise<Post[]>;
+  countSavedPosts(userId: ObjectId): Promise<number>;
+  getNewPosts(page: number, limit: number): Promise<Post[]>;
 }

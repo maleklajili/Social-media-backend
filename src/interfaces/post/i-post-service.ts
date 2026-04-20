@@ -66,4 +66,8 @@ export interface IPostService {
   unsavePost(userId: ObjectId, postId: ObjectId): Promise<Response>;
   getTrendingPosts(limit?: number): Promise<Response>;
   getStats(): Promise<Response>;
+  getPostsByOwner(
+    ownerId: ObjectId,
+    ownerType: "user" | "company",
+  ): Promise<Response>;
 }

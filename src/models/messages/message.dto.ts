@@ -19,6 +19,14 @@ export interface UpdateMessageInput {
   payload: MessagePayload;
 }
 
+export interface CallResponse {
+  callId: string;
+  status: "initiated" | "answered" | "ended" | "missed";
+  duration?: number;
+  startedAt: Date;
+  endedAt?: Date;
+}
+
 export interface MessageResponse {
   _id: string;
   sender: {
