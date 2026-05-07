@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1900" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ==================== TITLE ==================== -->
+    <mxCell id="title" value="Diagramme de Séquence — Authentification" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="100" y="10" width="1200" height="35" as="geometry" />
+    </mxCell>
+
+    <!-- ==================== PARTICIPANTS ==================== -->
+
+    <!-- Client -->
+    <mxCell id="p1" value="Client&#xa;(Mobile App)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="20" y="55" width="120" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- AuthController -->
+    <mxCell id="p2" value="AuthController" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="200" y="55" width="120" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- AuthService -->
+    <mxCell id="p3" value="AuthService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="380" y="55" width="120" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- UserRepository -->
+    <mxCell id="p4" value="UserRepository" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="560" y="55" width="120" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- MongoDB -->
+    <mxCell id="p5" value="MongoDB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="740" y="55" width="120" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- RefreshTokenRepository -->
+    <mxCell id="p6" value="RefreshToken&#xa;Repository" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="920" y="55" width="120" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- TokenService -->
+    <mxCell id="p7" value="TokenService&#xa;(JWT)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="1100" y="55" width="120" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- ==================== LIFELINES ==================== -->
+
+    <!-- Lifeline Client (center x=80) -->
+    <mxCell id="l1" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="80" y="105" as="sourcePoint" />
+        <mxPoint x="80" y="1880" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Lifeline AuthController (center x=260) -->
+    <mxCell id="l2" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="260" y="105" as="sourcePoint" />
+        <mxPoint x="260" y="1880" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Lifeline AuthService (center x=440) -->
+    <mxCell id="l3" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="105" as="sourcePoint" />
+        <mxPoint x="440" y="1880" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Lifeline UserRepository (center x=620) -->
+    <mxCell id="l4" value="" style="endArrow=none;dashed=1;strokeColor=#d6b656;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="620" y="105" as="sourcePoint" />
+        <mxPoint x="620" y="1880" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Lifeline MongoDB (center x=800) -->
+    <mxCell id="l5" value="" style="endArrow=none;dashed=1;strokeColor=#b85450;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="800" y="105" as="sourcePoint" />
+        <mxPoint x="800" y="1880" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Lifeline RefreshTokenRepo (center x=980) -->
+    <mxCell id="l6" value="" style="endArrow=none;dashed=1;strokeColor=#d6b656;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="980" y="105" as="sourcePoint" />
+        <mxPoint x="980" y="1880" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Lifeline TokenService (center x=1160) -->
+    <mxCell id="l7" value="" style="endArrow=none;dashed=1;strokeColor=#9673a6;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1160" y="105" as="sourcePoint" />
+        <mxPoint x="1160" y="1880" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ==================== SECTION 1: LOGIN ==================== -->
+
+    <mxCell id="sec1_bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;opacity=30;" vertex="1" parent="1">
+      <mxGeometry x="10" y="115" width="1370" height="700" as="geometry" />
+    </mxCell>
+    <mxCell id="sec1_label" value="[1] Connexion (Login)" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="115" width="220" height="28" as="geometry" />
+    </mxCell>
+
+    <!-- m1: Client → AuthController: POST /auth/login -->
+    <mxCell id="m1" value="POST /auth/login&#xa;{identifier, password}" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="80" y="158" as="sourcePoint" />
+        <mxPoint x="258" y="158" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m2: AuthController → AuthService: login(identifier, password) -->
+    <mxCell id="m2" value="login(identifier, password)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="260" y="195" as="sourcePoint" />
+        <mxPoint x="438" y="195" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m3: AuthService → UserRepository: findByIdentifier(identifier) -->
+    <mxCell id="m3" value="findByIdentifier(identifier)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="232" as="sourcePoint" />
+        <mxPoint x="618" y="232" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m4: UserRepository → MongoDB: db.users.findOne(query) -->
+    <mxCell id="m4" value="db.users.findOne({email|userName})" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="620" y="268" as="sourcePoint" />
+        <mxPoint x="798" y="268" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m5: MongoDB → UserRepository [dashed]: user document -->
+    <mxCell id="m5" value="user document" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="800" y="305" as="sourcePoint" />
+        <mxPoint x="622" y="305" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m6: UserRepository → AuthService [dashed]: user | null -->
+    <mxCell id="m6" value="user | null" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="620" y="342" as="sourcePoint" />
+        <mxPoint x="442" y="342" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- alt: user not found -->
+    <mxCell id="alt1" value="[alt] user == null → return 404 User not found" style="text;html=1;strokeColor=#b85450;fillColor=#f8cecc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="442" y="350" width="300" height="24" as="geometry" />
+    </mxCell>
+
+    <!-- m7: AuthService → self: Bun.password.verify(password, hash) -->
+    <mxCell id="m7" value="Bun.password.verify(password, user.password)" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="392" as="sourcePoint" />
+        <mxPoint x="530" y="392" as="targetPoint" />
+        <Array as="points">
+          <mxPoint x="530" y="392" />
+          <mxPoint x="530" y="410" />
+          <mxPoint x="441" y="410" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- alt: invalid password -->
+    <mxCell id="alt2" value="[alt] !isMatch → return 401 Invalid password" style="text;html=1;strokeColor=#b85450;fillColor=#f8cecc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="442" y="418" width="280" height="24" as="geometry" />
+    </mxCell>
+
+    <!-- m8: AuthService → RefreshTokenRepo: findByUserId(userId) -->
+    <mxCell id="m8" value="findByUserId(userId)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="460" as="sourcePoint" />
+        <mxPoint x="978" y="460" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m9: RefreshTokenRepo → AuthService [dashed]: existingSession | null -->
+    <mxCell id="m9" value="existingSession | null" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="980" y="495" as="sourcePoint" />
+        <mxPoint x="442" y="495" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m10: AuthService → TokenService: generateAccessToken(userId) -->
+    <mxCell id="m10" value="generateAccessToken(userId)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="530" as="sourcePoint" />
+        <mxPoint x="1158" y="530" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m11: TokenService → AuthService [dashed]: accessToken (JWT) -->
+    <mxCell id="m11" value="accessToken (JWT — 15min)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1160" y="563" as="sourcePoint" />
+        <mxPoint x="442" y="563" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m12: AuthService → TokenService: generateRefreshToken(userId) -->
+    <mxCell id="m12" value="generateRefreshToken(userId)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="598" as="sourcePoint" />
+        <mxPoint x="1158" y="598" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m13: TokenService → AuthService [dashed]: refreshToken (JWT) -->
+    <mxCell id="m13" value="refreshToken (JWT — 7d)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1160" y="631" as="sourcePoint" />
+        <mxPoint x="442" y="631" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m14: AuthService → RefreshTokenRepo: create/update token doc -->
+    <mxCell id="m14" value="create / update RefreshToken doc" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="666" as="sourcePoint" />
+        <mxPoint x="978" y="666" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m15: AuthService → AuthController [dashed]: {accessToken, refreshToken, userId} -->
+    <mxCell id="m15" value="{accessToken, refreshToken, userId}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="700" as="sourcePoint" />
+        <mxPoint x="262" y="700" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m16: AuthController → Client [dashed]: 200 OK + tokens -->
+    <mxCell id="m16" value="200 OK {accessToken, refreshToken, userId}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="260" y="735" as="sourcePoint" />
+        <mxPoint x="82" y="735" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ==================== SECTION 2: REFRESH TOKEN ==================== -->
+
+    <mxCell id="sec2_bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;opacity=30;" vertex="1" parent="1">
+      <mxGeometry x="10" y="840" width="1370" height="580" as="geometry" />
+    </mxCell>
+    <mxCell id="sec2_label" value="[2] Rafraîchissement du Token (Refresh Token)" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="840" width="340" height="28" as="geometry" />
+    </mxCell>
+
+    <!-- m17: Client → AuthController: POST /auth/refreshToken {refreshToken} -->
+    <mxCell id="m17" value="POST /auth/refreshToken {refreshToken}" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="80" y="882" as="sourcePoint" />
+        <mxPoint x="258" y="882" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m18: AuthController → AuthService: refreshToken(token) -->
+    <mxCell id="m18" value="refreshToken(refreshToken)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="260" y="916" as="sourcePoint" />
+        <mxPoint x="438" y="916" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m19: AuthService → TokenService: verifyToken(refreshToken) -->
+    <mxCell id="m19" value="verifyToken(refreshToken)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="950" as="sourcePoint" />
+        <mxPoint x="1158" y="950" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m20: TokenService → AuthService [dashed]: payload {_id} -->
+    <mxCell id="m20" value="payload {_id} | Error" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1160" y="983" as="sourcePoint" />
+        <mxPoint x="442" y="983" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m21: AuthService → RefreshTokenRepo: findByToken(refreshToken) -->
+    <mxCell id="m21" value="findByToken(refreshToken)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="1017" as="sourcePoint" />
+        <mxPoint x="978" y="1017" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m22: RefreshTokenRepo → AuthService [dashed]: tokenDoc | null -->
+    <mxCell id="m22" value="tokenDoc | null" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="980" y="1050" as="sourcePoint" />
+        <mxPoint x="442" y="1050" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m23: AuthService → UserRepository: findById(userId) -->
+    <mxCell id="m23" value="findById(userId)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="1084" as="sourcePoint" />
+        <mxPoint x="618" y="1084" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m24: UserRepository → AuthService [dashed]: user -->
+    <mxCell id="m24" value="user" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="620" y="1117" as="sourcePoint" />
+        <mxPoint x="442" y="1117" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m25: AuthService → RefreshTokenRepo: deleteByToken(old) -->
+    <mxCell id="m25" value="deleteByToken(oldRefreshToken)" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="1151" as="sourcePoint" />
+        <mxPoint x="978" y="1151" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m26: AuthService → TokenService: generate new tokens -->
+    <mxCell id="m26" value="generateAccessToken() + generateRefreshToken()" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="1185" as="sourcePoint" />
+        <mxPoint x="1158" y="1185" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m27: TokenService → AuthService [dashed]: new tokens -->
+    <mxCell id="m27" value="newAccessToken + newRefreshToken" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1160" y="1218" as="sourcePoint" />
+        <mxPoint x="442" y="1218" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m28: AuthService → RefreshTokenRepo: create new token doc -->
+    <mxCell id="m28" value="create(newRefreshTokenDoc)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="1252" as="sourcePoint" />
+        <mxPoint x="978" y="1252" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m29: AuthService → AuthController [dashed]: new tokens -->
+    <mxCell id="m29" value="{newAccessToken, newRefreshToken}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="1286" as="sourcePoint" />
+        <mxPoint x="262" y="1286" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m30: AuthController → Client [dashed]: 200 OK + new tokens -->
+    <mxCell id="m30" value="200 OK {newAccessToken, newRefreshToken}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="260" y="1320" as="sourcePoint" />
+        <mxPoint x="82" y="1320" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ==================== SECTION 3: LOGOUT ==================== -->
+
+    <mxCell id="sec3_bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;opacity=30;" vertex="1" parent="1">
+      <mxGeometry x="10" y="1440" width="1370" height="420" as="geometry" />
+    </mxCell>
+    <mxCell id="sec3_label" value="[3] Déconnexion (Logout)" style="text;html=1;strokeColor=#d6b656;fillColor=#fff2cc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="1440" width="240" height="28" as="geometry" />
+    </mxCell>
+
+    <!-- m31: Client → AuthController: POST /auth/logout [Bearer token] -->
+    <mxCell id="m31" value="POST /auth/logout&#xa;Authorization: Bearer &lt;accessToken&gt;" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="80" y="1482" as="sourcePoint" />
+        <mxPoint x="258" y="1482" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- authMiddleware note -->
+    <mxCell id="mw_note" value="authMiddleware: vérifier le token Bearer" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;fixedSize=1;size=15;position=0.5;position2=0.5;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="160" y="1510" width="200" height="40" as="geometry" />
+    </mxCell>
+
+    <!-- m32: AuthController → self: getTokenFromHeaders() -->
+    <mxCell id="m32" value="getTokenFromHeaders(headers)" style="endArrow=block;endFill=1;strokeColor=#82b366;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="260" y="1564" as="sourcePoint" />
+        <mxPoint x="350" y="1564" as="targetPoint" />
+        <Array as="points">
+          <mxPoint x="350" y="1564" />
+          <mxPoint x="350" y="1580" />
+          <mxPoint x="261" y="1580" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m33: AuthController → AuthService: logout(token) -->
+    <mxCell id="m33" value="logout(token)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="260" y="1610" as="sourcePoint" />
+        <mxPoint x="438" y="1610" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m34: AuthService → TokenService: verifyToken(token) -->
+    <mxCell id="m34" value="verifyToken(token)" style="endArrow=block;endFill=1;strokeColor=#000000;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="1644" as="sourcePoint" />
+        <mxPoint x="1158" y="1644" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m35: TokenService → AuthService [dashed]: payload {_id} -->
+    <mxCell id="m35" value="payload {_id}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1160" y="1677" as="sourcePoint" />
+        <mxPoint x="442" y="1677" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m36: AuthService → RefreshTokenRepo: deleteByUserId(userId) -->
+    <mxCell id="m36" value="deleteByUserId(userId)" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="1711" as="sourcePoint" />
+        <mxPoint x="978" y="1711" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m37: AuthService → AuthController [dashed]: {message: "Logged out"} -->
+    <mxCell id="m37" value="{message: &quot;Logged out successfully&quot;}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555555;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="440" y="1745" as="sourcePoint" />
+        <mxPoint x="262" y="1745" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- m38: AuthController → Client [dashed]: 200 OK -->
+    <mxCell id="m38" value="200 OK {message: &quot;Logged out successfully&quot;}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=10;align=center;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="260" y="1779" as="sourcePoint" />
+        <mxPoint x="82" y="1779" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ==================== LEGEND ==================== -->
+    <mxCell id="legend_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+      <mxGeometry x="10" y="818" width="430" height="18" as="geometry" />
+    </mxCell>
+    <mxCell id="legend_txt" value="→ Appel (request)     ⤏ Retour (response, dashed)     [alt] Cas alternatif / erreur" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="12" y="818" width="430" height="18" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>
