@@ -1,4 +1,243 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1800" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         AUTHENTICATION SEQUENCE DIAGRAM — UML 2.x
+         Scenarios: Login · Refresh Token · Forgot Password
+    ══════════════════════════════════════════════════════════════ -->
+
+    <!-- ─── TITLE ─── -->
+    <mxCell id="title" value="Diagramme de Séquence — Authentification" style="text;html=1;align=center;fontStyle=1;fontSize=18;strokeColor=none;fillColor=none;fontColor=#1a1a2e;" vertex="1" parent="1">
+      <mxGeometry x="80" y="16" width="1200" height="36" as="geometry"/>
+    </mxCell>
+
+    <!-- ─── PARTICIPANT HEADER BOXES ─── -->
+    <!-- User <<actor>> -->
+    <mxCell id="ph1" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;actor&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;User&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a7fc1;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="70" width="100" height="46" as="geometry"/>
+    </mxCell>
+    <!-- MobileApp <<boundary>> -->
+    <mxCell id="ph2" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;MobileApp&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a7fc1;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="220" y="70" width="110" height="46" as="geometry"/>
+    </mxCell>
+    <!-- AuthController <<controller>> -->
+    <mxCell id="ph3" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;controller&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;AuthController&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#4d9e4d;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="400" y="70" width="120" height="46" as="geometry"/>
+    </mxCell>
+    <!-- AuthService <<service>> -->
+    <mxCell id="ph4" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;service&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;AuthService&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#4d9e4d;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="590" y="70" width="120" height="46" as="geometry"/>
+    </mxCell>
+    <!-- UserRepository <<repository>> -->
+    <mxCell id="ph5" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;repository&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;UserRepository&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#c8a400;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="790" y="70" width="130" height="46" as="geometry"/>
+    </mxCell>
+    <!-- TokenService <<service>> -->
+    <mxCell id="ph6" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;service&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;TokenService&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#4d9e4d;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1000" y="70" width="120" height="46" as="geometry"/>
+    </mxCell>
+    <!-- Database <<database>> -->
+    <mxCell id="ph7" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;database&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;MongoDB&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#e8e8e8;strokeColor=#888888;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1190" y="70" width="110" height="46" as="geometry"/>
+    </mxCell>
+
+    <!-- ─── LIFELINES ─── -->
+    <mxCell id="l1" value="" style="endArrow=none;dashed=1;strokeColor=#4a7fc1;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="110" y="116" as="sourcePoint"/><mxPoint x="110" y="1760" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l2" value="" style="endArrow=none;dashed=1;strokeColor=#4a7fc1;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="275" y="116" as="sourcePoint"/><mxPoint x="275" y="1760" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l3" value="" style="endArrow=none;dashed=1;strokeColor=#4d9e4d;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="460" y="116" as="sourcePoint"/><mxPoint x="460" y="1760" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l4" value="" style="endArrow=none;dashed=1;strokeColor=#4d9e4d;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="650" y="116" as="sourcePoint"/><mxPoint x="650" y="1760" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l5" value="" style="endArrow=none;dashed=1;strokeColor=#c8a400;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="855" y="116" as="sourcePoint"/><mxPoint x="855" y="1760" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l6" value="" style="endArrow=none;dashed=1;strokeColor=#4d9e4d;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1060" y="116" as="sourcePoint"/><mxPoint x="1060" y="1760" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l7" value="" style="endArrow=none;dashed=1;strokeColor=#888888;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1245" y="116" as="sourcePoint"/><mxPoint x="1245" y="1760" as="targetPoint"/></mxGeometry></mxCell>
+
+    <!-- ══════════════════════════════════════
+         SCENARIO 1 — LOGIN
+    ══════════════════════════════════════ -->
+    <mxCell id="s1lbl" value="SCÉNARIO 1 — Connexion (Login)" style="text;html=1;fontStyle=1;fontSize=13;fillColor=#1a1a2e;fontColor=#ffffff;strokeColor=#1a1a2e;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="134" width="340" height="26" as="geometry"/>
+    </mxCell>
+
+    <!-- Activation bars S1 -->
+    <mxCell id="a1s1" value="" style="fillColor=#bbdefb;strokeColor=#4a7fc1;" vertex="1" parent="1"><mxGeometry x="104" y="172" width="12" height="320" as="geometry"/></mxCell>
+    <mxCell id="a2s1" value="" style="fillColor=#bbdefb;strokeColor=#4a7fc1;" vertex="1" parent="1"><mxGeometry x="269" y="188" width="12" height="300" as="geometry"/></mxCell>
+    <mxCell id="a3s1" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="454" y="204" width="12" height="270" as="geometry"/></mxCell>
+    <mxCell id="a4s1" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="644" y="220" width="12" height="240" as="geometry"/></mxCell>
+    <mxCell id="a5s1" value="" style="fillColor=#fff9c4;strokeColor=#c8a400;" vertex="1" parent="1"><mxGeometry x="849" y="238" width="12" height="120" as="geometry"/></mxCell>
+    <mxCell id="a6s1" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="1054" y="362" width="12" height="80" as="geometry"/></mxCell>
+    <mxCell id="a7s1" value="" style="fillColor=#e0e0e0;strokeColor=#888888;" vertex="1" parent="1"><mxGeometry x="1239" y="250" width="12" height="96" as="geometry"/></mxCell>
+
+    <!-- Messages S1 -->
+    <mxCell id="m1s1" value="saisir les identifiants" style="endArrow=open;endFill=0;strokeColor=#4a7fc1;fontSize=10;fontStyle=0;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="116" y="178" as="sourcePoint"/><mxPoint x="269" y="178" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m2s1" value="envoyer la demande de connexion" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="281" y="194" as="sourcePoint"/><mxPoint x="454" y="194" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m3s1" value="login()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="466" y="210" as="sourcePoint"/><mxPoint x="644" y="210" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m4s1" value="findByIdentifier()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="226" as="sourcePoint"/><mxPoint x="849" y="226" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m5s1" value="findUserByEmail()" style="endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="861" y="244" as="sourcePoint"/><mxPoint x="1239" y="244" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m6s1" value="retourner les données utilisateur" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1239" y="268" as="sourcePoint"/><mxPoint x="861" y="268" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m7s1" value="retourner l'utilisateur trouvé" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="849" y="290" as="sourcePoint"/><mxPoint x="656" y="290" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- alt: credentials valides -->
+    <mxCell id="alt1" value="" style="swimlane;startSize=22;fillColor=#f9f9f9;strokeColor=#4d9e4d;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="100" y="302" width="1260" height="178" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1lbl" value="alt" style="text;html=1;fontStyle=1;fontSize=12;fillColor=#4d9e4d;strokeColor=#4d9e4d;fontColor=#fff;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="100" y="302" width="38" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1g1" value="[identifiants valides]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="144" y="304" width="170" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="m8s1" value="vérifier le mot de passe" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="328" as="sourcePoint"/><mxPoint x="720" y="328" as="targetPoint"><Array as="points"><mxPoint x="720" y="328"/><mxPoint x="720" y="344"/><mxPoint x="657" y="344"/></Array></mxPoint></mxGeometry>
+    </mxCell>
+    <mxCell id="m9s1" value="générer le token d'accès" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="368" as="sourcePoint"/><mxPoint x="1054" y="368" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m10s1" value="générer le token de rafraîchissement" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="390" as="sourcePoint"/><mxPoint x="1054" y="390" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m11s1" value="retourner les deux tokens" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1054" y="412" as="sourcePoint"/><mxPoint x="656" y="412" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="alt1sep" value="" style="endArrow=none;dashed=1;strokeColor=#4d9e4d;strokeWidth=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="100" y="432" as="sourcePoint"/><mxPoint x="1360" y="432" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="alt1g2" value="[identifiants invalides]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="144" y="434" width="170" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="m12s1" value="rejeter la connexion (401 Unauthorized)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#cc0000;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="460" as="sourcePoint"/><mxPoint x="116" y="460" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="mrets1" value="confirmer la connexion réussie" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="466" y="492" as="sourcePoint"/><mxPoint x="116" y="492" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════
+         SCENARIO 2 — REFRESH TOKEN
+    ══════════════════════════════════════ -->
+    <mxCell id="s2lbl" value="SCÉNARIO 2 — Renouvellement du Token (Refresh)" style="text;html=1;fontStyle=1;fontSize=13;fillColor=#1a1a2e;fontColor=#ffffff;strokeColor=#1a1a2e;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="560" width="440" height="26" as="geometry"/>
+    </mxCell>
+
+    <!-- Activation bars S2 -->
+    <mxCell id="a1s2" value="" style="fillColor=#bbdefb;strokeColor=#4a7fc1;" vertex="1" parent="1"><mxGeometry x="104" y="598" width="12" height="220" as="geometry"/></mxCell>
+    <mxCell id="a2s2" value="" style="fillColor=#bbdefb;strokeColor=#4a7fc1;" vertex="1" parent="1"><mxGeometry x="269" y="614" width="12" height="200" as="geometry"/></mxCell>
+    <mxCell id="a3s2" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="454" y="630" width="12" height="178" as="geometry"/></mxCell>
+    <mxCell id="a4s2" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="644" y="646" width="12" height="148" as="geometry"/></mxCell>
+    <mxCell id="a6s2" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="1054" y="706" width="12" height="70" as="geometry"/></mxCell>
+
+    <mxCell id="m1s2" value="envoyer le token de rafraîchissement" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="281" y="620" as="sourcePoint"/><mxPoint x="454" y="620" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m2s2" value="refreshToken()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="466" y="636" as="sourcePoint"/><mxPoint x="644" y="636" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m3s2" value="vérifier la validité du token" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="660" as="sourcePoint"/><mxPoint x="720" y="660" as="targetPoint"><Array as="points"><mxPoint x="720" y="660"/><mxPoint x="720" y="676"/><mxPoint x="657" y="676"/></Array></mxPoint></mxGeometry>
+    </mxCell>
+    <mxCell id="m4s2" value="générer une nouvelle paire de tokens" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="700" as="sourcePoint"/><mxPoint x="1054" y="700" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m5s2" value="retourner les nouveaux tokens" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1054" y="730" as="sourcePoint"/><mxPoint x="656" y="730" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m6s2" value="confirmer le renouvellement" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="466" y="760" as="sourcePoint"/><mxPoint x="116" y="760" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════
+         SCENARIO 3 — FORGOT PASSWORD
+    ══════════════════════════════════════ -->
+    <mxCell id="s3lbl" value="SCÉNARIO 3 — Réinitialisation du Mot de Passe" style="text;html=1;fontStyle=1;fontSize=13;fillColor=#1a1a2e;fontColor=#ffffff;strokeColor=#1a1a2e;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="820" width="420" height="26" as="geometry"/>
+    </mxCell>
+
+    <!-- Activation bars S3 -->
+    <mxCell id="a1s3" value="" style="fillColor=#bbdefb;strokeColor=#4a7fc1;" vertex="1" parent="1"><mxGeometry x="104" y="858" width="12" height="560" as="geometry"/></mxCell>
+    <mxCell id="a2s3" value="" style="fillColor=#bbdefb;strokeColor=#4a7fc1;" vertex="1" parent="1"><mxGeometry x="269" y="874" width="12" height="530" as="geometry"/></mxCell>
+    <mxCell id="a3s3" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="454" y="890" width="12" height="500" as="geometry"/></mxCell>
+    <mxCell id="a4s3" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="644" y="906" width="12" height="460" as="geometry"/></mxCell>
+    <mxCell id="a5s3" value="" style="fillColor=#fff9c4;strokeColor=#c8a400;" vertex="1" parent="1"><mxGeometry x="849" y="924" width="12" height="80" as="geometry"/></mxCell>
+    <mxCell id="a7s3" value="" style="fillColor=#e0e0e0;strokeColor=#888888;" vertex="1" parent="1"><mxGeometry x="1239" y="940" width="12" height="64" as="geometry"/></mxCell>
+
+    <mxCell id="m1s3" value="saisir l'adresse e-mail" style="endArrow=open;endFill=0;strokeColor=#4a7fc1;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="116" y="864" as="sourcePoint"/><mxPoint x="269" y="864" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m2s3" value="demander la réinitialisation du mot de passe" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="281" y="880" as="sourcePoint"/><mxPoint x="454" y="880" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m3s3" value="forgetPassword()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="466" y="896" as="sourcePoint"/><mxPoint x="644" y="896" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m4s3" value="findByEmail()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="912" as="sourcePoint"/><mxPoint x="849" y="912" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m5s3" value="findUserByEmail()" style="endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="861" y="928" as="sourcePoint"/><mxPoint x="1239" y="928" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m6s3" value="retourner l'utilisateur" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1239" y="948" as="sourcePoint"/><mxPoint x="861" y="948" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m7s3" value="retourner l'utilisateur" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="849" y="968" as="sourcePoint"/><mxPoint x="656" y="968" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m8s3" value="générer le token de réinitialisation" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="996" as="sourcePoint"/><mxPoint x="720" y="996" as="targetPoint"><Array as="points"><mxPoint x="720" y="996"/><mxPoint x="720" y="1012"/><mxPoint x="657" y="1012"/></Array></mxPoint></mxGeometry>
+    </mxCell>
+    <mxCell id="m9s3" value="saveResetToken()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="1036" as="sourcePoint"/><mxPoint x="849" y="1036" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m10s3" value="envoyer l'e-mail de réinitialisation" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="1068" as="sourcePoint"/><mxPoint x="720" y="1068" as="targetPoint"><Array as="points"><mxPoint x="720" y="1068"/><mxPoint x="720" y="1084"/><mxPoint x="657" y="1084"/></Array></mxPoint></mxGeometry>
+    </mxCell>
+    <mxCell id="m11s3" value="confirmer l'envoi de l'e-mail" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="466" y="1110" as="sourcePoint"/><mxPoint x="116" y="1110" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- Sub-scenario: set new password -->
+    <mxCell id="m12s3" value="ouvrir le lien de réinitialisation" style="endArrow=open;endFill=0;strokeColor=#4a7fc1;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="116" y="1148" as="sourcePoint"/><mxPoint x="269" y="1148" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m13s3" value="soumettre le nouveau mot de passe" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="281" y="1164" as="sourcePoint"/><mxPoint x="454" y="1164" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m14s3" value="createNewPassword()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="466" y="1180" as="sourcePoint"/><mxPoint x="644" y="1180" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m15s3" value="vérifier le token de réinitialisation" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="1204" as="sourcePoint"/><mxPoint x="720" y="1204" as="targetPoint"><Array as="points"><mxPoint x="720" y="1204"/><mxPoint x="720" y="1220"/><mxPoint x="657" y="1220"/></Array></mxPoint></mxGeometry>
+    </mxCell>
+    <mxCell id="m16s3" value="hacher le nouveau mot de passe" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="1244" as="sourcePoint"/><mxPoint x="720" y="1244" as="targetPoint"><Array as="points"><mxPoint x="720" y="1244"/><mxPoint x="720" y="1260"/><mxPoint x="657" y="1260"/></Array></mxPoint></mxGeometry>
+    </mxCell>
+    <mxCell id="m17s3" value="changePassword()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="656" y="1284" as="sourcePoint"/><mxPoint x="849" y="1284" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m18s3" value="confirmer le changement" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="849" y="1308" as="sourcePoint"/><mxPoint x="656" y="1308" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="mrets3" value="confirmer la réinitialisation du mot de passe" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="466" y="1340" as="sourcePoint"/><mxPoint x="116" y="1340" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+  </root>
+</mxGraphModel>
+
 <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1900" math="0" shadow="0">
   <root>
     <mxCell id="0" />

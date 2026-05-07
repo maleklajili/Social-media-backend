@@ -1,5 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mxGraphModel dx="1200" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="1">
+<mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="900" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+    <mxCell id="title" value="Diagramme de Séquence — Consulter le Profil" style="text;html=1;align=center;fontStyle=1;fontSize=18;strokeColor=none;fillColor=none;fontColor=#1a1a2e;" vertex="1" parent="1">
+      <mxGeometry x="80" y="14" width="1100" height="34" as="geometry"/>
+    </mxCell>
+
+    <!-- PARTICIPANTS -->
+    <mxCell id="ph1" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;actor&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;User&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a7fc1;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="60" y="62" width="100" height="46" as="geometry"/></mxCell>
+    <mxCell id="ph2" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;MobileApp&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a7fc1;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="220" y="62" width="110" height="46" as="geometry"/></mxCell>
+    <mxCell id="ph3" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;controller&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;ProfileController&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#4d9e4d;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="390" y="62" width="130" height="46" as="geometry"/></mxCell>
+    <mxCell id="ph4" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;service&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;ProfileService&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#4d9e4d;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="590" y="62" width="120" height="46" as="geometry"/></mxCell>
+    <mxCell id="ph5" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;repository&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;UserRepository&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#c8a400;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="790" y="62" width="130" height="46" as="geometry"/></mxCell>
+    <mxCell id="ph6" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;database&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;MongoDB&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#e8e8e8;strokeColor=#888888;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1010" y="62" width="110" height="46" as="geometry"/></mxCell>
+
+    <!-- LIFELINES -->
+    <mxCell id="l1" value="" style="endArrow=none;dashed=1;strokeColor=#4a7fc1;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="110" y="108" as="sourcePoint"/><mxPoint x="110" y="860" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l2" value="" style="endArrow=none;dashed=1;strokeColor=#4a7fc1;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="275" y="108" as="sourcePoint"/><mxPoint x="275" y="860" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l3" value="" style="endArrow=none;dashed=1;strokeColor=#4d9e4d;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="455" y="108" as="sourcePoint"/><mxPoint x="455" y="860" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l4" value="" style="endArrow=none;dashed=1;strokeColor=#4d9e4d;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="650" y="108" as="sourcePoint"/><mxPoint x="650" y="860" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l5" value="" style="endArrow=none;dashed=1;strokeColor=#c8a400;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="855" y="108" as="sourcePoint"/><mxPoint x="855" y="860" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l6" value="" style="endArrow=none;dashed=1;strokeColor=#888888;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1065" y="108" as="sourcePoint"/><mxPoint x="1065" y="860" as="targetPoint"/></mxGeometry></mxCell>
+
+    <!-- ACTIVATION BOXES -->
+    <mxCell id="a1" value="" style="fillColor=#bbdefb;strokeColor=#4a7fc1;" vertex="1" parent="1"><mxGeometry x="104" y="150" width="12" height="580" as="geometry"/></mxCell>
+    <mxCell id="a2" value="" style="fillColor=#bbdefb;strokeColor=#4a7fc1;" vertex="1" parent="1"><mxGeometry x="269" y="168" width="12" height="550" as="geometry"/></mxCell>
+    <mxCell id="a3" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="449" y="188" width="12" height="510" as="geometry"/></mxCell>
+    <mxCell id="a4" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="644" y="208" width="12" height="440" as="geometry"/></mxCell>
+    <mxCell id="a5" value="" style="fillColor=#fff9c4;strokeColor=#c8a400;" vertex="1" parent="1"><mxGeometry x="849" y="228" width="12" height="160" as="geometry"/></mxCell>
+    <mxCell id="a6" value="" style="fillColor=#e0e0e0;strokeColor=#888888;" vertex="1" parent="1"><mxGeometry x="1059" y="244" width="12" height="128" as="geometry"/></mxCell>
+
+    <!-- MESSAGES -->
+    <mxCell id="m1" value="consulter le profil" style="endArrow=open;endFill=0;strokeColor=#4a7fc1;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="116" y="156" as="sourcePoint"/><mxPoint x="269" y="156" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m2" value="GET /profile" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="281" y="174" as="sourcePoint"/><mxPoint x="449" y="174" as="targetPoint"/></mxGeometry></mxCell>
+
+    <!-- alt: token valide -->
+    <mxCell id="alt1" value="" style="swimlane;startSize=22;fillColor=#f9f9f9;strokeColor=#4d9e4d;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="96" y="192" width="1180" height="450" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1lbl" value="alt" style="text;html=1;fontStyle=1;fontSize=12;fillColor=#4d9e4d;strokeColor=#4d9e4d;fontColor=#fff;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="96" y="192" width="38" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1g1" value="[token valide]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="140" y="194" width="120" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="m3" value="getProfile()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="461" y="220" as="sourcePoint"/><mxPoint x="644" y="220" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m4" value="getUserProfile()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="656" y="240" as="sourcePoint"/><mxPoint x="849" y="240" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m5" value="findUserById()" style="endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="861" y="256" as="sourcePoint"/><mxPoint x="1059" y="256" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m6" value="retourner le document utilisateur" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1059" y="280" as="sourcePoint"/><mxPoint x="861" y="280" as="targetPoint"/></mxGeometry></mxCell>
+
+    <!-- opt: charger les compétences, expériences, etc. -->
+    <mxCell id="opt1" value="" style="swimlane;startSize=22;fillColor=#f0f8ff;strokeColor=#4a7fc1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="106" y="306" width="1150" height="130" as="geometry"/>
+    </mxCell>
+    <mxCell id="opt1lbl" value="par" style="text;html=1;fontStyle=1;fontSize=12;fillColor=#4a7fc1;strokeColor=#4a7fc1;fontColor=#fff;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="106" y="306" width="38" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="opt1g" value="[chargement parallèle des sections du profil]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="150" y="308" width="300" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="m7" value="charger les expériences, formations, projets, compétences (Promise.all)" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="656" y="334" as="sourcePoint"/><mxPoint x="849" y="334" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m8" value="find() sur 6 collections" style="endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="861" y="354" as="sourcePoint"/><mxPoint x="1059" y="354" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m9" value="retourner tous les documents" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1059" y="378" as="sourcePoint"/><mxPoint x="656" y="378" as="targetPoint"/></mxGeometry></mxCell>
+
+    <mxCell id="m10" value="construire la réponse complète du profil" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="656" y="458" as="sourcePoint"/><mxPoint x="461" y="458" as="targetPoint"/></mxGeometry></mxCell>
+
+    <mxCell id="alt1sep" value="" style="endArrow=none;dashed=1;strokeColor=#4d9e4d;strokeWidth=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="96" y="490" as="sourcePoint"/><mxPoint x="1276" y="490" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="alt1g2" value="[token invalide ou expiré]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="140" y="494" width="200" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="m11" value="rejeter la requête (401 Unauthorized)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#cc0000;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="449" y="524" as="sourcePoint"/><mxPoint x="116" y="524" as="targetPoint"/></mxGeometry></mxCell>
+
+    <mxCell id="mret" value="retourner les données complètes du profil" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="281" y="670" as="sourcePoint"/><mxPoint x="116" y="670" as="targetPoint"/></mxGeometry></mxCell>
+
+  </root>
+</mxGraphModel>
+ math="0" shadow="1">
   <root>
     <mxCell id="0"/><mxCell id="1" parent="0"/>
 

@@ -1,6 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mxGraphModel dx="1200" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="780" math="0" shadow="1">
+<mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
   <root>
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+    <mxCell id="title" value="Diagramme de Séquence — Supprimer une Expérience" style="text;html=1;align=center;fontStyle=1;fontSize=18;strokeColor=none;fillColor=none;fontColor=#1a1a2e;" vertex="1" parent="1">
+      <mxGeometry x="80" y="14" width="1020" height="34" as="geometry"/>
+    </mxCell>
+
+    <!-- PARTICIPANTS -->
+    <mxCell id="ph1" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;actor&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;User&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a7fc1;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="60" y="62" width="100" height="46" as="geometry"/></mxCell>
+    <mxCell id="ph2" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;MobileApp&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#4a7fc1;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="220" y="62" width="110" height="46" as="geometry"/></mxCell>
+    <mxCell id="ph3" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;controller&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;ExperienceController&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#4d9e4d;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="400" y="62" width="140" height="46" as="geometry"/></mxCell>
+    <mxCell id="ph4" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;service&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;ExperienceService&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#4d9e4d;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="610" y="62" width="140" height="46" as="geometry"/></mxCell>
+    <mxCell id="ph5" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;service&amp;gt;&amp;gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;FileService&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#4d9e4d;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="820" y="62" width="120" height="46" as="geometry"/></mxCell>
+    <mxCell id="ph6" value="&lt;font style=&quot;font-size:9px;color:#555&quot;&gt;&amp;lt;&amp;lt;repository&amp;gt;&gt;&lt;/font&gt;&lt;br/&gt;&lt;b&gt;ExperienceRepository&lt;/b&gt;" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#c8a400;fontColor=#1a1a2e;fontSize=11;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1010" y="62" width="140" height="46" as="geometry"/></mxCell>
+
+    <!-- LIFELINES -->
+    <mxCell id="l1" value="" style="endArrow=none;dashed=1;strokeColor=#4a7fc1;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="110" y="108" as="sourcePoint"/><mxPoint x="110" y="870" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l2" value="" style="endArrow=none;dashed=1;strokeColor=#4a7fc1;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="275" y="108" as="sourcePoint"/><mxPoint x="275" y="870" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l3" value="" style="endArrow=none;dashed=1;strokeColor=#4d9e4d;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="470" y="108" as="sourcePoint"/><mxPoint x="470" y="870" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l4" value="" style="endArrow=none;dashed=1;strokeColor=#4d9e4d;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="680" y="108" as="sourcePoint"/><mxPoint x="680" y="870" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l5" value="" style="endArrow=none;dashed=1;strokeColor=#4d9e4d;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="880" y="108" as="sourcePoint"/><mxPoint x="880" y="870" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="l6" value="" style="endArrow=none;dashed=1;strokeColor=#c8a400;strokeWidth=1.5;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1080" y="108" as="sourcePoint"/><mxPoint x="1080" y="870" as="targetPoint"/></mxGeometry></mxCell>
+
+    <!-- ACTIVATION BOXES -->
+    <mxCell id="a1" value="" style="fillColor=#bbdefb;strokeColor=#4a7fc1;" vertex="1" parent="1"><mxGeometry x="104" y="150" width="12" height="600" as="geometry"/></mxCell>
+    <mxCell id="a2" value="" style="fillColor=#bbdefb;strokeColor=#4a7fc1;" vertex="1" parent="1"><mxGeometry x="269" y="168" width="12" height="570" as="geometry"/></mxCell>
+    <mxCell id="a3" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="464" y="188" width="12" height="540" as="geometry"/></mxCell>
+    <mxCell id="a4" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="674" y="208" width="12" height="500" as="geometry"/></mxCell>
+    <mxCell id="a5" value="" style="fillColor=#c8e6c9;strokeColor=#4d9e4d;" vertex="1" parent="1"><mxGeometry x="874" y="380" width="12" height="80" as="geometry"/></mxCell>
+    <mxCell id="a6" value="" style="fillColor=#fff9c4;strokeColor=#c8a400;" vertex="1" parent="1"><mxGeometry x="1074" y="228" width="12" height="80" as="geometry"/></mxCell>
+
+    <!-- MESSAGES -->
+    <mxCell id="m1" value="confirmer la suppression de l'expérience" style="endArrow=open;endFill=0;strokeColor=#4a7fc1;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="116" y="156" as="sourcePoint"/><mxPoint x="269" y="156" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m2" value="DELETE /experience/delete-experience/:id" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="281" y="174" as="sourcePoint"/><mxPoint x="464" y="174" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m3" value="deleteExperience()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="476" y="194" as="sourcePoint"/><mxPoint x="674" y="194" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m4" value="verifyOwnership()" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="686" y="214" as="sourcePoint"/><mxPoint x="1074" y="214" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m5" value="retourner l'expérience" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1074" y="244" as="sourcePoint"/><mxPoint x="686" y="244" as="targetPoint"/></mxGeometry></mxCell>
+
+    <!-- alt: ownership -->
+    <mxCell id="alt1" value="" style="swimlane;startSize=22;fillColor=#f9f9f9;strokeColor=#cc0000;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="96" y="268" width="1090" height="98" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1lbl" value="alt" style="text;html=1;fontStyle=1;fontSize=12;fillColor=#cc0000;strokeColor=#cc0000;fontColor=#fff;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="96" y="268" width="38" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1g1" value="[l'utilisateur n'est pas propriétaire]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="140" y="270" width="260" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="m6" value="refuser l'accès (403 Forbidden)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#cc0000;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="674" y="302" as="sourcePoint"/><mxPoint x="116" y="302" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="alt1g2" value="[l'utilisateur est propriétaire]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="140" y="330" width="220" height="16" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="m7" value="récupérer les certifications liées" style="endArrow=block;endFill=1;strokeColor=#1a1a2e;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="686" y="386" as="sourcePoint"/><mxPoint x="874" y="386" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m8" value="supprimer les fichiers physiques" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="874" y="408" as="sourcePoint"/><mxPoint x="686" y="408" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m9" value="deleteById()" style="endArrow=block;endFill=1;strokeColor=#555555;fontSize=10;fontStyle=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="686" y="440" as="sourcePoint"/><mxPoint x="1074" y="440" as="targetPoint"/></mxGeometry></mxCell>
+    <mxCell id="m10" value="confirmer la suppression" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1074" y="464" as="sourcePoint"/><mxPoint x="686" y="464" as="targetPoint"/></mxGeometry></mxCell>
+
+    <mxCell id="mret" value="confirmer la suppression de l'expérience" style="endArrow=open;endFill=0;dashed=1;strokeColor=#888888;fontSize=10;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="281" y="650" as="sourcePoint"/><mxPoint x="116" y="650" as="targetPoint"/></mxGeometry></mxCell>
+
+  </root>
+</mxGraphModel>
+
     <mxCell id="0"/><mxCell id="1" parent="0"/>
 
     <!-- TITLE -->
