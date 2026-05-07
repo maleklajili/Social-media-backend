@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="2500" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ===================== TITLE ===================== -->
+    <mxCell id="title" value="Diagrammes de Séquence — Profil &amp; Expérience" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="10" width="1340" height="35" as="geometry" />
+    </mxCell>
+
+    <!-- ===================== PARTICIPANTS ===================== -->
+
+    <mxCell id="p1" value="Client&#xa;(Mobile App)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="20" y="55" width="110" height="50" as="geometry" />
+    </mxCell>
+
+    <mxCell id="p2" value="authMiddleware" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="175" y="55" width="110" height="50" as="geometry" />
+    </mxCell>
+
+    <mxCell id="p3" value="Controller&#xa;(Profile/User/Exp)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="335" y="55" width="120" height="50" as="geometry" />
+    </mxCell>
+
+    <mxCell id="p4" value="Service&#xa;(Profile/User/Exp)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="505" y="55" width="120" height="50" as="geometry" />
+    </mxCell>
+
+    <mxCell id="p5" value="Repository&#xa;(User/Exp/Certif)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="675" y="55" width="120" height="50" as="geometry" />
+    </mxCell>
+
+    <mxCell id="p6" value="MongoDB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="845" y="55" width="110" height="50" as="geometry" />
+    </mxCell>
+
+    <mxCell id="p7" value="FileService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="1005" y="55" width="110" height="50" as="geometry" />
+    </mxCell>
+
+    <mxCell id="p8" value="Transaction&#xa;Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="1165" y="55" width="110" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- ===================== LIFELINES ===================== -->
+    <mxCell id="l1" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="75" y="105" as="sourcePoint"/><mxPoint x="75" y="2480" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l2" value="" style="endArrow=none;dashed=1;strokeColor=#b85450;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="105" as="sourcePoint"/><mxPoint x="230" y="2480" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l3" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="105" as="sourcePoint"/><mxPoint x="395" y="2480" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l4" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="105" as="sourcePoint"/><mxPoint x="565" y="2480" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l5" value="" style="endArrow=none;dashed=1;strokeColor=#d6b656;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="735" y="105" as="sourcePoint"/><mxPoint x="735" y="2480" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l6" value="" style="endArrow=none;dashed=1;strokeColor=#b85450;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="900" y="105" as="sourcePoint"/><mxPoint x="900" y="2480" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l7" value="" style="endArrow=none;dashed=1;strokeColor=#9673a6;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1060" y="105" as="sourcePoint"/><mxPoint x="1060" y="2480" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l8" value="" style="endArrow=none;dashed=1;strokeColor=#9673a6;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1220" y="105" as="sourcePoint"/><mxPoint x="1220" y="2480" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ==================== [1] CONSULTER LE PROFIL ==================== -->
+    <mxCell id="s1bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;opacity=25;" vertex="1" parent="1">
+      <mxGeometry x="10" y="120" width="1470" height="290" as="geometry" />
+    </mxCell>
+    <mxCell id="s1lbl" value="[1] Consulter le Profil — GET /profile" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=left;verticalAlign=middle;rounded=0;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="120" width="310" height="26" as="geometry" />
+    </mxCell>
+
+    <mxCell id="s1m1" value="GET /profile&#xa;Authorization: Bearer &lt;token&gt;" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="75" y="162" as="sourcePoint"/><mxPoint x="228" y="162" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s1m2" value="vérifier Bearer token" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="195" as="sourcePoint"/><mxPoint x="310" y="195" as="targetPoint"/>
+        <Array as="points"><mxPoint x="310" y="195"/><mxPoint x="310" y="210"/><mxPoint x="231" y="210"/></Array>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="s1m3" value="getProfile(req.user._id)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="228" as="sourcePoint"/><mxPoint x="393" y="228" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s1m4" value="getUserProfile(userId)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="255" as="sourcePoint"/><mxPoint x="563" y="255" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s1m5" value="findById(userId) + getLanguages() + getExperiences()&#xa;+ getEducations() + getProjects() + getSkills() [Promise.all]" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="285" as="sourcePoint"/><mxPoint x="733" y="285" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s1m6" value="db queries (users, experiences, languages…)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="735" y="312" as="sourcePoint"/><mxPoint x="898" y="312" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s1m7" value="documents" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="900" y="338" as="sourcePoint"/><mxPoint x="737" y="338" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s1m8" value="IUserProfileResponse" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="735" y="362" as="sourcePoint"/><mxPoint x="567" y="362" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s1m9" value="profil agrégé" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="385" as="sourcePoint"/><mxPoint x="397" y="385" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s1m10" value="200 OK {profil complet}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="400" as="sourcePoint"/><mxPoint x="77" y="400" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ==================== [2] MODIFIER LE PROFIL ==================== -->
+    <mxCell id="s2bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;opacity=25;" vertex="1" parent="1">
+      <mxGeometry x="10" y="430" width="1470" height="310" as="geometry" />
+    </mxCell>
+    <mxCell id="s2lbl" value="[2] Modifier le Profil — PUT /user/update-profile" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;rounded=0;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="430" width="360" height="26" as="geometry" />
+    </mxCell>
+
+    <mxCell id="s2m1" value="PUT /user/update-profile&#xa;FormData {fields, image?}" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="75" y="472" as="sourcePoint"/><mxPoint x="228" y="472" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s2mw" value="authMiddleware ✓" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="500" as="sourcePoint"/><mxPoint x="393" y="500" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s2m2" value="updateProfile(req, body, formData)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="525" as="sourcePoint"/><mxPoint x="563" y="525" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s2m3" value="handleFileUpload(formData, {image})" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="553" as="sourcePoint"/><mxPoint x="1058" y="553" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s2m3r" value="fileName (chemin image sauvegardé)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1060" y="576" as="sourcePoint"/><mxPoint x="567" y="576" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s2m4" value="updateProfile(userId, updatedFields)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="602" as="sourcePoint"/><mxPoint x="733" y="602" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s2m5" value="db.users.updateOne({_id})" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="735" y="628" as="sourcePoint"/><mxPoint x="898" y="628" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s2m5r" value="updated user" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="900" y="652" as="sourcePoint"/><mxPoint x="737" y="652" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s2m6" value="user mis à jour" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="735" y="672" as="sourcePoint"/><mxPoint x="567" y="672" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s2m7" value="200 OK {user modifié}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="692" as="sourcePoint"/><mxPoint x="77" y="692" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ==================== [3] AJOUTER UNE EXPÉRIENCE ==================== -->
+    <mxCell id="s3bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;opacity=25;" vertex="1" parent="1">
+      <mxGeometry x="10" y="760" width="1470" height="440" as="geometry" />
+    </mxCell>
+    <mxCell id="s3lbl" value="[3] Ajouter une Expérience — POST /experience/add-experience" style="text;html=1;strokeColor=#d6b656;fillColor=#fff2cc;align=left;verticalAlign=middle;rounded=0;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="760" width="440" height="26" as="geometry" />
+    </mxCell>
+
+    <mxCell id="s3m1" value="POST /experience/add-experience&#xa;FormData {place, post, entreprise, startDate, certificates?}" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="75" y="803" as="sourcePoint"/><mxPoint x="228" y="803" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3mw" value="authMiddleware ✓" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="835" as="sourcePoint"/><mxPoint x="393" y="835" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3m2" value="addExperience(userId, body, formData)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="862" as="sourcePoint"/><mxPoint x="563" y="862" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3alt1" value="[alt] champs requis manquants → 400 complete all" style="text;html=1;strokeColor=#b85450;fillColor=#f8cecc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="565" y="872" width="310" height="22" as="geometry" />
+    </mxCell>
+
+    <mxCell id="s3m3" value="handleFileUpload(formData, {certificates, multiple:true})" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="908" as="sourcePoint"/><mxPoint x="1058" y="908" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3m3r" value="uploadResults[ ] (fichiers disque)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1060" y="930" as="sourcePoint"/><mxPoint x="567" y="930" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3m4" value="addCertification(certif) [×N]" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="958" as="sourcePoint"/><mxPoint x="733" y="958" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3m4r" value="savedCertif._id" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="735" y="980" as="sourcePoint"/><mxPoint x="567" y="980" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3m5" value="addExperience(experience)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1005" as="sourcePoint"/><mxPoint x="733" y="1005" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3m5b" value="db.experiences.insertOne(doc)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="735" y="1028" as="sourcePoint"/><mxPoint x="898" y="1028" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3m6" value="addCoins(userId, COINS_CONFIG.ADD_EXPERIENCE)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1055" as="sourcePoint"/><mxPoint x="733" y="1055" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3m7" value="addStandardEarning(userId, coins, 'experience'…)" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1082" as="sourcePoint"/><mxPoint x="1218" y="1082" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3m7r" value="transaction enregistrée" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1220" y="1102" as="sourcePoint"/><mxPoint x="567" y="1102" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s3m8" value="200 OK {experience créée}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1120" as="sourcePoint"/><mxPoint x="77" y="1120" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ==================== [4] MODIFIER UNE EXPÉRIENCE ==================== -->
+    <mxCell id="s4bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=25;" vertex="1" parent="1">
+      <mxGeometry x="10" y="1220" width="1470" height="560" as="geometry" />
+    </mxCell>
+    <mxCell id="s4lbl" value="[4] Modifier une Expérience — PUT /experience/update-experience/:id" style="text;html=1;strokeColor=#9673a6;fillColor=#e1d5e7;align=left;verticalAlign=middle;rounded=0;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="1220" width="480" height="26" as="geometry" />
+    </mxCell>
+
+    <mxCell id="s4m1" value="PUT /experience/update-experience/:id&#xa;FormData {fields?, certificates?, filesToDelete?}" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="75" y="1263" as="sourcePoint"/><mxPoint x="228" y="1263" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4mw" value="authMiddleware ✓" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="1295" as="sourcePoint"/><mxPoint x="393" y="1295" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m2" value="updateExperience(userId, ObjectId(id), body, formData)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="1322" as="sourcePoint"/><mxPoint x="563" y="1322" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m3" value="findOne({_id: experienceId, userId})" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1350" as="sourcePoint"/><mxPoint x="898" y="1350" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4alt1" value="[alt] not found → 403 Experience not found or access denied" style="text;html=1;strokeColor=#b85450;fillColor=#f8cecc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="900" y="1343" width="370" height="22" as="geometry" />
+    </mxCell>
+
+    <mxCell id="s4m3r" value="existingExperience" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="900" y="1375" as="sourcePoint"/><mxPoint x="567" y="1375" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- filesToDelete branch -->
+    <mxCell id="s4note1" value="[opt] filesToDelete présent" style="text;html=1;strokeColor=#9673a6;fillColor=#e1d5e7;align=left;verticalAlign=middle;rounded=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="565" y="1388" width="200" height="20" as="geometry" />
+    </mxCell>
+
+    <mxCell id="s4m4" value="getCertificationsByIds(fileIdsToDelete)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1418" as="sourcePoint"/><mxPoint x="733" y="1418" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m5" value="deleteMultipleCertificationFiles(certs, userId)" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1443" as="sourcePoint"/><mxPoint x="1058" y="1443" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m5r" value="fichiers supprimés du disque" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1060" y="1463" as="sourcePoint"/><mxPoint x="567" y="1463" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m6" value="deleteCertificationsByIds(ids)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1487" as="sourcePoint"/><mxPoint x="733" y="1487" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- new certificates -->
+    <mxCell id="s4note2" value="[opt] nouveaux certificates présents" style="text;html=1;strokeColor=#9673a6;fillColor=#e1d5e7;align=left;verticalAlign=middle;rounded=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="565" y="1510" width="240" height="20" as="geometry" />
+    </mxCell>
+
+    <mxCell id="s4m7" value="handleFileUpload(formData, {certificates})" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1540" as="sourcePoint"/><mxPoint x="1058" y="1540" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m7r" value="uploadResults[ ]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="1060" y="1560" as="sourcePoint"/><mxPoint x="567" y="1560" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m8" value="addCertification(newCertif) [×N]" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1583" as="sourcePoint"/><mxPoint x="733" y="1583" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m9" value="updatedExperience(experience)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1608" as="sourcePoint"/><mxPoint x="733" y="1608" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m10" value="db.experiences.updateOne(doc)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="735" y="1632" as="sourcePoint"/><mxPoint x="898" y="1632" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m11" value="cleanEmptyCertificationDirectory(userId)" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1658" as="sourcePoint"/><mxPoint x="1058" y="1658" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s4m12" value="200 OK {experience mise à jour}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1680" as="sourcePoint"/><mxPoint x="77" y="1680" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ==================== [5] SUPPRIMER UNE EXPÉRIENCE ==================== -->
+    <mxCell id="s5bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;opacity=25;" vertex="1" parent="1">
+      <mxGeometry x="10" y="1800" width="1470" height="310" as="geometry" />
+    </mxCell>
+    <mxCell id="s5lbl" value="[5] Supprimer une Expérience — DELETE /experience/delete-experience/:id" style="text;html=1;strokeColor=#b85450;fillColor=#f8cecc;align=left;verticalAlign=middle;rounded=0;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="1800" width="500" height="26" as="geometry" />
+    </mxCell>
+
+    <mxCell id="s5m1" value="DELETE /experience/delete-experience/:id" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="75" y="1843" as="sourcePoint"/><mxPoint x="228" y="1843" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s5mw" value="authMiddleware ✓" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="1873" as="sourcePoint"/><mxPoint x="393" y="1873" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s5m2" value="deleteExperienceWithFiles(userId, ObjectId(id))" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="1900" as="sourcePoint"/><mxPoint x="563" y="1900" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s5m3" value="findOne({_id, userId}) — vérifier propriété" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1928" as="sourcePoint"/><mxPoint x="898" y="1928" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s5m3r" value="experience doc" style="endArrow=open;endFill=0;dashed=1;strokeColor=#555;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="900" y="1952" as="sourcePoint"/><mxPoint x="567" y="1952" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s5m4" value="deleteMultipleCertificationFiles(certs, userId)" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="1978" as="sourcePoint"/><mxPoint x="1058" y="1978" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s5m5" value="deleteById(experienceId)" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="2005" as="sourcePoint"/><mxPoint x="733" y="2005" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s5m5b" value="db.experiences.deleteOne({_id})" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="735" y="2028" as="sourcePoint"/><mxPoint x="898" y="2028" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s5m6" value="200 OK {message: 'Expérience supprimée'}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="2055" as="sourcePoint"/><mxPoint x="77" y="2055" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ==================== [6] DÉCONNEXION (LOGOUT) ==================== -->
+    <mxCell id="s6bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;opacity=25;" vertex="1" parent="1">
+      <mxGeometry x="10" y="2130" width="1470" height="320" as="geometry" />
+    </mxCell>
+    <mxCell id="s6lbl" value="[6] Déconnexion — POST /auth/logout" style="text;html=1;strokeColor=#666;fillColor=#f5f5f5;align=left;verticalAlign=middle;rounded=0;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="10" y="2130" width="300" height="26" as="geometry" />
+    </mxCell>
+
+    <mxCell id="s6m1" value="POST /auth/logout&#xa;Authorization: Bearer &lt;accessToken&gt;" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="75" y="2173" as="sourcePoint"/><mxPoint x="228" y="2173" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s6mw" value="authMiddleware: vérifier Bearer token (verifyToken)" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="2205" as="sourcePoint"/><mxPoint x="393" y="2205" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s6m2" value="getTokenFromHeaders(headers)" style="endArrow=block;endFill=1;strokeColor=#82b366;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="2232" as="sourcePoint"/><mxPoint x="480" y="2232" as="targetPoint"/>
+        <Array as="points"><mxPoint x="480" y="2232"/><mxPoint x="480" y="2248"/><mxPoint x="396" y="2248"/></Array>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="s6m3" value="logout(token)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="2268" as="sourcePoint"/><mxPoint x="563" y="2268" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s6m4" value="verifyToken(token) → payload {_id}" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="2295" as="sourcePoint"/><mxPoint x="650" y="2295" as="targetPoint"/>
+        <Array as="points"><mxPoint x="650" y="2295"/><mxPoint x="650" y="2310"/><mxPoint x="566" y="2310"/></Array>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="s6m5" value="deleteByUserId(ObjectId(_id))" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="2335" as="sourcePoint"/><mxPoint x="733" y="2335" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s6m5b" value="db.refreshTokens.deleteOne({userId})" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="735" y="2358" as="sourcePoint"/><mxPoint x="898" y="2358" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="s6m6" value="200 OK {message: 'Logged out successfully'}" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="2385" as="sourcePoint"/><mxPoint x="77" y="2385" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ==================== LÉGENDE ==================== -->
+    <mxCell id="leg" value="→ Appel (request)     ⤏ Retour (dashed response)     [alt] Cas erreur     [opt] Bloc optionnel     ✓ Middleware validé" style="text;html=1;strokeColor=#666;fillColor=#f5f5f5;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="10" y="2458" width="700" height="22" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>
