@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1200" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="950" pageHeight="680" math="0" shadow="1">
+  <root>
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+    <!-- TITLE -->
+    <mxCell id="t0" value="Diagramme de Séquence : Déconnexion (Logout)" style="text;html=1;align=center;fontStyle=1;fontSize=16;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+      <mxGeometry x="60" y="10" width="860" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- DESCRIPTION -->
+    <mxCell id="desc" value="Description : Le client envoie POST /auth/logout avec un Bearer token dans l'en-tête Authorization.&#xa;Le authMiddleware extrait et vérifie le JWT — si invalide : 401 Unauthorized. L'AuthController&#xa;récupère le token via getTokenFromHeaders() et appelle logout(token). L'AuthService vérifie à nouveau&#xa;le token pour extraire userId, puis supprime le RefreshToken en base via deleteByUserId().&#xa;Retourne 200 OK avec confirmation de déconnexion." style="text;html=1;align=left;fontSize=11;strokeColor=#666;fillColor=#f5f5f5;whiteSpace=wrap;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="45" width="860" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== PARTICIPANT HEADERS ===== -->
+    <mxCell id="p1h" value=":Client" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="30" y="155" width="90" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p2h" value=":authMiddleware" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="170" y="155" width="120" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p3h" value=":Auth&#xa;Controller" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="345" y="155" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p4h" value=":Auth&#xa;Service" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="500" y="155" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p5h" value=":Token&#xa;Service" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="655" y="155" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p6h" value=":RefreshToken&#xa;Repository" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="810" y="155" width="110" height="40" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== LIFELINES ===== -->
+    <mxCell id="l1" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="75" y="195" as="sourcePoint"/><mxPoint x="75" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l2" value="" style="endArrow=none;dashed=1;strokeColor=#b85450;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="195" as="sourcePoint"/><mxPoint x="230" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l3" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="195" as="sourcePoint"/><mxPoint x="395" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l4" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="550" y="195" as="sourcePoint"/><mxPoint x="550" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l5" value="" style="endArrow=none;dashed=1;strokeColor=#9673a6;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="705" y="195" as="sourcePoint"/><mxPoint x="705" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l6" value="" style="endArrow=none;dashed=1;strokeColor=#d6b656;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="865" y="195" as="sourcePoint"/><mxPoint x="865" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ===== ACTIVATION BOXES ===== -->
+    <mxCell id="a1" value="" style="fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="69" y="240" width="12" height="380" as="geometry"/></mxCell>
+    <mxCell id="a2" value="" style="fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="224" y="268" width="12" height="70" as="geometry"/></mxCell>
+    <mxCell id="a3" value="" style="fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="389" y="308" width="12" height="260" as="geometry"/></mxCell>
+    <mxCell id="a4" value="" style="fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="544" y="345" width="12" height="195" as="geometry"/></mxCell>
+
+    <!-- ===== MESSAGES ===== -->
+    <mxCell id="m1" value="1: POST /auth/logout [Authorization: Bearer &lt;token&gt;]" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="81" y="245" as="sourcePoint"/><mxPoint x="224" y="245" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ALT token valide -->
+    <mxCell id="alt1_bg" value="" style="swimlane;startSize=20;fillColor=#fff9e6;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="100" y="270" width="835" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1_lbl" value="alt" style="text;html=1;fontStyle=1;fontSize=12;fillColor=#b85450;strokeColor=#b85450;fontColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="100" y="270" width="35" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1_g1" value="[token absent ou invalide]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="140" y="272" width="190" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="m2b" value="return 401 Unauthorized" style="endArrow=open;endFill=0;dashed=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="236" y="300" as="sourcePoint"/><mxPoint x="81" y="300" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="alt1_g2" value="[token valide]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="140" y="315" width="100" height="16" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="m3" value="1.1: logout(token)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="81" y="355" as="sourcePoint"/><mxPoint x="389" y="355" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m3a" value="1.1.1: getTokenFromHeaders(req.headers)" style="endArrow=block;endFill=1;strokeColor=#82b366;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="401" y="375" as="sourcePoint"/><mxPoint x="460" y="375" as="targetPoint"/>
+        <Array as="points"><mxPoint x="460" y="375"/><mxPoint x="460" y="390"/><mxPoint x="401" y="390"/></Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m4" value="1.1.2: logout(token) [AuthService]" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="401" y="408" as="sourcePoint"/><mxPoint x="544" y="408" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m5" value="1.1.2.1: verifyToken(token)" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="556" y="430" as="sourcePoint"/><mxPoint x="699" y="430" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m5r" value="{ _id: userId }" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="699" y="450" as="sourcePoint"/><mxPoint x="556" y="450" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m6" value="1.1.2.2: deleteByUserId(userId)" style="endArrow=block;endFill=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="556" y="478" as="sourcePoint"/><mxPoint x="859" y="478" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m6a" value="db.refreshTokens.deleteOne({userId})" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="859" y="498" as="sourcePoint"/><mxPoint x="925" y="498" as="targetPoint"/>
+        <Array as="points"><mxPoint x="925" y="498"/><mxPoint x="925" y="513"/><mxPoint x="860" y="513"/></Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m6r" value="OK" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="859" y="533" as="sourcePoint"/><mxPoint x="556" y="533" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="ret" value="200 OK { message: 'Déconnexion réussie' }" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=11;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="556" y="590" as="sourcePoint"/><mxPoint x="81" y="590" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1200" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="950" pageHeight="680" math="0" shadow="1">
+  <root>
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+    <!-- TITLE -->
+    <mxCell id="t0" value="Diagramme de Séquence : Modifier le Profil" style="text;html=1;align=center;fontStyle=1;fontSize=16;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+      <mxGeometry x="60" y="10" width="860" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- DESCRIPTION -->
+    <mxCell id="desc" value="Description : Le client envoie PUT /user/update-profile avec un FormData et un Bearer token.&#xa;Le authMiddleware vérifie le JWT (401 si invalide). L'UserController parse les données du formulaire&#xa;via parseFormData&lt;User&gt;() puis appelle updateProfile(req, body, formData). L'UserService traite&#xa;[opt] l'upload d'image via handleFileUpload() si une image est incluse dans le FormData. Ensuite,&#xa;userRepository.updateProfile(userId, fields) effectue db.users.updateOne() pour persister les&#xa;modifications. Retourne 200 OK avec le profil mis à jour." style="text;html=1;align=left;fontSize=11;strokeColor=#666;fillColor=#f5f5f5;whiteSpace=wrap;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="45" width="860" height="95" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== PARTICIPANT HEADERS ===== -->
+    <mxCell id="p1h" value=":Client" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="30" y="160" width="90" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p2h" value=":authMiddleware" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="170" y="160" width="120" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p3h" value=":User&#xa;Controller" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="345" y="160" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p4h" value=":User&#xa;Service" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="500" y="160" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p5h" value=":FileService" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="655" y="160" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p6h" value=":User&#xa;Repository" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="810" y="160" width="100" height="40" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== LIFELINES ===== -->
+    <mxCell id="l1" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="75" y="200" as="sourcePoint"/><mxPoint x="75" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l2" value="" style="endArrow=none;dashed=1;strokeColor=#b85450;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="200" as="sourcePoint"/><mxPoint x="230" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l3" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="395" y="200" as="sourcePoint"/><mxPoint x="395" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l4" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="550" y="200" as="sourcePoint"/><mxPoint x="550" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l5" value="" style="endArrow=none;dashed=1;strokeColor=#9673a6;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="705" y="200" as="sourcePoint"/><mxPoint x="705" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l6" value="" style="endArrow=none;dashed=1;strokeColor=#d6b656;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="860" y="200" as="sourcePoint"/><mxPoint x="860" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ===== ACTIVATION BOXES ===== -->
+    <mxCell id="a1" value="" style="fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="69" y="245" width="12" height="370" as="geometry"/></mxCell>
+    <mxCell id="a2" value="" style="fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="224" y="272" width="12" height="70" as="geometry"/></mxCell>
+    <mxCell id="a3" value="" style="fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="389" y="315" width="12" height="250" as="geometry"/></mxCell>
+    <mxCell id="a4" value="" style="fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="544" y="350" width="12" height="185" as="geometry"/></mxCell>
+
+    <!-- ===== MESSAGES ===== -->
+    <mxCell id="m1" value="1: PUT /user/update-profile [FormData, Bearer token]" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="81" y="250" as="sourcePoint"/><mxPoint x="224" y="250" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ALT token -->
+    <mxCell id="alt1_bg" value="" style="swimlane;startSize=20;fillColor=#fff9e6;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="100" y="272" width="830" height="65" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1_lbl" value="alt" style="text;html=1;fontStyle=1;fontSize=12;fillColor=#b85450;strokeColor=#b85450;fontColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="100" y="272" width="35" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1_g1" value="[token invalide ou manquant]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="140" y="274" width="200" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="m2b" value="return 401 Unauthorized" style="endArrow=open;endFill=0;dashed=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="236" y="300" as="sourcePoint"/><mxPoint x="81" y="300" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="alt1_g2" value="[token valide]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="140" y="315" width="100" height="16" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="m3" value="1.1: parseFormData&lt;User&gt;(req.formData)" style="endArrow=block;endFill=1;strokeColor=#82b366;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="401" y="340" as="sourcePoint"/><mxPoint x="460" y="340" as="targetPoint"/>
+        <Array as="points"><mxPoint x="460" y="340"/><mxPoint x="460" y="355"/><mxPoint x="401" y="355"/></Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m4" value="1.2: updateProfile(req, body, formData)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="401" y="375" as="sourcePoint"/><mxPoint x="544" y="375" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- OPT image -->
+    <mxCell id="opt1_bg" value="" style="swimlane;startSize=20;fillColor=#f3e8ff;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="120" y="395" width="825" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="opt1_lbl" value="opt" style="text;html=1;fontStyle=1;fontSize=12;fillColor=#9673a6;strokeColor=#9673a6;fontColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="120" y="395" width="35" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="opt1_g" value="[formData contient 'image']" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="160" y="397" width="200" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="m5" value="1.2.1: handleFileUpload(formData, {image})" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="556" y="427" as="sourcePoint"/><mxPoint x="699" y="427" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m5r" value="fileName (chemin fichier sauvegardé)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="699" y="450" as="sourcePoint"/><mxPoint x="556" y="450" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="m6" value="1.2.2: updateProfile(userId, fields)" style="endArrow=block;endFill=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="556" y="495" as="sourcePoint"/><mxPoint x="854" y="495" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m6a" value="db.users.updateOne({_id: userId}, {$set: fields})" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="854" y="515" as="sourcePoint"/><mxPoint x="920" y="515" as="targetPoint"/>
+        <Array as="points"><mxPoint x="920" y="515"/><mxPoint x="920" y="530"/><mxPoint x="855" y="530"/></Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m6r" value="OK" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="854" y="550" as="sourcePoint"/><mxPoint x="556" y="550" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="ret" value="200 OK { message: 'Profil mis à jour avec succès' }" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=11;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="556" y="600" as="sourcePoint"/><mxPoint x="81" y="600" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

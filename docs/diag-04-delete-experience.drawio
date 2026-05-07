@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1200" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="780" math="0" shadow="1">
+  <root>
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+    <!-- TITLE -->
+    <mxCell id="t0" value="Diagramme de Séquence : Supprimer une Expérience" style="text;html=1;align=center;fontStyle=1;fontSize=16;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+      <mxGeometry x="60" y="10" width="960" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- DESCRIPTION -->
+    <mxCell id="desc" value="Description : Le client envoie DELETE /experience/delete-experience/:id avec un Bearer token.&#xa;Le authMiddleware vérifie le JWT. L'ExperienceController appelle deleteExperienceWithFiles(userId, id).&#xa;Le service vérifie la propriété de l'expérience via findOne({_id, userId}) — si non trouvée : 403.&#xa;Il récupère les certifications liées, supprime les fichiers physiques via FileService, puis supprime&#xa;l'expérience en base via deleteById(). Retourne 200 OK avec message de confirmation." style="text;html=1;align=left;fontSize=11;strokeColor=#666;fillColor=#f5f5f5;whiteSpace=wrap;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="45" width="960" height="85" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== PARTICIPANT HEADERS ===== -->
+    <mxCell id="p1h" value=":Client" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="30" y="150" width="90" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p2h" value=":authMiddleware" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="170" y="150" width="120" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p3h" value=":Experience&#xa;Controller" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="345" y="150" width="110" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p4h" value=":Experience&#xa;Services" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="510" y="150" width="110" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p5h" value=":FileService" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="675" y="150" width="100" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="p6h" value=":Experience&#xa;Repository" style="shape=mxgraph.uml.lifeline;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="835" y="150" width="110" height="40" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== LIFELINES ===== -->
+    <mxCell id="l1" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="75" y="190" as="sourcePoint"/><mxPoint x="75" y="760" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l2" value="" style="endArrow=none;dashed=1;strokeColor=#b85450;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="230" y="190" as="sourcePoint"/><mxPoint x="230" y="760" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l3" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="400" y="190" as="sourcePoint"/><mxPoint x="400" y="760" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l4" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="565" y="190" as="sourcePoint"/><mxPoint x="565" y="760" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l5" value="" style="endArrow=none;dashed=1;strokeColor=#9673a6;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="725" y="190" as="sourcePoint"/><mxPoint x="725" y="760" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="l6" value="" style="endArrow=none;dashed=1;strokeColor=#d6b656;strokeWidth=1.5;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="890" y="190" as="sourcePoint"/><mxPoint x="890" y="760" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ===== ACTIVATION BOXES ===== -->
+    <mxCell id="a1" value="" style="fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="69" y="240" width="12" height="460" as="geometry"/></mxCell>
+    <mxCell id="a2" value="" style="fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="224" y="268" width="12" height="70" as="geometry"/></mxCell>
+    <mxCell id="a3" value="" style="fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="394" y="308" width="12" height="340" as="geometry"/></mxCell>
+    <mxCell id="a4" value="" style="fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="559" y="345" width="12" height="280" as="geometry"/></mxCell>
+
+    <!-- ===== MESSAGES ===== -->
+    <mxCell id="m1" value="1: DELETE /experience/delete-experience/:id [Bearer token]" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="81" y="245" as="sourcePoint"/><mxPoint x="224" y="245" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m2" value="1.1: verifyToken(token)" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="236" y="280" as="sourcePoint"/><mxPoint x="310" y="280" as="targetPoint"/>
+        <Array as="points"><mxPoint x="310" y="280"/><mxPoint x="310" y="295"/><mxPoint x="236" y="295"/></Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m3" value="1.2: deleteExperience(userId, ObjectId(id))" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="81" y="313" as="sourcePoint"/><mxPoint x="394" y="313" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m4" value="1.2.1: deleteExperienceWithFiles(userId, id)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="406" y="348" as="sourcePoint"/><mxPoint x="559" y="348" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m5" value="1.2.1.1: findOne({_id: experienceId, userId})" style="endArrow=block;endFill=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="571" y="378" as="sourcePoint"/><mxPoint x="884" y="378" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- ALT propriété -->
+    <mxCell id="alt1_bg" value="" style="swimlane;startSize=20;fillColor=#fff9e6;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="100" y="395" width="890" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1_lbl" value="alt" style="text;html=1;fontStyle=1;fontSize=12;fillColor=#b85450;strokeColor=#b85450;fontColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="100" y="395" width="35" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="alt1_g1" value="[non trouvée ou accès refusé]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="140" y="397" width="220" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="m5b" value="return 403 'Experience not found or access denied'" style="endArrow=open;endFill=0;dashed=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="571" y="425" as="sourcePoint"/><mxPoint x="81" y="425" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="alt1_g2" value="[trouvée]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="140" y="440" width="80" height="16" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="m5r" value="experience document" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="884" y="478" as="sourcePoint"/><mxPoint x="571" y="478" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="m6" value="1.2.1.2: deleteMultipleCertificationFiles(certs, userId)" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="571" y="505" as="sourcePoint"/><mxPoint x="719" y="505" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m6r" value="fichiers certifications supprimés du disque" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="719" y="525" as="sourcePoint"/><mxPoint x="571" y="525" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <mxCell id="m7" value="1.2.1.3: deleteById(experienceId)" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="571" y="553" as="sourcePoint"/><mxPoint x="884" y="553" as="targetPoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="m7a" value="db.experiences.deleteOne({_id})" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="884" y="573" as="sourcePoint"/><mxPoint x="950" y="573" as="targetPoint"/>
+        <Array as="points"><mxPoint x="950" y="573"/><mxPoint x="950" y="588"/><mxPoint x="885" y="588"/></Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m7r" value="OK" style="endArrow=open;endFill=0;dashed=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="884" y="608" as="sourcePoint"/><mxPoint x="571" y="608" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+    <!-- destroy ExperienceRepository -->
+    <mxCell id="destroy" value="X" style="text;html=1;fontStyle=1;fontSize=18;strokeColor=none;fillColor=none;align=center;fontColor=#b85450;" vertex="1" parent="1">
+      <mxGeometry x="878" y="622" width="24" height="24" as="geometry"/>
+    </mxCell>
+
+    <!-- return -->
+    <mxCell id="ret" value="200 OK { message: 'Expérience supprimée avec succès' }" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=11;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="571" y="665" as="sourcePoint"/><mxPoint x="81" y="665" as="targetPoint"/></mxGeometry>
+    </mxCell>
+
+  </root>
+</mxGraphModel>
