@@ -60,7 +60,7 @@
     <mxCell id="a4" value="" style="fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="544" y="345" width="12" height="195" as="geometry"/></mxCell>
 
     <!-- ===== MESSAGES ===== -->
-    <mxCell id="m1" value="1: POST /auth/logout [Authorization: Bearer &lt;token&gt;]" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m1" value="Envoyer une demande de déconnexion avec le token d'accès" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="81" y="245" as="sourcePoint"/><mxPoint x="224" y="245" as="targetPoint"/></mxGeometry>
     </mxCell>
 
@@ -74,43 +74,43 @@
     <mxCell id="alt1_g1" value="[token absent ou invalide]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
       <mxGeometry x="140" y="272" width="190" height="16" as="geometry"/>
     </mxCell>
-    <mxCell id="m2b" value="return 401 Unauthorized" style="endArrow=open;endFill=0;dashed=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m2b" value="Retourner une erreur : accès non autorisé (401)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="236" y="300" as="sourcePoint"/><mxPoint x="81" y="300" as="targetPoint"/></mxGeometry>
     </mxCell>
     <mxCell id="alt1_g2" value="[token valide]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
       <mxGeometry x="140" y="315" width="100" height="16" as="geometry"/>
     </mxCell>
 
-    <mxCell id="m3" value="1.1: logout(token)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m3" value="Traiter la déconnexion de l'utilisateur" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="81" y="355" as="sourcePoint"/><mxPoint x="389" y="355" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m3a" value="1.1.1: getTokenFromHeaders(req.headers)" style="endArrow=block;endFill=1;strokeColor=#82b366;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m3a" value="Extraire le token de l'en-tête de la requête" style="endArrow=block;endFill=1;strokeColor=#82b366;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="401" y="375" as="sourcePoint"/><mxPoint x="460" y="375" as="targetPoint"/>
         <Array as="points"><mxPoint x="460" y="375"/><mxPoint x="460" y="390"/><mxPoint x="401" y="390"/></Array>
       </mxGeometry>
     </mxCell>
-    <mxCell id="m4" value="1.1.2: logout(token) [AuthService]" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m4" value="Invalider la session et le token de rafraîchissement" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="401" y="408" as="sourcePoint"/><mxPoint x="544" y="408" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m5" value="1.1.2.1: verifyToken(token)" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m5" value="Vérifier et décoder le token pour extraire l'identifiant" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="556" y="430" as="sourcePoint"/><mxPoint x="699" y="430" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m5r" value="{ _id: userId }" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m5r" value="Identifiant de l'utilisateur extrait du token" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="699" y="450" as="sourcePoint"/><mxPoint x="556" y="450" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m6" value="1.1.2.2: deleteByUserId(userId)" style="endArrow=block;endFill=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m6" value="Supprimer le token de rafraîchissement en base" style="endArrow=block;endFill=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="556" y="478" as="sourcePoint"/><mxPoint x="859" y="478" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m6a" value="db.refreshTokens.deleteOne({userId})" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m6a" value="Supprimer l'entrée du token de rafraîchissement" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="859" y="498" as="sourcePoint"/><mxPoint x="925" y="498" as="targetPoint"/>
         <Array as="points"><mxPoint x="925" y="498"/><mxPoint x="925" y="513"/><mxPoint x="860" y="513"/></Array>
       </mxGeometry>
     </mxCell>
-    <mxCell id="m6r" value="OK" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m6r" value="Token de rafraîchissement supprimé avec succès" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="859" y="533" as="sourcePoint"/><mxPoint x="556" y="533" as="targetPoint"/></mxGeometry>
     </mxCell>
 
-    <mxCell id="ret" value="200 OK { message: 'Déconnexion réussie' }" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=11;" edge="1" parent="1">
+    <mxCell id="ret" value="Confirmer la déconnexion au client (200 OK)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=11;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="556" y="590" as="sourcePoint"/><mxPoint x="81" y="590" as="targetPoint"/></mxGeometry>
     </mxCell>
 

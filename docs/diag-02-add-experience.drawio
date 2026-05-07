@@ -69,18 +69,18 @@
     <mxCell id="a7" value="" style="fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="1069" y="470" width="12" height="60" as="geometry"/></mxCell>
 
     <!-- ===== MESSAGES ===== -->
-    <mxCell id="m1" value="1: POST /experience/add-experience [FormData]" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m1" value="Soumettre le formulaire d'ajout d'expérience" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="91" y="245" as="sourcePoint"/><mxPoint x="239" y="245" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m2" value="1.1: verifyToken(token)" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m2" value="Vérifier le token d'authentification" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="251" y="280" as="sourcePoint"/><mxPoint x="330" y="280" as="targetPoint"/>
         <Array as="points"><mxPoint x="330" y="280"/><mxPoint x="330" y="295"/><mxPoint x="251" y="295"/></Array>
       </mxGeometry>
     </mxCell>
-    <mxCell id="m3" value="1.2: addExperience(userId, formData)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m3" value="Transmettre la demande d'ajout d'expérience" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="91" y="313" as="sourcePoint"/><mxPoint x="414" y="313" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m4" value="1.2.1: addExperience(userId, body, formData)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m4" value="Traiter et enregistrer la nouvelle expérience" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="426" y="348" as="sourcePoint"/><mxPoint x="584" y="348" as="targetPoint"/></mxGeometry>
     </mxCell>
 
@@ -94,7 +94,7 @@
     <mxCell id="alt1_g1" value="[champs requis manquants]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
       <mxGeometry x="180" y="370" width="200" height="16" as="geometry"/>
     </mxCell>
-    <mxCell id="m4b" value="1.2.1.1: return 400 Bad Request 'complete all'" style="endArrow=open;endFill=0;dashed=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m4b" value="Retourner une erreur : champs obligatoires manquants (400)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="596" y="400" as="sourcePoint"/><mxPoint x="91" y="400" as="targetPoint"/></mxGeometry>
     </mxCell>
     <mxCell id="alt1_g2" value="[champs valides]" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
@@ -111,54 +111,54 @@
     <mxCell id="opt1_g" value="[formData contient 'certificates']" style="text;html=1;fontSize=10;fontStyle=2;" vertex="1" parent="1">
       <mxGeometry x="180" y="462" width="240" height="16" as="geometry"/>
     </mxCell>
-    <mxCell id="m5" value="1.2.1.2: handleFileUpload(formData, {multiple:true})" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m5" value="Uploader les fichiers de certification sur le serveur" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="596" y="490" as="sourcePoint"/><mxPoint x="749" y="490" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m5r" value="uploadResults[ ] — fichiers écrits sur disque" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m5r" value="Chemins des fichiers de certification sauvegardés" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="749" y="513" as="sourcePoint"/><mxPoint x="596" y="513" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m6" value="1.2.1.3: addCertification(certif) [× N fichiers]" style="endArrow=block;endFill=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m6" value="Enregistrer chaque certification en base de données" style="endArrow=block;endFill=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="596" y="540" as="sourcePoint"/><mxPoint x="909" y="540" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m6a" value="1.2.1.3.1: db.certifications.insertOne()" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m6a" value="Insérer la certification dans la collection" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="921" y="558" as="sourcePoint"/><mxPoint x="1069" y="558" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m6b" value="savedCertif._id" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m6b" value="Identifiant de la certification créée" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="1069" y="578" as="sourcePoint"/><mxPoint x="596" y="578" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m6c" value="experience.certificates.push(id)" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m6c" value="Ajouter l'identifiant de la certification à la liste" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="596" y="600" as="sourcePoint"/><mxPoint x="650" y="600" as="targetPoint"/>
         <Array as="points"><mxPoint x="650" y="600"/><mxPoint x="650" y="615"/><mxPoint x="596" y="615"/></Array>
       </mxGeometry>
     </mxCell>
 
     <!-- insert experience -->
-    <mxCell id="m7" value="1.2.2: addExperience(experience)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m7" value="Insérer l'expérience en base de données" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="596" y="650" as="sourcePoint"/><mxPoint x="909" y="650" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m7a" value="1.2.2.1: db.experiences.insertOne(doc)" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m7a" value="Exécuter l'insertion dans la collection experiences" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="921" y="668" as="sourcePoint"/><mxPoint x="1069" y="668" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m7b" value="experience._id" style="endArrow=open;endFill=0;dashed=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m7b" value="Identifiant de la nouvelle expérience créée" style="endArrow=open;endFill=0;dashed=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="1069" y="688" as="sourcePoint"/><mxPoint x="596" y="688" as="targetPoint"/></mxGeometry>
     </mxCell>
 
     <!-- coins + transaction -->
-    <mxCell id="m8" value="1.2.3: addCoins(userId, COINS_CONFIG.ADD_EXPERIENCE)" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m8" value="Créditer les coins de récompense sur le compte utilisateur" style="endArrow=block;endFill=1;strokeColor=#333;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="596" y="720" as="sourcePoint"/><mxPoint x="909" y="720" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m8a" value="db.users.updateOne({$inc: {coins}})" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m8a" value="Mettre à jour le solde de coins dans la base de données" style="endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="921" y="738" as="sourcePoint"/><mxPoint x="1069" y="738" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m9" value="1.2.4: addStandardEarning(userId, coins, 'experience'…)" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m9" value="Enregistrer la transaction de gains dans le journal" style="endArrow=block;endFill=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="596" y="770" as="sourcePoint"/><mxPoint x="1069" y="770" as="targetPoint"/></mxGeometry>
     </mxCell>
-    <mxCell id="m9r" value="transaction enregistrée" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
+    <mxCell id="m9r" value="Confirmation d'enregistrement de la transaction" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=10;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="1069" y="790" as="sourcePoint"/><mxPoint x="596" y="790" as="targetPoint"/></mxGeometry>
     </mxCell>
 
     <!-- return -->
-    <mxCell id="ret" value="200 OK { experience créée }" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=11;" edge="1" parent="1">
+    <mxCell id="ret" value="Répondre avec la confirmation de création (200 OK)" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=11;" edge="1" parent="1">
       <mxGeometry relative="1" as="geometry"><mxPoint x="596" y="840" as="sourcePoint"/><mxPoint x="91" y="840" as="targetPoint"/></mxGeometry>
     </mxCell>
 
