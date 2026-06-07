@@ -1,0 +1,19 @@
+# Secrets — NE JAMAIS inclure dans l'image (surtout si l'image est publique)
+.env
+.env.*
+
+# Dépendances et artefacts (réinstallés dans l'image)
+node_modules
+uploads
+
+# Git / CI / éditeur
+.git
+.github
+.gitignore
+.vscode
+*.log
+
+# Divers
+Dockerfile
+.dockerignore
+README*.md
