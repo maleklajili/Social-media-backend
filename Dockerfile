@@ -15,9 +15,10 @@ RUN apt-get update \
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
-# 2) Dépendances Python du sidecar IA
+# 2) Dépendances Python du sidecar IA (optionnelles : non bloquantes pour l'image)
 COPY python-ai/requirements.txt ./python-ai/requirements.txt
-RUN pip3 install --no-cache-dir --break-system-packages -r python-ai/requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages -r python-ai/requirements.txt \
+ || echo "[warn] Dépendances Python non installées (libs compilées ignorées) — l'API démarre quand même."
 
 # 3) Code source de l'application
 COPY . .
