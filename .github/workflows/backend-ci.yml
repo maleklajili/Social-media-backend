@@ -1,8 +1,7 @@
 name: Backend CI
 
 # Intégration continue du backend (Bun/TypeScript + IA) — gratuit, aucun secret.
-# Vérifie que les dépendances s'installent, que le lint passe, et que l'image
-# Docker se construit correctement (preuve de conteneurisation, sans publication).
+# Pipeline en 2 étapes (jobs) : lint -> construction de l'image Docker.
 on:
   push:
     branches: [ main ]
@@ -10,23 +9,25 @@ on:
   workflow_dispatch:
 
 jobs:
-  quality:
+  # 1) Qualité : installation des dépendances + lint ESLint
+  lint:
+    name: Lint (ESLint)
     runs-on: ubuntu-latest
     steps:
-      - name: Récupérer le code
-        uses: actions/checkout@v4
-
-      - name: Installer Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+      - run: bun install
+      - name: Analyse ESLint
+        run: bun run lints || true
 
-      - name: Installer les dépendances
-        run: bun install
-
-      - name: Lint (ESLint)
-        run: bun run lints
-        continue-on-error: true     # n'interrompt pas le pipeline en cas d'avertissement
-
-      - name: Vérifier que l'image Docker se construit
+  # 2) Conteneurisation : build de l'image Docker (sans publication)
+  docker:
+    name: Build image Docker
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construire l'image Docker
         run: docker build -t cvtech-backend:ci .
